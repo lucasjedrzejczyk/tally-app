@@ -91,3 +91,22 @@ C3. **Ficha: modo Editar.**
 - Estado no endereço: `?p=<id>&edit=1` (replaceState); "Nova pessoa" abre direto no Editar com foco no Nome.
 
 C4. **Verificação.** `npm run verify` sem servidor no ar; ajustar `e2e/people.spec.ts` e `e2e/people-import.spec.ts` para o novo fluxo (editar telefone passa a ser Editar → campo → Pronto); `npx playwright test` inteiro. Prévias `docs/previews/13c-*.png`: lista 1280 claro, ficha leitura 1280 claro e escuro (pessoa preenchida), ficha leitura de pessoa vazia 1280, ficha Editar 1280, lista e ficha 390 claro. Mesma técnica de antes (spec temporária, apagar no fim). Não alterar outras prévias (restaurar png antigo modificado com git checkout).
+
+## Fase D. Editar só com o essencial (pedido do dono em 2026-10-11)
+
+"Para cadastrar um membro de verdade, só aparecer o essencial." O modo Editar (e "Nova pessoa") mostra só o essencial; o resto fica recolhido.
+
+D1. **Essencial (sempre visível no Editar), nesta ordem:**
+- Foto e **Nome**.
+- **Celular** (coluna `phone`). Rótulo de apoio `--t-11 --text-2`: "Também usado no WhatsApp".
+- **Nascimento**.
+- **Endereço**: Rua e número, Complemento, Cidade, UF, CEP (como hoje) + "Usar este endereço para todos da família".
+- **Família** (como hoje no Editar).
+- **Na igreja**: Situação, Cargo (com as sugestões), Batismo, Membro desde.
+
+D2. **"Mais dados"** (botão-linha recolhido no fim, `ChevronDown`, fechado por padrão sempre; abre/fecha só com opacity 150ms ou sem animação): E-mail, WhatsApp ("Só se for outro número"), Sexo, Estado civil, Profissão, Documentos (CPF/RG, só members.manage), Primeira visita, Conversão, Forma de entrada, Líder. Ao lado do botão, `--text-2`, quantos estão preenchidos ("3 preenchidos"), para ninguém achar que sumiu dado.
+- Data e motivo de saída SAEM do Editar (já existe "Registrar saída" no menu "···"; se a pessoa tem saída registrada, a linha do tempo mostra e o menu ganha "Desfazer saída", que limpa exit_date/exit_reason e volta a situação para Membro).
+
+D3. **WhatsApp**: o botão da leitura usa `whatsapp` se houver, senão `phone`. Ligar usa `phone`.
+
+D4. **Verificação**: `npm run verify` sem servidor; ajustar e2e se preciso; `npx playwright test` inteiro. Prévias: `13d-editar-1280-claro.png` (fechado), `13d-editar-mais-1280-claro.png` (Mais dados aberto), `13d-nova-390-claro.png` (Nova pessoa no celular). Mesma técnica de antes.
