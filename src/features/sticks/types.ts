@@ -53,6 +53,7 @@ export interface PersonDetail {
   photoUrl: string | null;
   family: Family | null;
   tithes: { year: number; total: number; count: number; currency: string } | null; // null = sem acesso
+  cell: { id: string; name: string; since: string } | null; // célula ativa (left_at nulo) e desde quando
 }
 
 // Lista salva: nome + filtros (o mesmo objeto da querystring).

@@ -2,6 +2,7 @@
 // também não. Telefone, WhatsApp e e-mail viram botões de ação no cabeçalho (PersonProfile).
 import Link from "next/link";
 import { money } from "@/lib/utils/money";
+import { monthYear } from "@/features/groups/domain";
 import { addressLine, aboutLine, churchTimeline, optionLabel, ROLE_OPTIONS } from "../domain";
 import type { PersonDetail } from "../types";
 import styles from "../people.module.css";
@@ -36,7 +37,7 @@ export function PersonRead({
   const timeline = churchTimeline(v);
   const tithes = canFinance && detail.tithes && detail.tithes.count > 0 ? detail.tithes : null;
 
-  if (!hasActions && !about && !address.line && !others.length && !timeline.length && !tithes)
+  if (!hasActions && !about && !address.line && !others.length && !timeline.length && !detail.cell && !tithes)
     return (
       <div className={styles.blank}>
         <p>Ainda sem dados.</p>
@@ -78,17 +79,25 @@ export function PersonRead({
         </section>
       ) : null}
 
-      {timeline.length ? (
+      {timeline.length || detail.cell ? (
         <section className={styles.sec} aria-labelledby="sec-church">
           <h2 id="sec-church" className={styles.secTitle}>Na igreja</h2>
-          <ol className={styles.tl}>
-            {timeline.map((m) => (
-              <li key={m.key} className={styles.tlItem}>
-                <span>{m.label}</span>
-                {m.when ? <span className={styles.dim}> {m.when}</span> : null}
-              </li>
-            ))}
-          </ol>
+          {detail.cell ? (
+            <p className={`${styles.line} ${styles.cellLine}`}>
+              <Link className="link" href={`/groups?g=${detail.cell.id}`}>{detail.cell.name}</Link>
+              <span className={styles.dim}> (desde {monthYear(detail.cell.since)})</span>
+            </p>
+          ) : null}
+          {timeline.length ? (
+            <ol className={styles.tl}>
+              {timeline.map((m) => (
+                <li key={m.key} className={styles.tlItem}>
+                  <span>{m.label}</span>
+                  {m.when ? <span className={styles.dim}> {m.when}</span> : null}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </section>
       ) : null}
 

@@ -106,4 +106,11 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await page.goto(`/groups/${id}`);
   await expect(page.getByRole("heading", { name: cellName })).toBeVisible();
   await expect(page.getByRole("button", { name: new RegExp(cellName) }).first()).toBeVisible();
+
+  // A7: na ficha da pessoa, "Na igreja" mostra a célula (com link) e desde quando
+  const { supabase, orgId } = await signInTestUser();
+  const { data: a } = await supabase.from("sticks").select("id").eq("org_id", orgId).eq("full_name", people[0]!).single();
+  await page.goto(`/people/${a!.id}`);
+  await expect(page.getByRole("link", { name: cellName })).toHaveAttribute("href", `/groups?g=${id}`);
+  await expect(page.getByText(/\(desde [a-z]{3}\/\d{4}\)/)).toBeVisible();
 });

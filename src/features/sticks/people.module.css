@@ -356,6 +356,9 @@ button.photo:focus-visible {
 .actions a {
   text-decoration: none;
 }
+.cellLine {
+  margin-bottom: var(--s-3);
+}
 .tl {
   margin: 0;
   padding: 0;
