@@ -59,3 +59,35 @@ B5. **Verificação Fase B**: igual A5, com teste de `import.ts` (mapeamento por
 
 ## Entrega
 Commits na branch, um por item, mensagem `feat(people): ...`. NÃO publicar na main: prévias para o dono aprovar.
+
+## Fase C. Simplificação (pedido do dono em 2026-10-11: "layout e quantidade de funções cansativo")
+
+Norte: mostrar só o que importa agora; cadastro aparece na hora de editar. Nenhuma função some, só muda de lugar. Régua 4d continua valendo. Sem animação ao trocar pessoa/filtro.
+
+C1. **Lista: uma fileira de controles.**
+- Cabeçalho: "Pessoas" + contagem + botão só-ícone `Plus` (`.iconbtn`, aria-label "Nova pessoa") + menu `MoreHorizontal` (Importar planilha, Exportar lista). Some o botão verde grande.
+- Abaixo: busca em pílula e, na mesma linha (ou logo abaixo no celular), três botões-chip com popover: **Situação ▾** (Todos, Membros, Frequentadores, Visitantes, Inativos; o chip mostra o escolhido, ex. "Membros"), **Filtros ▾** (Cargo, Aniversário, Célula, em seções dentro do mesmo popover), **Listas ▾** (listas salvas, sugestões, "Salvar lista atual" quando há filtro, Renomear/Apagar).
+- Filtro ligado aparece como etiqueta removível (X) numa linha logo abaixo, que só existe se houver filtro ou lista aplicada. Os chips exclusivos antigos, a fileira de sugestões e a fileira de listas somem.
+- Linha da pessoa: nome `--t-15`/500; embaixo, `--t-13 --text-2`, só o que foge do normal: cargo (se houver) e etiqueta de situação apenas para Visitante/Frequentador/Inativo/Arquivado. Membro sem cargo = só o nome (linha de baixo some). Sem telefone. Aniversário à direita continua quando o filtro de aniversário está ligado.
+- Bug: se o filtro/lista tira da lista a pessoa aberta, abrir a primeira da lista filtrada (ou o estado vazio da ficha se a lista ficou vazia).
+
+C2. **Ficha: modo leitura enxuto.**
+- Cabeçalho: foto/iniciais, nome `--t-22`/600, linha `--t-13 --text-2` "Situação · Cargo · 41 anos". Embaixo, botões de ação em pílula ghost com ícone Lucide, só os que têm dado: **WhatsApp** (`MessageCircle`, wa.me), **Ligar** (`Phone`, tel:), **E-mail** (`Mail`, mailto:). À direita: **Editar** (botão ghost) + menu `MoreHorizontal` (Imprimir ficha, Certificado de batismo se houver, Registrar saída, Arquivar).
+- Leitura: campo vazio NÃO aparece; seção sem nenhum campo preenchido NÃO aparece. Sem fio entre linhas; seções separadas por `--s-6` de espaço; título de seção `--t-13`/600 cor `--text`.
+- Seções da leitura, nesta ordem:
+  - **Sobre**: uma linha corrida `--t-15` com o que houver: "41 anos (12/03) · Casada · Professora".
+  - **Endereço**: uma linha "Rua das Flores, 120, Casa 2, Joinville/SC, 89201-000" como link para `https://www.google.com/maps/search/?api=1&query=<endereço>` (nova aba). Se vier da família, sufixo `--text-2` "(endereço da família)".
+  - **Família**: nomes clicáveis em linha separados por vírgula, papel entre parênteses em `--text-2` ("Paulo Oliveira (responsável), Lucas (filho)").
+  - **Na igreja**: linha do tempo vertical compacta (bolinha 6px `--text-2` + fio 1px) com os marcos existentes em ordem de data: Primeira visita, Conversão, Batismo, Membro desde (com forma de entrada: "Membro desde dez/2013, por batismo"), Saída (data e motivo). Data `--t-13 --text-2` "fev/2012". Líder = sufixo "· líder" na linha do cabeçalho, não linha própria.
+  - **Contribuições**: só se houver no ano e o usuário tiver finance.manage: "2026: R$ 1.200,00 em 10 contribuições · Ver em Finanças".
+  - CPF/RG não aparecem na leitura (só no Editar e na ficha impressa).
+- Pessoa sem quase nada: abaixo do cabeçalho, texto `--text-2` "Ainda sem dados." + botão "Completar cadastro" (entra no Editar).
+- Remover a edição campo a campo por clique na leitura.
+
+C3. **Ficha: modo Editar.**
+- "Editar" troca o painel para o formulário completo (todos os campos de hoje, agrupados: Contato, Dados pessoais, Documentos (só members.manage), Endereço, Família, Na igreja), rótulo acima do input (não ao lado), grade de 2 colunas >= 900px, 1 coluna no celular. Família no Editar: papel por `Select`, "Tirar da família", "Adicionar à família", "Usar este endereço para todos da família".
+- Salvamento: mantém o salvar ao sair do campo (mesma action `updatePersonFieldAction`) com "Salvo" discreto; botão **Pronto** (primário, pílula) no topo e no fim volta para a leitura. Esc também volta (se nenhum input com valor não salvo; se houver, salva antes). Foto pode ser trocada no Editar.
+- Troca Leitura/Editar: só opacity 150ms ease; `prefers-reduced-motion` sem nada.
+- Estado no endereço: `?p=<id>&edit=1` (replaceState); "Nova pessoa" abre direto no Editar com foco no Nome.
+
+C4. **Verificação.** `npm run verify` sem servidor no ar; ajustar `e2e/people.spec.ts` e `e2e/people-import.spec.ts` para o novo fluxo (editar telefone passa a ser Editar → campo → Pronto); `npx playwright test` inteiro. Prévias `docs/previews/13c-*.png`: lista 1280 claro, ficha leitura 1280 claro e escuro (pessoa preenchida), ficha leitura de pessoa vazia 1280, ficha Editar 1280, lista e ficha 390 claro. Mesma técnica de antes (spec temporária, apagar no fim). Não alterar outras prévias (restaurar png antigo modificado com git checkout).
