@@ -274,7 +274,7 @@ Norte: skills emil-design-eng e apple-design. Régua 4d e decisões da tarefa 8 
 
 Concluído em 2026-10-08: todos os 110 lotes de comentários traduzidos e validados (2.061 blocos cobrindo Romanos, Mateus e Efésios). Carga completa realizada na tabela `bible_commentary` via função temporária segura (John 1.164 preservados, Rom 645, Matt 1.138, Eph 278; total 3.225 comentários). Testes unitários (563), integração e e2e do leitor validados com sucesso. Prévia oficial capturada em `docs/previews/10-romanos-1.png`.
 
-### 11. Pessoas (módulo 1 do roadmap; spec `docs/specs/13-pessoas.md`, aprovada 2026-10-09)
+### 11. Pessoas (FEITA e PUBLICADA em 2026-10-11, fases A-D da spec `docs/specs/13-pessoas.md`)
 
 Banco já aplicado (m66). Fase A (lista + ficha) e depois Fase B (importar, exportar, listas salvas, impressão). Commits na branch; publicar só depois do "aprovado" do dono.
 
