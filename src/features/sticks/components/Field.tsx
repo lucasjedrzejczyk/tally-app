@@ -30,7 +30,7 @@ export function Field({
   wide?: boolean; // ocupa a linha inteira da grade
   autoFocus?: boolean; // foca (e seleciona) ao abrir: ficha recém-criada
   label?: string; // rótulo no lugar do padrão (ex.: Celular)
-  hint?: string; // apoio sob o rótulo
+  hint?: string; // apoio sob o campo
 }) {
   const base = FIELD_META[field] as { label: string; kind: string; options?: readonly (readonly [string, string])[]; required?: boolean };
   const meta = { ...base, label: label ?? base.label };
@@ -80,7 +80,6 @@ export function Field({
   return (
     <div className={`${styles.fld}${wide ? " " + styles.fldWide : ""}`}>
       <span className={styles.fLabel}>{meta.label}</span>
-      {hint ? <span className={styles.fHint}>{hint}</span> : null}
       <div ref={wrap} className={styles.fEdit} onKeyDown={onKeyDown} onBlur={onBlur}>
         {meta.kind === "select" ? (
           <Select
@@ -120,6 +119,7 @@ export function Field({
         ) : null}
         {err ? <p className={styles.fErr} role="alert">{err}</p> : null}
       </div>
+      {hint ? <span className={styles.fHint}>{hint}</span> : null}
     </div>
   );
 }
