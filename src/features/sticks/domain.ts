@@ -267,6 +267,17 @@ export function whatsappLink(raw: string): string {
   return `https://wa.me/${d.length <= 11 ? "55" + d : d}`;
 }
 
+// WhatsApp da pessoa: o número próprio se houver, senão o celular.
+export function whatsappNumber(v: { whatsapp: string; phone: string }): string {
+  return v.whatsapp || v.phone;
+}
+
+// "Mais dados" do Editar (spec 13, D2): tudo que não é o essencial. CPF/RG só contam com acesso.
+export const MORE_FIELDS = ["email", "whatsapp", "gender", "maritalStatus", "profession", "cpf", "rg", "firstVisit", "conversionDate", "admissionType", "isLeader"] as const satisfies readonly PersonField[];
+export function moreFilled(v: Record<PersonField, string>, canDocs: boolean): number {
+  return MORE_FIELDS.filter((f) => (canDocs || (f !== "cpf" && f !== "rg")) && v[f] !== "" && !(f === "isLeader" && v[f] === "false")).length;
+}
+
 // --- datas ---------------------------------------------------------------------------
 const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 function parts(iso: string | null | undefined): { y: number; m: number; d: number } | null {

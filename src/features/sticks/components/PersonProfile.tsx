@@ -17,6 +17,7 @@ import {
   preparePhotoAction,
   registerExitAction,
   setArchivedAction,
+  undoExitAction,
   updatePersonFieldAction,
   shareFamilyAddressAction,
 } from "../actions";
@@ -29,6 +30,7 @@ import {
   onlyDigits,
   profileMeta,
   whatsappLink,
+  whatsappNumber,
   type PersonField,
   type Relationship,
 } from "../domain";
@@ -183,6 +185,14 @@ export function PersonProfile({
     close();
     flash();
   }
+  async function undoExit(close: () => void) {
+    const r = await undoExitAction(id);
+    close();
+    if (!r.success) return;
+    update(id, (d) => ({ ...d, values: { ...d.values, exitDate: "", exitReason: "", status: "member" } }));
+    patchList(id, { status: "member" });
+    flash();
+  }
   async function toggleArchive(close: () => void) {
     const next = !detail.archived;
     const r = await setArchivedAction(id, next);
@@ -209,7 +219,8 @@ export function PersonProfile({
       {detail.photoUrl ? <img src={detail.photoUrl} alt="" /> : initialsOf(v.name)}
     </>
   );
-  const hasActions = Boolean(v.whatsapp || v.phone || v.email);
+  const wa = whatsappNumber(v);
+  const hasActions = Boolean(wa || v.phone || v.email);
   const done = <button type="button" className={styles.primary} onClick={() => void finish()}>Pronto</button>;
 
   return (
@@ -250,19 +261,23 @@ export function PersonProfile({
                 ) : null}
                 {canEdit ? (
                   <>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={studyStyles.mi}
-                      onClick={() => {
-                        setExitDate(new Date().toISOString().slice(0, 10));
-                        setExitReason("");
-                        setExitErr("");
-                        setExiting(true);
-                      }}
-                    >
-                      Registrar saída
-                    </button>
+                    {v.exitDate || v.exitReason ? (
+                      <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void undoExit(close)}>Desfazer saída</button>
+                    ) : (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={studyStyles.mi}
+                        onClick={() => {
+                          setExitDate(new Date().toISOString().slice(0, 10));
+                          setExitReason("");
+                          setExitErr("");
+                          setExiting(true);
+                        }}
+                      >
+                        Registrar saída
+                      </button>
+                    )}
                     <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void toggleArchive(close)}>
                       {detail.archived ? "Desarquivar" : "Arquivar"}
                     </button>
@@ -292,8 +307,8 @@ export function PersonProfile({
 
       {!editing && hasActions ? (
         <div className={styles.actions}>
-          {v.whatsapp ? (
-            <a className="btn ghost sm" href={whatsappLink(v.whatsapp)} target="_blank" rel="noreferrer"><UiIcon icon={MessageCircle} />WhatsApp</a>
+          {wa ? (
+            <a className="btn ghost sm" href={whatsappLink(wa)} target="_blank" rel="noreferrer"><UiIcon icon={MessageCircle} />WhatsApp</a>
           ) : null}
           {v.phone ? (
             <a className="btn ghost sm" href={`tel:${onlyDigits(v.phone)}`} title={formatPhone(v.phone)}><UiIcon icon={Phone} />Ligar</a>

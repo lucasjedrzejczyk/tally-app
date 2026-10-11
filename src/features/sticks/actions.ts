@@ -107,6 +107,19 @@ export async function registerExitAction(id: string, date: string, reason: strin
   return error ? fail(toMessage(error, "Não consegui registrar a saída.")) : ok(undefined);
 }
 
+// Desfaz a saída: limpa data e motivo e a pessoa volta a Membro.
+export async function undoExitAction(id: string): Promise<ActionResult> {
+  const g = await editorOrg();
+  if ("error" in g) return g.error;
+  const { supabase, orgId } = g.ctx;
+  const { error } = await supabase
+    .from("sticks")
+    .update({ exit_date: null, exit_reason: null, relationship_status: "member", updated_at: new Date().toISOString() })
+    .eq("org_id", orgId)
+    .eq("id", id);
+  return error ? fail(toMessage(error, "Não consegui desfazer a saída.")) : ok(undefined);
+}
+
 export async function setArchivedAction(id: string, archived: boolean): Promise<ActionResult> {
   const g = await editorOrg();
   if ("error" in g) return g.error;

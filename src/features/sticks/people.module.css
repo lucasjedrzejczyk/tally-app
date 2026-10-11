@@ -416,6 +416,34 @@ button.photo:focus-visible {
   line-height: var(--lh-13);
   color: var(--text-2);
 }
+.fHint {
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+}
+.moreBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-6);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 600 var(--t-13)/var(--lh-13) var(--font-ui);
+  cursor: pointer;
+}
+.moreCount {
+  font-weight: 400;
+  color: var(--text-2);
+}
+.moreChev {
+  display: inline-flex;
+  transition: transform 150ms ease;
+}
+.moreOpen .moreChev {
+  transform: rotate(180deg);
+}
 .dateBox {
   margin: 0;
 }
@@ -515,6 +543,9 @@ button.photo:focus-visible {
   }
   .fade {
     animation: none;
+  }
+  .moreChev {
+    transition: none;
   }
 }
 

@@ -19,6 +19,8 @@ export function Field({
   suggestions,
   wide = false,
   autoFocus = false,
+  label,
+  hint,
 }: {
   field: PersonField;
   value: string;
@@ -27,8 +29,11 @@ export function Field({
   suggestions?: readonly string[]; // atalhos de texto sob o input (ex.: cargos)
   wide?: boolean; // ocupa a linha inteira da grade
   autoFocus?: boolean; // foca (e seleciona) ao abrir: ficha recém-criada
+  label?: string; // rótulo no lugar do padrão (ex.: Celular)
+  hint?: string; // apoio sob o rótulo
 }) {
-  const meta = FIELD_META[field] as { label: string; kind: string; options?: readonly (readonly [string, string])[]; required?: boolean };
+  const base = FIELD_META[field] as { label: string; kind: string; options?: readonly (readonly [string, string])[]; required?: boolean };
+  const meta = { ...base, label: label ?? base.label };
   const shown = (v: string) => (meta.kind === "cpf" ? formatCpf(v) : v); // CPF guardado só com dígitos
   const [draft, setDraft] = useState(shown(value));
   const [seen, setSeen] = useState(value);
@@ -75,6 +80,7 @@ export function Field({
   return (
     <div className={`${styles.fld}${wide ? " " + styles.fldWide : ""}`}>
       <span className={styles.fLabel}>{meta.label}</span>
+      {hint ? <span className={styles.fHint}>{hint}</span> : null}
       <div ref={wrap} className={styles.fEdit} onKeyDown={onKeyDown} onBlur={onBlur}>
         {meta.kind === "select" ? (
           <Select

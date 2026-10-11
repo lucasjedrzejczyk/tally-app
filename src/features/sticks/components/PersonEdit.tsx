@@ -1,8 +1,11 @@
 "use client";
 
-// Ficha em modo Editar (spec 13, C3): formulário completo, agrupado, rótulo em cima, grade que vira
-// uma coluna quando falta espaço. Cada campo salva ao sair (Field); "Pronto" volta para a leitura.
-import { addressLine, OFFICE_SUGGESTIONS, type PersonField } from "../domain";
+// Ficha em modo Editar (spec 13, C3 e D): só o essencial à mostra; o resto fica em "Mais dados",
+// recolhido. Rótulo em cima, grade que vira uma coluna quando falta espaço. Cada campo salva ao sair (Field); "Pronto" volta para a leitura.
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { UiIcon } from "@/components/shared/UiIcon";
+import { addressLine, moreFilled, OFFICE_SUGGESTIONS, type PersonField } from "../domain";
 import type { PersonDetail, PersonListItem } from "../types";
 import { Field, type SaveField } from "./Field";
 import { FamilySection } from "./FamilySection";
@@ -34,42 +37,22 @@ export function PersonEdit({
   sameAddress: boolean;
 }) {
   const v = detail.values;
-  const F = (field: PersonField, extra?: { wide?: boolean; suggestions?: readonly string[]; autoFocus?: boolean }) => (
+  const F = (field: PersonField, extra?: { wide?: boolean; suggestions?: readonly string[]; autoFocus?: boolean; label?: string; hint?: string }) => (
     <Field field={field} value={v[field]} onSave={onSave} onState={onState} {...extra} />
   );
   const ownAddress = addressLine(v);
+  const [more, setMore] = useState(false);
+  const filled = moreFilled(v, canDocs);
 
   return (
     <>
-      <section className={styles.sec} aria-labelledby="ed-contact">
-        <h2 id="ed-contact" className={styles.secTitle}>Contato</h2>
-        <div className={styles.grid}>
-          {F("phone")}
-          {F("whatsapp")}
-          {F("email", { wide: true })}
-        </div>
-      </section>
-
-      <section className={styles.sec} aria-labelledby="ed-personal">
-        <h2 id="ed-personal" className={styles.secTitle}>Dados pessoais</h2>
+      <section className={styles.sec} aria-label="Dados básicos">
         <div className={styles.grid}>
           {F("name", { wide: true, autoFocus: focusName })}
+          {F("phone", { label: "Celular", hint: "Também usado no WhatsApp" })}
           {F("birthDate")}
-          {F("gender")}
-          {F("maritalStatus")}
-          {F("profession")}
         </div>
       </section>
-
-      {canDocs ? (
-        <section className={styles.sec} aria-labelledby="ed-docs">
-          <h2 id="ed-docs" className={styles.secTitle}>Documentos</h2>
-          <div className={styles.grid}>
-            {F("cpf")}
-            {F("rg")}
-          </div>
-        </section>
-      ) : null}
 
       <section className={styles.sec} aria-labelledby="ed-address">
         <h2 id="ed-address" className={styles.secTitle}>Endereço</h2>
@@ -93,16 +76,35 @@ export function PersonEdit({
         <div className={styles.grid}>
           {F("status")}
           {F("office", { suggestions: OFFICE_SUGGESTIONS })}
-          {F("firstVisit")}
-          {F("conversionDate")}
           {F("baptismDate")}
-          {F("admissionType")}
           {F("membershipDate")}
-          {F("isLeader")}
-          {F("exitDate")}
-          {F("exitReason")}
         </div>
       </section>
+
+      <div className={more ? styles.moreOpen : undefined}>
+        <button type="button" className={styles.moreBtn} aria-expanded={more} onClick={() => setMore(!more)}>
+          Mais dados
+          <span className={styles.moreChev}><UiIcon icon={ChevronDown} /></span>
+          {filled > 0 ? <span className={styles.moreCount}>{filled} {filled === 1 ? "preenchido" : "preenchidos"}</span> : null}
+        </button>
+        {more ? (
+          <section className={`${styles.sec} ${styles.fade}`} aria-label="Mais dados">
+            <div className={styles.grid}>
+              {F("email", { wide: true })}
+              {F("whatsapp", { hint: "Só se for outro número" })}
+              {F("gender")}
+              {F("maritalStatus")}
+              {F("profession")}
+              {canDocs ? F("cpf") : null}
+              {canDocs ? F("rg") : null}
+              {F("firstVisit")}
+              {F("conversionDate")}
+              {F("admissionType")}
+              {F("isLeader")}
+            </div>
+          </section>
+        ) : null}
+      </div>
     </>
   );
 }

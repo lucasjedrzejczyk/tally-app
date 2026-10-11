@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { signInTestUser } from "../src/test-support/supabase";
 
-// Pessoas (spec 13, fases A e C): criar pessoa, editar telefone (Editar, campo, Pronto), buscar, filtrar Membros e abrir a
+// Pessoas (spec 13, fases A e C): criar pessoa, editar celular (Editar, campo, Pronto), buscar, filtrar Membros e abrir a
 // ficha pela URL. A pessoa criada é arquivada no meio do teste e apagada no fim (afterAll), para não poluir a org de teste.
 const EMAIL = process.env.TALLY_TEST_EMAIL ?? "";
 const PASSWORD = process.env.TALLY_TEST_PASSWORD ?? "";
@@ -41,7 +41,7 @@ test("pessoas: criar, editar telefone, buscar, filtrar e abrir por URL", async (
   await expect(page.getByRole("button", { name: new RegExp(name) }).first()).toBeVisible();
 
   // telefone: salva ao dar Enter; inválido mostra o erro e Esc não sai do Editar
-  const phone = page.getByLabel("Telefone", { exact: true });
+  const phone = page.getByLabel("Celular", { exact: true });
   await phone.fill("abc");
   await phone.press("Enter");
   await expect(page.getByText("Telefone inválido.")).toBeVisible();
@@ -63,6 +63,7 @@ test("pessoas: criar, editar telefone, buscar, filtrar e abrir por URL", async (
   // Esc no Editar salva o que está no campo e volta para a leitura
   await page.getByRole("button", { name: "Editar", exact: true }).click();
   await expect(page).toHaveURL(/edit=1/);
+  await page.getByRole("button", { name: /Mais dados/ }).click();
   const prof = page.getByLabel("Profissão", { exact: true });
   await prof.fill("Professora");
   await prof.press("Escape");

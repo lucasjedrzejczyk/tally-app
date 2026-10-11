@@ -115,6 +115,10 @@ import {
   profileMeta,
   statusValue,
   whatsappLink,
+  whatsappNumber,
+  moreFilled,
+  FIELD_META,
+  type PersonField,
   type PersonLite,
 } from "./domain";
 
@@ -250,5 +254,21 @@ describe("ficha em modo leitura", () => {
     const u = churchTimeline({ firstVisit: "", conversionDate: "", baptismDate: "2010-06-10", membershipDate: "2008-01-01", admissionType: "", exitDate: "", exitReason: "moved" });
     expect(u.map((m) => `${m.label}|${m.when}`)).toEqual(["Membro desde|jan/2008", "Batismo|jun/2010", "Saída|mudança"]);
     expect(churchTimeline({ firstVisit: "", conversionDate: "", baptismDate: "", membershipDate: "", admissionType: "baptism", exitDate: "", exitReason: "" })).toEqual([]);
+  });
+});
+
+describe("Editar: Mais dados e WhatsApp", () => {
+  const empty = Object.fromEntries(Object.keys(FIELD_META).map((k) => [k, ""])) as Record<PersonField, string>;
+  it("WhatsApp usa o próprio número, senão o celular", () => {
+    expect(whatsappNumber({ whatsapp: "47911112222", phone: "47999990000" })).toBe("47911112222");
+    expect(whatsappNumber({ whatsapp: "", phone: "47999990000" })).toBe("47999990000");
+    expect(whatsappNumber({ whatsapp: "", phone: "" })).toBe("");
+  });
+  it("conta só os campos de Mais dados preenchidos", () => {
+    expect(moreFilled(empty, true)).toBe(0);
+    const v = { ...empty, name: "Ana", phone: "1", email: "a@b.c", profession: "Professora", cpf: "123", isLeader: "false" };
+    expect(moreFilled(v, true)).toBe(3);
+    expect(moreFilled(v, false)).toBe(2);
+    expect(moreFilled({ ...v, isLeader: "true" }, false)).toBe(3);
   });
 });
