@@ -116,7 +116,7 @@ export interface StudyNavItem {
   key: string;
   label: string;
   href: string;
-  icon: "book" | "sermon" | "notes" | "people" | "finance";
+  icon: "book" | "sermon" | "notes" | "people" | "groups" | "finance";
   match: string[];
 }
 export const STUDY_ITEMS: StudyNavItem[] = [
@@ -125,12 +125,14 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "notes", label: "Notas", href: "/study/notes", icon: "notes", match: ["/study/notes"] },
   // Pessoas (spec 13): lista + ficha, só para a equipe (o RLS decide quem lê e quem edita).
   { key: "people", label: "Pessoas", href: "/people", icon: "people", match: ["/people"] },
+  // Células (spec 14): lista + ficha + presença; a equipe vê todas (o RLS decide, líder só as dele).
+  { key: "groups", label: "Células", href: "/groups", icon: "groups", match: ["/groups"] },
   // Finanças liberada pelo dono em 2026-10-08 (spec 10/11), mesmo no modo só Estudo.
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
 
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
-const STUDY_ONLY_KEEPS = ["/finance", "/people"];
+const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups"];
 
 // Rotas desligadas no modo só Estudo: tudo que o menu lista, menos o próprio Estudo.
 // O fluxo antigo de e-mail (/communication) não está no menu, entra à mão.

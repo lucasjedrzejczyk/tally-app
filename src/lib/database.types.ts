@@ -91,6 +91,7 @@ export type Database = {
       attendance_sessions: {
         Row: {
           campus_id: string | null
+          cancelled: boolean
           context_id: string | null
           context_type: Database["public"]["Enums"]["attendance_context"]
           created_at: string
@@ -104,6 +105,7 @@ export type Database = {
         }
         Insert: {
           campus_id?: string | null
+          cancelled?: boolean
           context_id?: string | null
           context_type: Database["public"]["Enums"]["attendance_context"]
           created_at?: string
@@ -117,6 +119,7 @@ export type Database = {
         }
         Update: {
           campus_id?: string | null
+          cancelled?: boolean
           context_id?: string | null
           context_type?: Database["public"]["Enums"]["attendance_context"]
           created_at?: string
@@ -1652,10 +1655,12 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          location: string | null
           meeting_day: string | null
           meeting_time: string | null
           name: string
           org_id: string
+          supervisor_stick_id: string | null
         }
         Insert: {
           archived?: boolean
@@ -1663,10 +1668,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           name: string
           org_id: string
+          supervisor_stick_id?: string | null
         }
         Update: {
           archived?: boolean
@@ -1674,10 +1681,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           name?: string
           org_id?: string
+          supervisor_stick_id?: string | null
         }
         Relationships: [
           {
@@ -1685,6 +1694,13 @@ export type Database = {
             columns: ["campus_id"]
             isOneToOne: false
             referencedRelation: "campuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "groups_supervisor_stick_id_fkey"
+            columns: ["supervisor_stick_id"]
+            isOneToOne: false
+            referencedRelation: "sticks"
             referencedColumns: ["id"]
           },
           {
@@ -4678,7 +4694,9 @@ export type Database = {
         Returns: string
       }
       flag_on: { Args: { p_key: string; p_org: string }; Returns: boolean }
+      can_manage_groups: { Args: { p_org: string }; Returns: boolean }
       has_perm: { Args: { p_org: string; p_perm: string }; Returns: boolean }
+      leads_group: { Args: { p_group: string }; Returns: boolean }
       is_dm_participant: { Args: { p_thread: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }

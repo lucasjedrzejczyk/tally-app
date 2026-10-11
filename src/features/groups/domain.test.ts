@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { absenceStreak, bandOf, defaultMeetingDate, groupsHealth, isIso, meetingLabel, missingFlag, monthYear, parseTime, shortDate, staleGroup, staleLabel, wasMember, type CellSession, type Group } from "./domain";
+import { absenceStreak, bandOf, defaultMeetingDate, filterCells, groupsHealth, isIso, leadershipParts, listItemFromDetail, meetingLabel, missingFlag, monthYear, orderMembers, parseTime, shortDate, staleGroup, staleLabel, wasMember, type CellSession, type Group } from "./domain";
+import type { CellDetail, CellListItem, CellMember } from "./types";
 import type { Person } from "@/features/sticks/types";
 
 function person(p: Partial<Person>): Person {
@@ -118,5 +119,26 @@ describe("Células: lógica pura (spec 14)", () => {
     expect(wasMember({ joinedAt: "2026-09-01", leftAt: null }, "2026-10-01")).toBe(true);
     expect(wasMember({ joinedAt: "2026-10-02", leftAt: null }, "2026-10-01")).toBe(false);
     expect(wasMember({ joinedAt: "2026-09-01", leftAt: "2026-09-20" }, "2026-10-01")).toBe(false);
+  });
+});
+
+describe("Células: lista e ficha", () => {
+  const cell = (o: Partial<CellListItem>): CellListItem => ({ id: "x", name: "Célula", day: "", time: "", location: "", supervisorId: null, supervisorName: "", leaderName: "", memberCount: 0, lastSession: null, missing: 0, ...o });
+  it("filterCells: busca sem acento, supervisor e dia", () => {
+    const list = [cell({ id: "1", name: "Célula Oliveira", day: "Quinta", supervisorId: "s1" }), cell({ id: "2", name: "Jovens", day: "Sábado" })];
+    expect(filterCells(list, { q: "oliveira", sup: "", dia: "" }).map((c) => c.id)).toEqual(["1"]);
+    expect(filterCells(list, { q: "CELULA", sup: "", dia: "" }).map((c) => c.id)).toEqual(["1"]);
+    expect(filterCells(list, { q: "", sup: "s1", dia: "" }).map((c) => c.id)).toEqual(["1"]);
+    expect(filterCells(list, { q: "", sup: "sem", dia: "" }).map((c) => c.id)).toEqual(["2"]);
+    expect(filterCells(list, { q: "", sup: "", dia: "Sábado" }).map((c) => c.id)).toEqual(["2"]);
+  });
+  const m = (name: string, streak: number, role: CellMember["role"] = "member"): CellMember => ({ stickId: name, name, role, joinedAt: "2026-01-01", lastPresent: null, streak });
+  it("orderMembers: quem some vem primeiro", () => {
+    expect(orderMembers([m("Bia", 0), m("Zé", 3), m("Ana", 0), m("Caio", 5)]).map((x) => x.name)).toEqual(["Caio", "Zé", "Ana", "Bia"]);
+  });
+  it("leadershipParts e listItemFromDetail: só quem existe", () => {
+    const d: CellDetail = { id: "g", name: "G", day: "Quinta", time: "20:00", location: "", archived: false, supervisor: { id: "s", name: "João" }, members: [m("Paulo", 0, "leader"), m("Ana", 3, "co_leader"), m("Rui", 0)], sessions: [{ date: "2026-10-08", cancelled: false, present: 2, of: 3 }] };
+    expect(leadershipParts(d).map((p) => `${p.label} ${p.people.map((x) => x.name).join(", ")}`)).toEqual(["Líder Paulo", "Co-líder Ana", "Supervisor João"]);
+    expect(listItemFromDetail(d)).toMatchObject({ leaderName: "Paulo", supervisorName: "João", memberCount: 3, missing: 1, lastSession: "2026-10-08" });
   });
 });

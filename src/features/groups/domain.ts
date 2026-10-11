@@ -2,6 +2,7 @@
 // Depende do domínio de Sticks (careReasons) — interface limpa entre features.
 import { careReasons } from "@/features/sticks/domain";
 import type { Person } from "@/features/sticks/types";
+import type { CellDetail, CellListItem } from "./types";
 
 export type Band = "healthy" | "attention" | "risk";
 
@@ -190,3 +191,60 @@ export const wasMember = (m: { joinedAt: string; leftAt: string | null }, date: 
 
 /** "3 pessoas" / "1 pessoa" */
 export const peopleCount = (n: number): string => `${n} ${n === 1 ? "pessoa" : "pessoas"}`;
+
+// ---- Lista de células: filtros e espelho da ficha --------------------------------------------
+export interface CellFilters {
+  q: string;
+  sup: string; // id do supervisor ("" = todos, "sem" = sem supervisor)
+  dia: string; // nome do dia ("" = todos)
+}
+export const NO_CELL_FILTERS: CellFilters = { q: "", sup: "", dia: "" };
+export const hasCellFilters = (f: CellFilters): boolean => Boolean(f.q.trim() || f.sup || f.dia);
+
+export function filterCells(cells: CellListItem[], f: CellFilters): CellListItem[] {
+  const q = plain(f.q);
+  const dia = weekdayIndex(f.dia);
+  return cells.filter(
+    (c) =>
+      (!q || plain(c.name).includes(q)) &&
+      (!f.sup || (f.sup === "sem" ? !c.supervisorId : c.supervisorId === f.sup)) &&
+      (!f.dia || weekdayIndex(c.day) === dia),
+  );
+}
+
+/** A linha da lista refeita a partir da ficha (a tela atualiza a lista sem recarregar). */
+export function listItemFromDetail(d: CellDetail): CellListItem {
+  return {
+    id: d.id,
+    name: d.name,
+    day: d.day,
+    time: d.time,
+    location: d.location,
+    supervisorId: d.supervisor?.id ?? null,
+    supervisorName: d.supervisor?.name ?? "",
+    leaderName: d.members.find((m) => m.role === "leader")?.name ?? "",
+    memberCount: d.members.length,
+    lastSession: d.sessions[0]?.date ?? null,
+    missing: d.members.filter((m) => missingFlag(m.streak)).length,
+  };
+}
+
+/** Membros na ordem da ficha: quem some primeiro (mais faltas antes), depois os outros por nome. */
+export function orderMembers<T extends { name: string; streak: number }>(members: T[]): T[] {
+  const byName = (a: T, b: T) => a.name.localeCompare(b.name, "pt-BR");
+  return [
+    ...members.filter((m) => missingFlag(m.streak)).sort((a, b) => b.streak - a.streak || byName(a, b)),
+    ...members.filter((m) => !missingFlag(m.streak)).sort(byName),
+  ];
+}
+
+/** "Líder Paulo Oliveira · Co-líder Ana · Anfitrião Carlos · Supervisor João" (só os que existem). */
+export function leadershipParts(d: Pick<CellDetail, "members" | "supervisor">): { label: string; people: { id: string; name: string }[] }[] {
+  const of = (role: CellRole) => d.members.filter((m) => m.role === role).map((m) => ({ id: m.stickId, name: m.name }));
+  return [
+    { label: "Líder", people: of("leader") },
+    { label: "Co-líder", people: of("co_leader") },
+    { label: "Anfitrião", people: of("host") },
+    { label: "Supervisor", people: d.supervisor ? [d.supervisor] : [] },
+  ].filter((p) => p.people.length > 0);
+}

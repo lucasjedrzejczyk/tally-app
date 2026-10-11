@@ -1,30 +1,19 @@
-# Feature: Saúde dos Grupos (Groups)
+# Feature: Células (Groups)
 
-Distribuição de saúde, cards por grupo e relatório do grupo (membros, presença,
-líder, orações). Saúde derivada de Sticks (careReasons) + `group_members`.
+Spec: `docs/specs/14-celulas.md`. Lista à esquerda, ficha à direita (celular: tela cheia, com o
+gesto de voltar de Pessoas). Reaproveita o casco de `sticks/people.module.css` e `sticks/swipe.ts`.
 
 ## Arquivos-chave
-- `domain.ts` — `Group`, `GroupHealth`, `groupsHealth`, `bandOf`. Depende do domínio
-  de Sticks (`careReasons`) — interface limpa entre features.
-- `queries.ts` — `listGroups` (grupos + líder de group_members role='leader' +
-  contadores novos/saídas ≤30d) e `listGroupSessions` (presença por sessão).
-- `schema.ts` + `actions.ts` — criar grupo, definir líder (promove/demove em
-  group_members), registrar presença (attendance_sessions + records).
-- `components/GroupsBoard.tsx` — donut de saúde + filtro de faixa + cards.
-- `components/NewGroupModal.tsx` — novo grupo.
-- `components/GroupTools.tsx` — controle de líder + modal de presença (detalhe).
-- `groups.module.css` — cards e layout do topo.
+- `domain.ts` — lógica pura de células (dia padrão do encontro, sequência de faltas, "sem registro",
+  rótulos, filtros) e, no fim do histórico, `groupsHealth`/`Group` que Home/Inbox/Signals ainda importam.
+- `queries.ts` — `listCells`, `getCell`, `getDaySession` (células) e `listGroups` (legado, usado pelo Inbox).
+- `actions.ts` — criar/editar célula, supervisor, membros e papéis (`groups.manage_all`); `saveAttendanceAction`
+  (upsert do encontro do dia + troca das presenças; o RLS também libera quem lidera a célula).
+- `components/` — `GroupsScreen` (servidor), `GroupsView`, `CellList`, `CellProfile`, `CellRead`, `CellEdit`,
+  `PresenceSheet`, `AddMembers`.
+- Rotas: `/groups` (`?g=<id>`, `?edit=1`), `/groups/[id]`, `GET /api/groups/[id]`, `GET /api/groups/[id]/session?date=`.
 
-## Tabelas Supabase
-- `groups`, `group_members` (papel/status/joined_at/left_at), `attendance_sessions`
-  + `attendance_records` (context_type='group').
-
-## Rotas
-- `/groups` — lista/saúde. `/groups/[id]` — relatório do grupo.
-
-## Paridade — notas
-- Líder e associação de grupo vêm de `group_members` (não mais do blob). Definir líder
-  promove a Stick a role='leader' e demove o anterior a 'member'.
-- Presença de grupo cria uma `attendance_session` (context_type='group') + records.
-  Não altera `last_seen_at` (igual ao legado: só o check-in de culto faz isso).
-- Eventos de timeline de entrada/saída de grupo entram com a migração da Timeline.
+## Regras
+- Presença = `attendance_records.status='present'` só de quem veio; ausência é deduzida.
+- Um encontro por célula por dia (índice único); "Não teve encontro" = `cancelled=true`, sem presenças.
+- Uma célula ativa por pessoa: entrar em outra fecha a anterior (`left_at = hoje`, `status='left'`).

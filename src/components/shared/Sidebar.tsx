@@ -8,7 +8,7 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { BookOpen, Mic, FileText, Users, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut } from "lucide-react";
+import { BookOpen, Mic, FileText, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
@@ -24,8 +24,8 @@ export interface NavCounts {
   tasks: number;
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout";
-const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, finance: Wallet, trash: Trash2,
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout";
+const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, finance: Wallet, trash: Trash2,
   settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;
