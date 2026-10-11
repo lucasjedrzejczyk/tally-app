@@ -9,13 +9,19 @@ import { GroupsView } from "./GroupsView";
 
 export async function GroupsScreen({ sp, forcedId }: { sp: Record<string, string | string[] | undefined>; forcedId?: string }) {
   const ctx = await requireOrg();
-  const [cells, { people }] = await Promise.all([listCells(ctx.supabase, ctx.orgId), listPeople(ctx.supabase, ctx.orgId)]);
+  const { isStaff } = ctx;
+  // Líder/supervisor (não equipe): o RLS já entrega só as células dele, e a lista de Pessoas não é dele.
+  const [cells, people] = await Promise.all([
+    listCells(ctx.supabase, ctx.orgId),
+    isStaff ? listPeople(ctx.supabase, ctx.orgId).then((r) => r.people) : Promise.resolve([]),
+  ]);
   const asked = forcedId ?? (typeof sp.g === "string" ? sp.g : null);
   const found = Boolean(asked && cells.some((c) => c.id === asked));
   if (forcedId && !found) notFound();
   const selected = found ? asked : cells[0]?.id ?? null;
   const detail = selected ? await getCell(ctx.supabase, ctx.orgId, selected) : null;
-  const canManage = can(ctx, "groups.manage_all");
+  const canManage = isStaff && can(ctx, "groups.manage_all");
+  const canInvite = isStaff && can(ctx, "members.manage");
 
   return (
     <GroupsView
@@ -26,6 +32,8 @@ export async function GroupsScreen({ sp, forcedId }: { sp: Record<string, string
       initialMobileOpen={found}
       initialEditing={found && sp.edit === "1" && canManage}
       canManage={canManage}
+      canInvite={canInvite}
+      isStaff={isStaff}
       today={todayIso()}
     />
   );

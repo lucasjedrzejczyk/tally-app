@@ -8,12 +8,12 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { BookOpen, Mic, FileText, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut } from "lucide-react";
+import { BookOpen, Mic, FileText, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
-import { NAV_GROUPS, TOP_ITEMS, PLANS_ITEM, SETTINGS_ITEM, ADMIN_ITEM, STUDY_ONLY, STUDY_ITEMS } from "@/config/nav";
+import { NAV_GROUPS, TOP_ITEMS, PLANS_ITEM, SETTINGS_ITEM, ADMIN_ITEM, STUDY_ONLY, splitTabs, studyNavFor } from "@/config/nav";
 import { planAllows, type PlanCode, type FeatureKey } from "@/features/plans/catalog";
 import { logoutAction } from "@/app/(dashboard)/actions";
 import { parseRefs } from "@/lib/bible/parse";
@@ -24,9 +24,9 @@ export interface NavCounts {
   tasks: number;
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout";
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
 const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, finance: Wallet, trash: Trash2,
-  settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut };
+  settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut, more: Menu };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;
 }
@@ -52,19 +52,25 @@ export function Sidebar({
   counts,
   isPlatformAdmin = false,
   plan = "free",
+  isStaff = true,
+  hasCells = false,
 }: {
   userLabel: string;
   orgName: string;
   counts: NavCounts;
   isPlatformAdmin?: boolean;
   plan?: PlanCode;
+  isStaff?: boolean; // false = líder/supervisor de célula: só Bíblia e Células
+  hasCells?: boolean;
 }) {
   const path = usePathname();
   const router = useRouter();
   const [mini, setMini] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [more, setMore] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   // Preferência vem do aparelho, depois de montar (sem divergir da hidratação).
   useEffect(() => {
@@ -119,7 +125,27 @@ export function Sidebar({
       window.removeEventListener("keydown", onKey);
     };
   }, [menu]);
-  useEffect(() => setMenu(false), [path]);
+  useEffect(() => {
+    setMenu(false);
+    setMore(false);
+  }, [path]);
+
+  // "Mais" da barra de abas: fecha com Esc e com toque fora.
+  useEffect(() => {
+    if (!more) return;
+    function onDown(e: PointerEvent): void {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMore(false);
+    }
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === "Escape") setMore(false);
+    }
+    window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [more]);
 
   // Referência vai direto ao capítulo; qualquer outro texto vira busca por palavra.
   function goToPassage(e: FormEvent<HTMLFormElement>): void {
@@ -136,7 +162,8 @@ export function Sidebar({
   }
 
   const countOf = (c?: "inbox" | "people" | "tasks"): number | undefined => (c ? counts[c] || undefined : undefined);
-  const dests: Dest[] = STUDY_ONLY ? STUDY_ITEMS : [];
+  const navItems = studyNavFor(isStaff, hasCells);
+  const dests: Dest[] = STUDY_ONLY ? navItems : [];
   // ponytail: fora do modo só Estudo os itens usam um ícone genérico; desenhar um por módulo quando eles voltarem.
   const groups = STUDY_ONLY
     ? []
@@ -149,7 +176,7 @@ export function Sidebar({
         items: g.items.map<Dest>((i) => ({ key: i.key, label: i.label, href: i.href, icon: "dot", match: plain(i.href), count: countOf(i.count), feature: i.feature })),
       }));
   const footer: Dest[] = [
-    ...(STUDY_ONLY ? [{ key: "trash", label: "Lixeira", href: "/study/trash", icon: "trash" as const, match: plain("/study/trash") }] : []),
+    ...(STUDY_ONLY && isStaff ? [{ key: "trash", label: "Lixeira", href: "/study/trash", icon: "trash" as const, match: plain("/study/trash") }] : []),
     ...(STUDY_ONLY ? [] : [{ key: PLANS_ITEM.key, label: PLANS_ITEM.label, href: PLANS_ITEM.href, icon: "dot" as const, match: plain(PLANS_ITEM.href) }]),
     { key: SETTINGS_ITEM.key, label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings", match: plain(SETTINGS_ITEM.href) },
     ...(isPlatformAdmin ? [{ key: ADMIN_ITEM.key, label: ADMIN_ITEM.label, href: ADMIN_ITEM.href, icon: "admin" as const, match: plain(ADMIN_ITEM.href) }] : []),
@@ -169,8 +196,11 @@ export function Sidebar({
   };
 
   const initial = (userLabel.trim()[0] ?? "?").toUpperCase();
-  const tabs = STUDY_ONLY ? [...STUDY_ITEMS, { key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }, { key: "settings", label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }] : [];
-
+  // Barra de abas do celular. Líder (não equipe): só Bíblia e Células. Equipe: cabem 5; o resto vai para "Mais".
+  const tabItems: Dest[] = STUDY_ONLY
+    ? [...navItems, ...(isStaff ? [{ key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }, { key: "settings", label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }] : [])]
+    : [];
+  const { shown: tabs, more: moreTabs } = splitTabs(tabItems);
   return (
     <>
       <aside className={`side sb${mini ? " mini" : ""}`} aria-label="Menu">
@@ -239,6 +269,24 @@ export function Sidebar({
               </Link>
             );
           })}
+          {moreTabs.length ? (
+            <div className="sb-moreWrap" ref={moreRef}>
+              <button type="button" className={moreTabs.some((d) => isOn(path, d)) ? "on" : undefined} aria-haspopup="menu" aria-expanded={more} onClick={() => setMore((m) => !m)}>
+                <Icon name="more" />
+                <span>Mais</span>
+              </button>
+              {more ? (
+                <div className="sb-more" role="menu">
+                  {moreTabs.map((d) => (
+                    <Link key={d.key} href={d.href} role="menuitem" className="sb-menuitem" aria-current={isOn(path, d) ? "page" : undefined}>
+                      <Icon name={d.icon} />
+                      {d.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </nav>
       ) : null}
     </>

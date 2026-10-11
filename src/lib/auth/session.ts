@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { asPlanCode, type PlanCode } from "@/features/plans/catalog";
+import { nonStaffRedirect } from "@/config/nav";
 import { isFlagKey, type FlagKey } from "@/features/flags/catalog";
 
 // O tipo do cliente é derivado do próprio createClient (evita divergência de
@@ -27,6 +28,8 @@ export interface OrgContext extends UserContext {
   roleId: string | null; // cargo atual (roles.id); null = sem cargo atribuído
   roleName: string | null; // nome do cargo (ex.: "Pastor"), para exibir na UI
   permissions: string[]; // UNIÃO: permissões do próprio membership + as do cargo
+  isStaff: boolean; // equipe = dono ou alguma permissão (espelha is_org_staff do banco, m66)
+  ledGroupIds: string[]; // células que o usuário lidera/supervisiona; só para quem NÃO é equipe (equipe vê todas)
   plan: PlanCode; // plano da igreja (organizations.plan) — trava comercial de recursos
   flags: FlagKey[]; // feature flags LIGADAS para esta org — trava de maturidade (ver features/flags)
 }
@@ -68,6 +71,17 @@ export async function requireOrg(): Promise<OrgContext> {
   const { data: flagRows } = await supabase.rpc("org_flags", { p_org: data.org_id });
 
   const roleRow = data.roles;
+  const permissions = [...new Set([...(data.permissions ?? []), ...(roleRow?.permissions ?? [])])];
+  const isStaff = data.is_owner || permissions.length > 0;
+
+  // Quem não é equipe só enxerga, por RLS (groups_read), as células que lidera: então a lista de
+  // células visíveis É a lista das que ele lidera. A decisão nunca vem do navegador.
+  let ledGroupIds: string[] = [];
+  if (!isStaff) {
+    const { data: led } = await supabase.from("groups").select("id").eq("org_id", data.org_id).eq("archived", false);
+    ledGroupIds = (led ?? []).map((g) => g.id);
+  }
+
   return {
     supabase,
     user,
@@ -76,10 +90,21 @@ export async function requireOrg(): Promise<OrgContext> {
     role: data.role,
     roleId: data.role_id,
     roleName: roleRow?.name ?? null,
-    permissions: [...new Set([...(data.permissions ?? []), ...(roleRow?.permissions ?? [])])],
+    permissions,
+    isStaff,
+    ledGroupIds,
     plan: asPlanCode(data.organizations?.plan),
     flags: (flagRows ?? []).filter(isFlagKey),
   };
+}
+
+// Telas só da equipe (Pessoas, Finanças, Sermões, Notas): quem não é equipe (líder de célula)
+// volta para as células dele, ou para a Bíblia se não lidera nada. O RLS continua sendo a barreira.
+export async function requireStaff(): Promise<OrgContext> {
+  const ctx = await requireOrg();
+  const to = nonStaffRedirect(ctx.isStaff, ctx.ledGroupIds.length > 0);
+  if (to) redirect(to);
+  return ctx;
 }
 
 // Autorização por capability (espelha has_perm no banco; o RLS continua sendo a

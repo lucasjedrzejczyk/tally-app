@@ -7,7 +7,7 @@ import people from "@/features/sticks/people.module.css";
 import g from "../groups.module.css";
 
 function Name({ id, name, link }: { id: string; name: string; link: boolean }) {
-  return link ? <Link className="link" href={`/people?p=${id}`}>{name}</Link> : <>{name}</>;
+  return link ? <Link className={g.nameLink} href={`/people?p=${id}`}>{name}</Link> : <>{name}</>;
 }
 
 export function CellRead({

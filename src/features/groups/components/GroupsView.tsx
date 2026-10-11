@@ -15,6 +15,7 @@ import type { CellDetail, CellListItem } from "../types";
 import { CellList } from "./CellList";
 import { CellProfile } from "./CellProfile";
 import people from "@/features/sticks/people.module.css";
+import g from "../groups.module.css";
 
 const urlFor = (id: string | null, edit = false): string => (id ? `/groups?g=${id}${edit ? "&edit=1" : ""}` : "/groups");
 
@@ -26,6 +27,8 @@ export function GroupsView({
   initialMobileOpen,
   initialEditing,
   canManage,
+  canInvite,
+  isStaff,
   today,
 }: {
   cells: CellListItem[];
@@ -35,6 +38,8 @@ export function GroupsView({
   initialMobileOpen: boolean;
   initialEditing: boolean;
   canManage: boolean;
+  canInvite: boolean;
+  isStaff: boolean;
   today: string;
 }) {
   const [cells, setCells] = useState(initialCells);
@@ -158,6 +163,38 @@ export function GroupsView({
   }, [setDetail]);
 
   const detail = sel ? details[sel] : undefined;
+  // Líder com uma única célula: abre direto a ficha, sem lista e sem painel por cima da barra de abas.
+  const solo = !isStaff && cells.length === 1;
+  const profile = detail ? (
+    <CellProfile
+      key={detail.id}
+      detail={detail}
+      people={persons}
+      cells={cells}
+      canManage={canManage}
+      canInvite={canInvite}
+      isStaff={isStaff}
+      focusName={sel === fresh}
+      editing={canManage && editing}
+      onEditing={setEdit}
+      onDetail={setDetail}
+      onPatch={patch}
+      onMoved={refetch}
+      onArchived={(id) => {
+        setCells((l) => l.filter((c) => c.id !== id));
+        const next = cells.find((c) => c.id !== id)?.id ?? null;
+        setSel(next);
+        setEditing(false);
+        setMobileOpen(false);
+        window.history.replaceState(null, "", urlFor(next));
+      }}
+    />
+  ) : sel ? (
+    <p className="muted" role={error ? "alert" : undefined}>{error || "Abrindo a célula…"}</p>
+  ) : (
+    <p className="muted">Nenhuma célula para mostrar.</p>
+  );
+  if (solo) return <div className={g.solo}>{profile}{error && detail ? <p className={people.fErr} role="alert">{error}</p> : null}</div>;
 
   return (
     <div className={people.wrap}>
@@ -168,33 +205,7 @@ export function GroupsView({
           <UiIcon icon={ChevronLeft} />
           Células
         </button>
-        {detail ? (
-          <CellProfile
-            key={detail.id}
-            detail={detail}
-            people={persons}
-            cells={cells}
-            canManage={canManage}
-            focusName={sel === fresh}
-            editing={canManage && editing}
-            onEditing={setEdit}
-            onDetail={setDetail}
-            onPatch={patch}
-            onMoved={refetch}
-            onArchived={(id) => {
-              setCells((l) => l.filter((c) => c.id !== id));
-              const next = cells.find((c) => c.id !== id)?.id ?? null;
-              setSel(next);
-              setEditing(false);
-              setMobileOpen(false);
-              window.history.replaceState(null, "", urlFor(next));
-            }}
-          />
-        ) : sel ? (
-          <p className="muted" role={error ? "alert" : undefined}>{error || "Abrindo a célula…"}</p>
-        ) : (
-          <p className="muted">Nenhuma célula para mostrar.</p>
-        )}
+        {profile}
         {error && detail ? <p className={people.fErr} role="alert">{error}</p> : null}
       </div>
     </div>

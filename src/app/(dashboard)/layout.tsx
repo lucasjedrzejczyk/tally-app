@@ -10,7 +10,7 @@ import { visibleSignals } from "@/features/inbox/domain";
 // sem sessão → /login; sem org → /onboarding. Nada aqui confia no navegador.
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireOrg();
-  const { supabase, user, orgId, plan } = ctx;
+  const { supabase, user, orgId, plan, isStaff, ledGroupIds } = ctx;
 
   const [orgRes, campusRes, peopleRes, isAdmin] = await Promise.all([
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle(),
@@ -45,7 +45,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="app">
-      <Sidebar userLabel={userLabel} orgName={orgName} counts={counts} isPlatformAdmin={isAdmin} plan={plan} />
+      <Sidebar userLabel={userLabel} orgName={orgName} counts={counts} isPlatformAdmin={isAdmin} plan={plan} isStaff={isStaff} hasCells={ledGroupIds.length > 0} />
       <div className="main">
         <div className="content view-in">{children}</div>
       </div>

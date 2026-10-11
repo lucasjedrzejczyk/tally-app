@@ -14,6 +14,7 @@ import { defaultMeetingDate, meetingLabel, todayIso } from "../domain";
 import type { CellDetail, CellListItem } from "../types";
 import { CellEdit, type SaveCellField } from "./CellEdit";
 import { CellRead } from "./CellRead";
+import { GiveAccess } from "./GiveAccess";
 import { PresenceSheet } from "./PresenceSheet";
 import styles from "@/features/sticks/people.module.css";
 
@@ -24,6 +25,8 @@ export function CellProfile({
   people,
   cells,
   canManage,
+  canInvite,
+  isStaff,
   focusName,
   editing,
   onEditing,
@@ -36,6 +39,8 @@ export function CellProfile({
   people: PersonListItem[];
   cells: CellListItem[];
   canManage: boolean;
+  canInvite: boolean;
+  isStaff: boolean;
   focusName: boolean;
   editing: boolean;
   onEditing: (on: boolean) => void;
@@ -47,6 +52,7 @@ export function CellProfile({
   const id = detail.id;
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
+  const [access, setAccess] = useState(false);
   const [presence, setPresence] = useState<string | null>(null); // data aberta no Marcar presença
   const savedTimer = useRef<number | undefined>(undefined);
   // Salvamentos em andamento e campos com erro: "Pronto" só volta para a leitura sem pendência.
@@ -125,15 +131,18 @@ export function CellProfile({
     <article className={styles.prof} onKeyDown={editing ? onEditKey : undefined}>
       <div className={styles.profBar}>
         <span className={`${styles.saved}${saved ? " " + styles.savedOn : ""}`} aria-live="polite">{saved ? "Salvo" : ""}</span>
-        {canManage ? (
-          <>
-            {editing ? done : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>}
-            <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações da célula" align="right">
-              {(close) => (
-                <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar célula</button>
-              )}
-            </Popover>
-          </>
+        {canManage ? (editing ? done : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>) : null}
+        {canManage || canInvite ? (
+          <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações da célula" align="right">
+            {(close) => (
+              <>
+                {canInvite ? (
+                  <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => { close(); setAccess(true); }}>Dar acesso ao líder</button>
+                ) : null}
+                {canManage ? <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar célula</button> : null}
+              </>
+            )}
+          </Popover>
         ) : null}
       </div>
 
@@ -170,9 +179,11 @@ export function CellProfile({
             <div className={styles.doneRow}>{done}</div>
           </>
         ) : (
-          <CellRead detail={detail} canManage={canManage} linkNames onPresence={setPresence} onEdit={() => onEditing(true)} />
+          <CellRead detail={detail} canManage={canManage} linkNames={isStaff} onPresence={setPresence} onEdit={() => onEditing(true)} />
         )}
       </div>
+
+      {access ? <GiveAccess detail={detail} onClose={() => setAccess(false)} /> : null}
 
       {presence ? (
         <PresenceSheet

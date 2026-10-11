@@ -131,6 +131,25 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
 
+// Menu de quem não é equipe (líder/supervisor de célula): só Bíblia e, se lidera algo, Células.
+export function studyNavFor(isStaff: boolean, hasCells: boolean): StudyNavItem[] {
+  return isStaff ? STUDY_ITEMS : STUDY_ITEMS.filter((i) => i.key === "bible" || (i.key === "groups" && hasCells));
+}
+
+// Para onde vai quem não é equipe ao abrir uma tela só da equipe (null = pode ficar).
+export function nonStaffRedirect(isStaff: boolean, hasCells: boolean): string | null {
+  return isStaff ? null : hasCells ? "/groups" : STUDY_HOME;
+}
+
+// Barra de abas do celular: cabem 5 itens; passou disso, os 4 primeiros ficam e o resto vai para "Mais".
+export const TAB_LIMIT = 5;
+const TAB_ORDER = ["bible", "people", "groups", "finance", "sermons", "notes"];
+export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; more: T[] } {
+  const rank = (k: string) => (TAB_ORDER.includes(k) ? TAB_ORDER.indexOf(k) : TAB_ORDER.length);
+  const sorted = [...tabs].sort((a, b) => rank(a.key) - rank(b.key));
+  return sorted.length <= TAB_LIMIT ? { shown: sorted, more: [] } : { shown: sorted.slice(0, TAB_LIMIT - 1), more: sorted.slice(TAB_LIMIT - 1) };
+}
+
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
 const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups"];
 

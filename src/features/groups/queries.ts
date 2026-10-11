@@ -1,7 +1,7 @@
 // Consultas de Grupos. Resolve líder (group_members role='leader') e os contadores
 // de novos/saídas (≤30 dias) a partir de group_members — sem depender do blob.
 import type { DB } from "@/lib/auth/session";
-import { absenceStreak, missingFlag, wasMember, type CellRole, type CellSession, type Group } from "./domain";
+import { absenceStreak, accessOf, inMeeting, missingFlag, type CellRole, type CellSession, type Group } from "./domain";
 import type { CellDetail, CellListItem, CellMember, DaySession } from "./types";
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
@@ -128,7 +128,7 @@ export async function getCell(supabase: DB, orgId: string, id: string): Promise<
   if (!g) return null;
 
   const [membersRes, sessions] = await Promise.all([
-    supabase.from("group_members").select("stick_id, role, joined_at, left_at, sticks(full_name)").eq("group_id", id),
+    supabase.from("group_members").select("stick_id, role, joined_at, left_at, sticks(full_name, email, user_id)").eq("group_id", id),
     recentSessions(supabase, orgId, [id]),
   ]);
   const list = sessions.get(id) ?? [];
@@ -143,13 +143,14 @@ export async function getCell(supabase: DB, orgId: string, id: string): Promise<
       joinedAt: m.joined_at,
       lastPresent: list.find((s) => !s.cancelled && s.presentIds.includes(m.stick_id))?.date ?? null,
       streak: absenceStreak(m.stick_id, list, m.joined_at),
+      access: accessOf(m.sticks),
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   let supervisor: CellDetail["supervisor"] = null;
   if (g.supervisor_stick_id) {
-    const { data: s } = await supabase.from("sticks").select("id, full_name").eq("id", g.supervisor_stick_id).maybeSingle();
-    if (s) supervisor = { id: s.id, name: s.full_name };
+    const { data: s } = await supabase.from("sticks").select("id, full_name, email, user_id").eq("id", g.supervisor_stick_id).maybeSingle();
+    if (s) supervisor = { id: s.id, name: s.full_name, access: accessOf(s) };
   }
 
   return {
@@ -165,7 +166,7 @@ export async function getCell(supabase: DB, orgId: string, id: string): Promise<
       date: s.date,
       cancelled: s.cancelled,
       present: s.presentIds.length,
-      of: all.filter((m) => s.presentIds.includes(m.stick_id) || wasMember({ joinedAt: m.joined_at, leftAt: m.left_at }, s.date)).length,
+      of: all.filter((m) => inMeeting({ joinedAt: m.joined_at, leftAt: m.left_at }, s.date, s.presentIds.includes(m.stick_id))).length,
     })),
   };
 }

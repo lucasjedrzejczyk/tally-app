@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { absenceStreak, bandOf, defaultMeetingDate, filterCells, groupsHealth, isIso, leadershipParts, listItemFromDetail, meetingLabel, missingFlag, monthYear, orderMembers, parseTime, shortDate, staleGroup, staleLabel, wasMember, type CellSession, type Group } from "./domain";
+import { absenceStreak, accessOf, bandOf, defaultMeetingDate, filterCells, groupsHealth, inMeeting, isIso, leadersNeedingAccess, leadershipParts, listItemFromDetail, meetingLabel, missingFlag, monthYear, orderMembers, parseTime, shortDate, staleGroup, staleLabel, wasMember, type CellSession, type Group } from "./domain";
 import type { CellDetail, CellListItem, CellMember } from "./types";
 import type { Person } from "@/features/sticks/types";
 
@@ -87,6 +87,31 @@ describe("Células: lógica pura (spec 14)", () => {
     expect(absenceStreak("a", sessions, "2026-10-05")).toBe(0);
     expect(absenceStreak("a", [], "2026-01-01")).toBe(0);
   });
+  it("absenceStreak: presença registrada antes da entrada conta e interrompe a sequência", () => {
+    const sessions = [S("2026-10-08", []), S("2026-10-01", ["a"]), S("2026-09-24", [])];
+    expect(absenceStreak("a", sessions, "2026-10-05")).toBe(1); // entrou dia 05, mas veio dia 01
+    expect(absenceStreak("a", [S("2026-10-08", []), S("2026-10-01", [])], "2026-10-05")).toBe(1); // 10-01 é anterior à entrada e sem presença
+  });
+  it("inMeeting: ativo na data OU com presença registrada (presença conta sempre)", () => {
+    const m = { joinedAt: "2026-10-05", leftAt: null };
+    expect(inMeeting(m, "2026-10-01", false)).toBe(false);
+    expect(inMeeting(m, "2026-10-01", true)).toBe(true);
+    expect(inMeeting(m, "2026-10-08", false)).toBe(true);
+    expect(inMeeting({ joinedAt: "2026-01-01", leftAt: "2026-09-01" }, "2026-10-01", false)).toBe(false);
+    expect(inMeeting({ joinedAt: "2026-01-01", leftAt: "2026-09-01" }, "2026-10-01", true)).toBe(true);
+  });
+  it("accessOf e leadersNeedingAccess: só líder, co-líder e supervisor sem login, uma linha por pessoa", () => {
+    expect(accessOf({ email: "a@b.com", user_id: "u" })).toBe("has");
+    expect(accessOf({ email: " a@b.com ", user_id: null })).toBe("ready");
+    expect(accessOf({ email: " ", user_id: null })).toBe("noEmail");
+    expect(accessOf(null)).toBe("noEmail");
+    const mem = (stickId: string, role: CellMember["role"], access: CellMember["access"]): CellMember => ({ stickId, name: stickId, role, joinedAt: "2026-01-01", lastPresent: null, streak: 0, access });
+    const out = leadersNeedingAccess({
+      members: [mem("p", "leader", "ready"), mem("a", "co_leader", "has"), mem("h", "host", "ready"), mem("m", "member", "noEmail")],
+      supervisor: { id: "p", name: "p", access: "ready" },
+    });
+    expect(out).toEqual([{ id: "p", name: "p", roles: "Líder, Supervisor", access: "ready" }]);
+  });
   it("missingFlag: 3 encontros ou mais", () => {
     expect(missingFlag(2)).toBe(false);
     expect(missingFlag(3)).toBe(true);
@@ -132,12 +157,12 @@ describe("Células: lista e ficha", () => {
     expect(filterCells(list, { q: "", sup: "sem", dia: "" }).map((c) => c.id)).toEqual(["2"]);
     expect(filterCells(list, { q: "", sup: "", dia: "Sábado" }).map((c) => c.id)).toEqual(["2"]);
   });
-  const m = (name: string, streak: number, role: CellMember["role"] = "member"): CellMember => ({ stickId: name, name, role, joinedAt: "2026-01-01", lastPresent: null, streak });
+  const m = (name: string, streak: number, role: CellMember["role"] = "member"): CellMember => ({ stickId: name, name, role, joinedAt: "2026-01-01", lastPresent: null, streak, access: "has" });
   it("orderMembers: quem some vem primeiro", () => {
     expect(orderMembers([m("Bia", 0), m("Zé", 3), m("Ana", 0), m("Caio", 5)]).map((x) => x.name)).toEqual(["Caio", "Zé", "Ana", "Bia"]);
   });
   it("leadershipParts e listItemFromDetail: só quem existe", () => {
-    const d: CellDetail = { id: "g", name: "G", day: "Quinta", time: "20:00", location: "", archived: false, supervisor: { id: "s", name: "João" }, members: [m("Paulo", 0, "leader"), m("Ana", 3, "co_leader"), m("Rui", 0)], sessions: [{ date: "2026-10-08", cancelled: false, present: 2, of: 3 }] };
+    const d: CellDetail = { id: "g", name: "G", day: "Quinta", time: "20:00", location: "", archived: false, supervisor: { id: "s", name: "João", access: "has" }, members: [m("Paulo", 0, "leader"), m("Ana", 3, "co_leader"), m("Rui", 0)], sessions: [{ date: "2026-10-08", cancelled: false, present: 2, of: 3 }] };
     expect(leadershipParts(d).map((p) => `${p.label} ${p.people.map((x) => x.name).join(", ")}`)).toEqual(["Líder Paulo", "Co-líder Ana", "Supervisor João"]);
     expect(listItemFromDetail(d)).toMatchObject({ leaderName: "Paulo", supervisorName: "João", memberCount: 3, missing: 1, lastSession: "2026-10-08" });
   });

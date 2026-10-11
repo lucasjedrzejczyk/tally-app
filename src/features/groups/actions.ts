@@ -6,6 +6,7 @@
 // também para quem lidera a célula.
 import { requireOrg, can, type DB, type OrgContext } from "@/lib/auth/session";
 import { type ActionResult, ok, fail, toMessage } from "@/lib/errors";
+import { createInvite, regenerateInvite } from "@/features/invites/actions";
 import { canonicalDay, isIso, parseTime, todayIso, type CellRole } from "./domain";
 import { getCell } from "./queries";
 import type { CellDetail } from "./types";
@@ -165,10 +166,6 @@ export async function saveAttendanceAction(id: string, date: string, stickIds: s
     }
     if (!sessionId) return fail("Não consegui salvar o encontro.");
 
-    // Quem a tela lista é a célula inteira: se o dia é anterior à entrada de alguém, ele já fazia parte
-    // (senão "12 de 15" e as faltas seguidas ignorariam esse encontro). Só quem gerencia pode mexer na entrada.
-    if (!cancelled) await supabase.from("group_members").update({ joined_at: date }).eq("group_id", id).is("left_at", null).gt("joined_at", date);
-
     const del = await supabase.from("attendance_records").delete().eq("session_id", sessionId);
     if (del.error) return fail(toMessage(del.error));
     if (!cancelled && stickIds.length) {
@@ -183,4 +180,14 @@ export async function saveAttendanceAction(id: string, date: string, stickIds: s
     return fail(toMessage(e));
   }
   return fresh(ctx, id);
+}
+
+// Link de convite para um líder/co-líder/supervisor que ainda não tem login (reaproveita o fluxo de
+// convites). Se já há convite pendente no prazo, devolve o mesmo link; se venceu, gera um novo.
+export async function inviteLeaderAction(stickId: string): Promise<ActionResult<{ token: string }>> {
+  const ctx = await requireOrg();
+  if (!can(ctx, "members.manage")) return fail("Você não tem permissão para gerenciar membros.");
+  const { data: pend } = await ctx.supabase.from("member_invites").select("id, token, expires_at").eq("org_id", ctx.orgId).eq("stick_id", stickId).eq("status", "pending").maybeSingle();
+  if (!pend) return createInvite(stickId);
+  return pend.expires_at >= new Date().toISOString() ? ok({ token: pend.token }) : regenerateInvite(pend.id);
 }

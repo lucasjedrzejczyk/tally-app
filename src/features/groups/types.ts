@@ -15,6 +15,9 @@ export interface CellListItem {
   missing: number; // membros com 3+ faltas seguidas
 }
 
+// Situação de acesso ao app de quem lidera: já tem login, pode ser convidado (tem e-mail) ou falta o e-mail.
+export type CellAccess = "has" | "ready" | "noEmail";
+
 export interface CellMember {
   stickId: string;
   name: string;
@@ -22,6 +25,7 @@ export interface CellMember {
   joinedAt: string;
   lastPresent: string | null;
   streak: number;
+  access: CellAccess;
 }
 
 export interface CellSessionRow {
@@ -39,7 +43,7 @@ export interface CellDetail {
   time: string;
   location: string;
   archived: boolean;
-  supervisor: { id: string; name: string } | null;
+  supervisor: { id: string; name: string; access: CellAccess } | null;
   members: CellMember[]; // ativos, em ordem alfabética
   sessions: CellSessionRow[]; // os 8 últimos, recentes primeiro
 }

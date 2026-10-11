@@ -2,7 +2,7 @@
 // Depende do domínio de Sticks (careReasons) — interface limpa entre features.
 import { careReasons } from "@/features/sticks/domain";
 import type { Person } from "@/features/sticks/types";
-import type { CellDetail, CellListItem } from "./types";
+import type { CellAccess, CellDetail, CellListItem } from "./types";
 
 export type Band = "healthy" | "attention" | "risk";
 
@@ -151,9 +151,9 @@ export interface CellSession {
 export function absenceStreak(memberId: string, sessions: CellSession[], joinedAt: string): number {
   let n = 0;
   for (const s of [...sessions].sort((a, b) => b.date.localeCompare(a.date))) {
-    if (s.date < joinedAt) break;
     if (s.cancelled) continue;
-    if (s.presentIds.includes(memberId)) break;
+    if (s.presentIds.includes(memberId)) break; // uma presença registrada vale sempre, mesmo antes da entrada
+    if (s.date < joinedAt) break;
     n++;
   }
   return n;
@@ -188,6 +188,28 @@ export function monthYear(iso: string): string {
 /** Quem estava na célula naquele dia (entrou até a data e ainda não tinha saído). */
 export const wasMember = (m: { joinedAt: string; leftAt: string | null }, date: string): boolean =>
   m.joinedAt <= date && (!m.leftAt || m.leftAt >= date);
+
+/** Fazia parte do encontro: estava ativo na data OU tem presença registrada nele (presença conta sempre). */
+export const inMeeting = (m: { joinedAt: string; leftAt: string | null }, date: string, present: boolean): boolean => present || wasMember(m, date);
+
+/** Acesso ao app a partir da ficha (login ligado, e-mail para convidar, ou nada). */
+export function accessOf(s: { email: string | null; user_id: string | null } | null | undefined): CellAccess {
+  return s?.user_id ? "has" : s?.email?.trim() ? "ready" : "noEmail";
+}
+
+/** Líderes (líder, co-líder) e supervisor que ainda não têm login, uma linha por pessoa. */
+export function leadersNeedingAccess(d: Pick<CellDetail, "members" | "supervisor">): { id: string; name: string; roles: string; access: CellAccess }[] {
+  const out = new Map<string, { id: string; name: string; roles: string[]; access: CellAccess }>();
+  const add = (id: string, name: string, role: string, access: CellAccess) => {
+    if (access === "has") return;
+    const cur = out.get(id);
+    if (cur) cur.roles.push(role);
+    else out.set(id, { id, name, roles: [role], access });
+  };
+  for (const m of d.members) if (m.role === "leader" || m.role === "co_leader") add(m.stickId, m.name, roleLabel(m.role), m.access);
+  if (d.supervisor) add(d.supervisor.id, d.supervisor.name, "Supervisor", d.supervisor.access);
+  return [...out.values()].map((p) => ({ ...p, roles: p.roles.join(", ") }));
+}
 
 /** "3 pessoas" / "1 pessoa" */
 export const peopleCount = (n: number): string => `${n} ${n === 1 ? "pessoa" : "pessoas"}`;
