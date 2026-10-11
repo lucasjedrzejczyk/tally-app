@@ -74,6 +74,7 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await expect(page.getByRole("heading", { name: "Membros (3)" })).toBeVisible();
   await expect(page.getByText("Ainda sem presença")).toHaveCount(3);
 
+  // (o dia padrão é anterior à entrada do terceiro, que não veio: o encontro conta 2 de 2, sem mexer na entrada)
   // marcar presença de 2 no dia padrão (último dia da semana da célula)
   await page.getByRole("button", { name: "Marcar presença" }).click();
   const dialog = page.getByRole("dialog", { name: "Presença" });
@@ -83,10 +84,10 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await expect(dialog.getByText("2 de 3")).toBeVisible();
   await dialog.getByRole("button", { name: "Salvar" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /· 2 de 3$/ })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /· 2 de 2$/ })).toHaveCount(1);
 
   // reabrir o dia pelo encontro: 2 marcados
-  await page.getByRole("button", { name: /· 2 de 3$/ }).click();
+  await page.getByRole("button", { name: /· 2 de 2$/ }).click();
   await expect(dialog.getByRole("checkbox", { checked: true })).toHaveCount(2);
   await expect(dialog.getByRole("checkbox", { name: people[2]! })).toHaveAttribute("aria-checked", "false");
   await page.keyboard.press("Escape");
@@ -113,4 +114,21 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await page.goto(`/people/${a!.id}`);
   await expect(page.getByRole("link", { name: cellName })).toHaveAttribute("href", `/groups?g=${id}`);
   await expect(page.getByText(/\(desde [a-z]{3}\/\d{4}\)/)).toBeVisible();
+});
+
+// Celular (390px): com Pessoas e Células a barra passa de 5 itens, então mostra 4 e o resto vai em "Mais".
+test("barra de abas do celular: 4 itens + Mais com o resto", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/login");
+  await page.getByPlaceholder("E-mail").fill(EMAIL);
+  await page.getByPlaceholder("Senha").fill(PASSWORD);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(/\/study/, { timeout: 30000 });
+  const bar = page.getByRole("navigation", { name: "Menu" }).last();
+  await expect(bar.getByRole("link")).toHaveCount(4);
+  await bar.getByRole("button", { name: "Mais" }).click();
+  await expect(page.getByRole("menuitem", { name: "Ajustes" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Sermões" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menuitem", { name: "Ajustes" })).toHaveCount(0);
 });

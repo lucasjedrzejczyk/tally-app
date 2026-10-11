@@ -47,7 +47,8 @@ test.describe("celular", () => {
   test("aba Buscar e frase entre aspas", async ({ page }) => {
     test.setTimeout(120000);
     await login(page);
-    await page.getByRole("link", { name: "Buscar" }).click();
+    await page.getByRole("button", { name: "Mais" }).click(); // com 8 itens, Buscar fica em "Mais"
+    await page.getByRole("menuitem", { name: "Buscar" }).click();
     await expect(page).toHaveURL(/\/study\/busca$/);
     await page.getByRole("searchbox", { name: "Buscar na Bíblia" }).fill('"pão da vida"');
     await page.getByRole("button", { name: "Buscar", exact: true }).click();
