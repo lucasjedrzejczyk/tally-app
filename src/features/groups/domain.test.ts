@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bandOf, groupsHealth, type Group } from "./domain";
+import { absenceStreak, bandOf, defaultMeetingDate, groupsHealth, isIso, meetingLabel, missingFlag, monthYear, parseTime, shortDate, staleGroup, staleLabel, wasMember, type CellSession, type Group } from "./domain";
 import type { Person } from "@/features/sticks/types";
 
 function person(p: Partial<Person>): Person {
@@ -56,5 +56,67 @@ describe("groupsHealth (paridade com derived.js)", () => {
     ];
     const health = groupsHealth(people, [g1, g2], "Sede");
     expect(health[0]!.name).toBe("G2"); // menor taxa primeiro
+  });
+});
+
+describe("Células: lógica pura (spec 14)", () => {
+  // 2026-10-11 é domingo; 2026-10-08 é quinta.
+  it("defaultMeetingDate: hoje se for o dia, senão o último dia do encontro", () => {
+    expect(defaultMeetingDate("Quinta", "2026-10-08")).toBe("2026-10-08");
+    expect(defaultMeetingDate("Quinta", "2026-10-11")).toBe("2026-10-08");
+    expect(defaultMeetingDate("quinta-feira", "2026-10-09")).toBe("2026-10-08");
+    expect(defaultMeetingDate("Domingo", "2026-10-11")).toBe("2026-10-11");
+    expect(defaultMeetingDate("Sábado", "2026-10-11")).toBe("2026-10-10");
+    expect(defaultMeetingDate("Sexta", "2026-03-02")).toBe("2026-02-27"); // vira o mês
+    expect(defaultMeetingDate("", "2026-10-11")).toBe("2026-10-11");
+    expect(defaultMeetingDate(null, "2026-10-11")).toBe("2026-10-11");
+  });
+
+  const S = (date: string, presentIds: string[], cancelled = false): CellSession => ({ date, presentIds, cancelled });
+  it("absenceStreak: conta seguidos desde o mais recente e para na presença", () => {
+    const sessions = [S("2026-10-08", ["b"]), S("2026-10-01", ["b"]), S("2026-09-24", ["a", "b"]), S("2026-09-17", ["a"])];
+    expect(absenceStreak("a", sessions, "2026-01-01")).toBe(2);
+    expect(absenceStreak("b", sessions, "2026-01-01")).toBe(0);
+    expect(absenceStreak("c", sessions, "2026-01-01")).toBe(4);
+  });
+  it("absenceStreak: cancelado não conta nem interrompe; antes da entrada não conta", () => {
+    const sessions = [S("2026-10-08", [], true), S("2026-10-01", []), S("2026-09-24", ["a"]), S("2026-09-17", [])];
+    expect(absenceStreak("a", sessions, "2026-01-01")).toBe(1);
+    expect(absenceStreak("a", sessions, "2026-10-01")).toBe(1); // 09-24 e 09-17 são anteriores à entrada
+    expect(absenceStreak("a", sessions, "2026-10-05")).toBe(0);
+    expect(absenceStreak("a", [], "2026-01-01")).toBe(0);
+  });
+  it("missingFlag: 3 encontros ou mais", () => {
+    expect(missingFlag(2)).toBe(false);
+    expect(missingFlag(3)).toBe(true);
+  });
+  it("staleGroup: sem encontro há 14+ dias, ou nunca", () => {
+    expect(staleGroup(null, "2026-10-11")).toBe(true);
+    expect(staleGroup("2026-09-27", "2026-10-11")).toBe(true); // 14 dias
+    expect(staleGroup("2026-09-28", "2026-10-11")).toBe(false); // 13 dias
+    expect(staleLabel("2026-09-20", "2026-10-11")).toBe("Sem registro há 3 semanas");
+    expect(staleLabel(null, "2026-10-11")).toBe("Sem registro");
+  });
+  it("rótulos: encontro, hora e datas", () => {
+    expect(meetingLabel("Quinta", "20:00")).toBe("Quintas, 20h");
+    expect(meetingLabel("Quarta", "20h")).toBe("Quartas, 20h"); // dado antigo
+    expect(meetingLabel("Sábado", "19:30")).toBe("Sábados, 19h30");
+    expect(meetingLabel("", "20:00")).toBe("20h");
+    expect(meetingLabel("Terça", "")).toBe("Terças");
+    expect(meetingLabel("", "")).toBe("");
+    expect(parseTime("8")).toBe("08:00");
+    expect(parseTime("20h30")).toBe("20:30");
+    expect(parseTime("25:00")).toBeNull();
+    expect(parseTime("abc")).toBeNull();
+    expect(parseTime(" ")).toBe("");
+    expect(shortDate("2026-10-09")).toBe("Sex 09/10");
+    expect(monthYear("2024-03-09")).toBe("mar/2024");
+    expect(isIso("2026-02-30")).toBe(false);
+    expect(isIso("2026-10-09")).toBe(true);
+  });
+  it("wasMember: entrou até a data e não tinha saído", () => {
+    expect(wasMember({ joinedAt: "2026-09-01", leftAt: null }, "2026-10-01")).toBe(true);
+    expect(wasMember({ joinedAt: "2026-10-02", leftAt: null }, "2026-10-01")).toBe(false);
+    expect(wasMember({ joinedAt: "2026-09-01", leftAt: "2026-09-20" }, "2026-10-01")).toBe(false);
   });
 });
