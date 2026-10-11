@@ -9,9 +9,10 @@ import type { PersonListItem } from "@/features/sticks/types";
 import { Popover } from "@/features/study/components/Popover";
 import studyStyles from "@/features/study/study.module.css";
 import { setCellArchivedAction } from "../actions";
-import { meetingLabel } from "../domain";
+import { defaultMeetingDate, meetingLabel, todayIso } from "../domain";
 import type { CellDetail, CellListItem } from "../types";
 import { CellRead } from "./CellRead";
+import { PresenceSheet } from "./PresenceSheet";
 import styles from "@/features/sticks/people.module.css";
 
 const SAVED_MS = 1500;
@@ -21,6 +22,7 @@ export function CellProfile({
   canManage,
   editing,
   onEditing,
+  onDetail,
   onArchived,
 }: {
   detail: CellDetail;
@@ -37,6 +39,7 @@ export function CellProfile({
 }) {
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
+  const [presence, setPresence] = useState<string | null>(null); // data aberta no Marcar presença
   const savedTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(savedTimer.current), []);
 
@@ -80,7 +83,27 @@ export function CellProfile({
       </header>
       {err ? <p className={styles.fErr} role="alert">{err}</p> : null}
 
-      <CellRead detail={detail} canManage={canManage} linkNames onPresence={() => undefined} onEdit={() => onEditing(true)} />
+      {editing ? null : (
+        <div className={styles.actions}>
+          <button type="button" className={styles.primary} onClick={() => setPresence(defaultMeetingDate(detail.day, todayIso()))}>Marcar presença</button>
+        </div>
+      )}
+
+      <CellRead detail={detail} canManage={canManage} linkNames onPresence={setPresence} onEdit={() => onEditing(true)} />
+
+      {presence ? (
+        <PresenceSheet
+          groupId={detail.id}
+          members={detail.members}
+          initialDate={presence}
+          onClose={() => setPresence(null)}
+          onSaved={(d) => {
+            onDetail(d);
+            setPresence(null);
+            flash();
+          }}
+        />
+      ) : null}
     </article>
   );
 }

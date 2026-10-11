@@ -71,3 +71,126 @@ span.cellAside {
     color: var(--blue);
   }
 }
+
+/* Marcar presença: painel pela direita; no celular, tela cheia. Sem animação além do toque. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in srgb, var(--navylogo) 40%, transparent);
+}
+.sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  width: min(27.5rem, 100vw);
+  background: var(--surface);
+  box-shadow: var(--e-2);
+}
+@media (max-width: 40rem) {
+  .sheet {
+    width: 100%;
+    box-shadow: none;
+  }
+}
+.sheetHead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4) var(--s-2);
+}
+.sheetHead h2 {
+  margin: 0 auto 0 0;
+  font: 600 var(--t-17)/var(--lh-17) var(--font-ui);
+}
+.sheetDate {
+  width: 9.5rem;
+}
+.sheetBody {
+  flex: 1;
+  min-height: 0;
+  padding: 0 var(--s-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sheetBody > p {
+  margin: var(--s-4) 0;
+}
+.sheetFoot {
+  padding: var(--s-3) var(--s-4) calc(var(--s-3) + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.footRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.footCount {
+  font-size: var(--t-15);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.footMsg {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--coral);
+}
+.footLink {
+  margin-top: var(--s-2);
+  padding: 0;
+  font-size: var(--t-13);
+  color: var(--text-2);
+}
+.pRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 3rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--t-15);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.pRow:active {
+  transform: scale(.98);
+}
+.pRow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.pName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--r-6);
+  background: var(--surface-2);
+  color: var(--on-blue);
+}
+.boxOn {
+  background: var(--blue);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pRow:active {
+    transform: none;
+  }
+}
