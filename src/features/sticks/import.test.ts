@@ -34,6 +34,12 @@ describe("importDate", () => {
 });
 
 describe("cleanValues", () => {
+  it("lê a situação da planilha", () => {
+    expect(guessMapping(["Nome", "Situação"])).toEqual(["name", "status"]);
+    expect(cleanValues({ name: "Ana", status: "INATIVA" }, TODAY).values.status).toBe("inactive");
+    expect(cleanValues({ name: "Ana", status: "Congregado" }, TODAY).values.status).toBe("attendee");
+    expect(cleanValues({ name: "Ana", status: "talvez" }, TODAY).error).toMatch(/^Situação/);
+  });
   it("traduz rótulos em português e usa as regras da ficha", () => {
     const r = cleanValues(
       { name: "  Ruth Alves ", gender: "Feminino", maritalStatus: "Casada", birthDate: "05/03/1990", state: "sc", postalCode: "88010400", cpf: "529.982.247-25" },

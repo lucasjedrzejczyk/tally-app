@@ -7,6 +7,7 @@ import { validateField } from "./schema";
 
 export const IMPORT_FIELDS = [
   ["name", "Nome"],
+  ["status", "Situação"],
   ["phone", "Telefone"],
   ["whatsapp", "WhatsApp"],
   ["email", "E-mail"],
@@ -35,6 +36,7 @@ export const BATCH_SIZE = 200;
 // Cabeçalhos aceitos (sem acento, minúsculos). O primeiro cabeçalho que bater leva o campo.
 const ALIASES: Record<ImportField, string[]> = {
   name: ["nome", "nome completo", "membro", "pessoa"],
+  status: ["situacao", "status", "tipo", "vinculo"],
   phone: ["celular", "telefone", "fone", "tel", "telefone celular"],
   whatsapp: ["whatsapp", "whats", "zap"],
   email: ["e-mail", "email", "e mail"],
@@ -107,6 +109,14 @@ const MARITAL: Record<string, string> = {
 const word = (s: string): string => normalize(s).replace(/\(a\)/g, "").replace(/_/g, " ").trim();
 const masc = (s: string): string => s.replace(/a$/, "o");
 
+// Sem coluna de situação a pessoa entra como Membro (bulk-actions.ts).
+const STATUS: Record<string, string> = {
+  membro: "member", member: "member",
+  frequentador: "attendee", congregado: "attendee", attendee: "attendee",
+  visitante: "visitor_first", visitor: "visitor_first",
+  inativo: "inactive", desligado: "inactive", afastado: "inactive", inactive: "inactive",
+};
+
 const DATE_FIELDS: readonly ImportField[] = ["birthDate", "baptismDate", "membershipDate"];
 
 // Limpa uma linha com as regras da ficha. Qualquer campo inválido marca a linha com erro
@@ -125,6 +135,10 @@ export function cleanValues(raw: ImportValues, todayIso: string): { values: Impo
       const g = GENDERS[word(v)];
       if (!g) return { values, error: "Sexo: use Masculino ou Feminino." };
       input = g;
+    } else if (field === "status") {
+      const k = STATUS[masc(word(v))];
+      if (!k) return { values, error: "Situação: use Membro, Frequentador, Visitante ou Inativo." };
+      input = k;
     } else if (field === "maritalStatus") {
       const k = MARITAL[masc(word(v))];
       if (!k) return { values, error: "Estado civil: valor não reconhecido." };
