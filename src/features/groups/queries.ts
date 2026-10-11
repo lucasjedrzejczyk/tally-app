@@ -165,7 +165,7 @@ export async function getCell(supabase: DB, orgId: string, id: string): Promise<
       date: s.date,
       cancelled: s.cancelled,
       present: s.presentIds.length,
-      of: all.filter((m) => wasMember({ joinedAt: m.joined_at, leftAt: m.left_at }, s.date)).length,
+      of: all.filter((m) => s.presentIds.includes(m.stick_id) || wasMember({ joinedAt: m.joined_at, leftAt: m.left_at }, s.date)).length,
     })),
   };
 }

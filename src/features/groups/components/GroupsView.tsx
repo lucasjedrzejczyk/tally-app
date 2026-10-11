@@ -186,6 +186,7 @@ export function GroupsView({
               const next = cells.find((c) => c.id !== id)?.id ?? null;
               setSel(next);
               setEditing(false);
+              setMobileOpen(false);
               window.history.replaceState(null, "", urlFor(next));
             }}
           />

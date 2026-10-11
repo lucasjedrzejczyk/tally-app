@@ -3,14 +3,14 @@
 // Marcar presença (spec 14, A5): a tela que o líder mais usa, então é rápida com um dedo. Painel
 // pela direita no computador, tela cheia no celular. Reabrir um dia carrega as marcações dele.
 // Sem conexão: as marcações ficam num rascunho no aparelho (por célula e data) e voltam ao reabrir.
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Check, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { DateField } from "@/components/shared/DateField";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { saveAttendanceAction } from "../actions";
 import { isIso, todayIso } from "../domain";
 import type { CellDetail, CellMember, DaySession } from "../types";
+import { Sheet } from "./Sheet";
 import g from "../groups.module.css";
 import people from "@/features/sticks/people.module.css";
 
@@ -61,7 +61,6 @@ export function PresenceSheet({
   const [loadErr, setLoadErr] = useState("");
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
   const ids = members.map((m) => m.stickId);
 
   useEffect(() => {
@@ -98,15 +97,6 @@ export function PresenceSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, date]);
 
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   function toggle(id: string) {
     setMarks((m) => {
       const n = new Set(m);
@@ -136,69 +126,60 @@ export function PresenceSheet({
   }
 
   const count = ids.filter((i) => marks.has(i)).length;
-  return createPortal(
+  const dateField = (
+    <span className={`field ${people.dateBox} ${g.sheetDate}`}>
+      <DateField
+        value={date}
+        onChange={(iso) => {
+          if (isIso(iso) && iso <= todayIso(new Date(Date.now() + 86_400_000))) setDate(iso);
+        }}
+        aria-label="Data do encontro"
+      />
+    </span>
+  );
+  const foot = (
     <>
-      <div className={g.scrim} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label="Presença" className={g.sheet}>
-        <div className={g.sheetHead}>
-          <h2>Presença</h2>
-          <span className={`field ${people.dateBox} ${g.sheetDate}`}>
-            <DateField
-              value={date}
-              onChange={(iso) => {
-                if (isIso(iso) && iso <= todayIso(new Date(Date.now() + 86_400_000))) setDate(iso);
-              }}
-              aria-label="Data do encontro"
-            />
-          </span>
-          <button ref={closeRef} type="button" className="iconbtn" aria-label="Fechar" onClick={onClose}>
-            <UiIcon icon={X} />
-          </button>
-        </div>
+      {msg ? <p className={g.footMsg} role="alert">{msg}</p> : null}
+      {cancelled || loadErr ? null : (
+        <>
+          <div className={g.footRow}>
+            <span className={g.footCount}>{count} de {members.length}</span>
+            <button type="button" className={people.primary} disabled={loading || saving} onClick={() => void submit(false)}>Salvar</button>
+          </div>
+          <button type="button" className={`link ${g.footLink}`} disabled={loading || saving} onClick={() => void submit(true)}>Não teve encontro neste dia</button>
+        </>
+      )}
+    </>
+  );
 
-        <div className={g.sheetBody}>
-          {loading ? (
-            <p className="muted">Abrindo o dia…</p>
-          ) : loadErr ? (
-            <p className={people.fErr} role="alert">{loadErr}</p>
-          ) : cancelled ? (
-            <div className={g.blank}>
-              <p>Marcado como sem encontro neste dia.</p>
-              <button type="button" className="link" onClick={() => setCancelled(false)}>Teve encontro neste dia</button>
-            </div>
-          ) : members.length === 0 ? (
-            <p className="muted">Nenhum membro para marcar.</p>
-          ) : (
-            <ul className={g.list}>
-              {members.map((m) => {
-                const on = marks.has(m.stickId);
-                return (
-                  <li key={m.stickId}>
-                    <button type="button" role="checkbox" aria-checked={on} className={g.pRow} onClick={() => toggle(m.stickId)}>
-                      <span className={g.pName}>{m.name}</span>
-                      <span className={`${g.box}${on ? " " + g.boxOn : ""}`} aria-hidden="true">{on ? <UiIcon icon={Check} /> : null}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+  return (
+    <Sheet title="Presença" headExtra={dateField} onClose={onClose} foot={foot}>
+      {loading ? (
+        <p className="muted">Abrindo o dia…</p>
+      ) : loadErr ? (
+        <p className={people.fErr} role="alert">{loadErr}</p>
+      ) : cancelled ? (
+        <div className={g.blank}>
+          <p>Marcado como sem encontro neste dia.</p>
+          <button type="button" className="link" onClick={() => setCancelled(false)}>Teve encontro neste dia</button>
         </div>
-
-        <div className={g.sheetFoot}>
-          {msg ? <p className={g.footMsg} role="alert">{msg}</p> : null}
-          {cancelled || loadErr ? null : (
-            <>
-              <div className={g.footRow}>
-                <span className={g.footCount}>{count} de {members.length}</span>
-                <button type="button" className={people.primary} disabled={loading || saving} onClick={() => void submit(false)}>Salvar</button>
-              </div>
-              <button type="button" className={`link ${g.footLink}`} disabled={loading || saving} onClick={() => void submit(true)}>Não teve encontro neste dia</button>
-            </>
-          )}
-        </div>
-      </div>
-    </>,
-    document.body,
+      ) : members.length === 0 ? (
+        <p className="muted">Nenhum membro para marcar.</p>
+      ) : (
+        <ul className={g.list}>
+          {members.map((m) => {
+            const on = marks.has(m.stickId);
+            return (
+              <li key={m.stickId}>
+                <button type="button" role="checkbox" aria-checked={on} className={g.pRow} onClick={() => toggle(m.stickId)}>
+                  <span className={g.pName}>{m.name}</span>
+                  <span className={`${g.box}${on ? " " + g.boxOn : ""}`} aria-hidden="true">{on ? <UiIcon icon={Check} /> : null}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Sheet>
   );
 }

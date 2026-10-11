@@ -194,3 +194,47 @@ span.cellAside {
     transform: none;
   }
 }
+
+/* Adicionar membros e Editar */
+.addSearch {
+  position: sticky;
+  top: 0;
+  margin-bottom: var(--s-2);
+}
+.pMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pSub {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.mEdit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-3);
+  min-height: 2.25rem;
+  padding: var(--s-1) 0;
+}
+.mEditName {
+  flex: 1;
+  min-width: 8rem;
+  font-size: var(--t-15);
+  overflow-wrap: anywhere;
+}
+.mEditRole {
+  width: 9rem;
+}
+.supRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 2.25rem;
+  font-size: var(--t-15);
+}
+.addBtn {
+  margin-top: var(--s-3);
+}
