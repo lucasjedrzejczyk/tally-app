@@ -1,5 +1,14 @@
-import { describe, it, expect } from "vitest";
-import { nonStaffRedirect, splitTabs, studyNavFor, studyOnlyRedirect, STUDY_ITEMS } from "./nav";
+import { describe, expect, it } from "vitest";
+import { STUDY_ONLY, STUDY_ITEMS, nonStaffRedirect, splitTabs, studyNavFor, studyOnlyRedirect } from "./nav";
+
+describe.runIf(STUDY_ONLY)("modo só Estudo", () => {
+  it("manda as telas desligadas para a Bíblia", () => {
+    for (const p of ["/", "/teams", "/plans", "/communication"]) expect(studyOnlyRedirect(p)).toBe("/study/bible");
+  });
+  it("deixa passar Estudo, Finanças, Configurações, Admin e o que não é menu", () => {
+    for (const p of ["/study", "/study/bible/JHN/1", "/people", "/people/abc", "/groups", "/groups/abc", "/finance", "/finance/contador/entries", "/settings", "/admin", "/login", "/onboarding", "/convite/abc", "/financeiro"]) expect(studyOnlyRedirect(p)).toBeNull();
+  });
+});
 
 describe("menu de quem não é equipe (líder/supervisor de célula)", () => {
   it("equipe vê tudo", () => {
@@ -17,9 +26,6 @@ describe("telas só da equipe", () => {
   it("não redireciona a equipe", () => expect(nonStaffRedirect(true, false)).toBeNull());
   it("líder volta para as células", () => expect(nonStaffRedirect(false, true)).toBe("/groups"));
   it("sem célula volta para a Bíblia", () => expect(nonStaffRedirect(false, false)).toBe("/study/bible"));
-  it("/people, /finance e /groups continuam ligados no modo só Estudo", () => {
-    for (const p of ["/people", "/people/abc", "/finance", "/groups", "/groups/abc"]) expect(studyOnlyRedirect(p)).toBeNull();
-  });
 });
 
 describe("barra de abas do celular", () => {
