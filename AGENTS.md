@@ -278,6 +278,10 @@ Concluído em 2026-10-08: todos os 110 lotes de comentários traduzidos e valida
 
 Banco já aplicado (m66). Fase A (lista + ficha) e depois Fase B (importar, exportar, listas salvas, impressão). Commits na branch; publicar só depois do "aprovado" do dono.
 
+### 12. Células (módulo 2a do roadmap; spec `docs/specs/14-celulas.md`, aprovada 2026-10-11)
+
+Banco já aplicado (m67, inclui aperto de RLS: "membro" virou "equipe"). Fase A (tela da equipe + marcar presença) e Fase B (acesso do líder/supervisor). Commits na branch; publicar só depois do "aprovado" do dono.
+
 ## Já feito (não refazer)
 
 - Frente B: sublinhado completo do NT inteiro carregado em bible_tagged_verses (7.957 versículos, 2026-10-03).
