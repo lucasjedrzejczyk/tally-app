@@ -26,6 +26,7 @@ export async function PeopleScreen({ sp, forcedId }: { sp: Record<string, string
       initialSelected={selected}
       initialDetail={detail}
       initialMobileOpen={found}
+      initialEditing={found && sp.edit === "1" && canEditPeople(ctx)}
       initialLists={lists}
       canEdit={canEditPeople(ctx)}
       canDocs={can(ctx, "members.manage")}

@@ -109,6 +109,10 @@ import {
   normalize,
   parseFilters,
   personSubtitle,
+  aboutLine,
+  addressLine,
+  churchTimeline,
+  profileMeta,
   statusValue,
   whatsappLink,
   type PersonLite,
@@ -205,5 +209,46 @@ describe("filtros da lista", () => {
     expect(personSubtitle(person({ archived: true }))).toBe("Arquivado");
     expect(statusValue("visitor_returning")).toBe("visitor_first");
     expect(normalize("Álvaro")).toBe("alvaro");
+  });
+});
+
+describe("ficha em modo leitura", () => {
+  const now = new Date(2026, 9, 11);
+  it("linha Sobre usa só o que existe e ajusta o gênero", () => {
+    expect(aboutLine({ birthDate: "1985-03-12", gender: "female", maritalStatus: "married", profession: "Professora" }, now)).toBe("41 anos (12/03) · Casada · Professora");
+    expect(aboutLine({ birthDate: "", gender: "", maritalStatus: "stable_union", profession: "" }, now)).toBe("União estável");
+    expect(aboutLine({ birthDate: "", gender: "", maritalStatus: "married", profession: " " }, now)).toBe("Casado(a)");
+    expect(aboutLine({ birthDate: "", gender: "male", maritalStatus: "", profession: "" }, now)).toBe("");
+  });
+  it("endereço em uma linha", () => {
+    expect(addressLine({ line1: "Rua das Flores, 120", line2: "Casa 2", city: "Joinville", state: "SC", postalCode: "89201000" })).toBe("Rua das Flores, 120, Casa 2, Joinville/SC, 89201-000");
+    expect(addressLine({ line1: "", line2: "", city: "Joinville", state: "", postalCode: "" })).toBe("Joinville");
+    expect(addressLine({ line1: "", line2: "", city: "", state: "", postalCode: "" })).toBe("");
+  });
+  it("cabeçalho com situação, cargo, idade e líder", () => {
+    expect(profileMeta({ status: "member", office: "Diácono", birthDate: "1985-03-12", isLeader: "true" }, false, now)).toBe("Membro · Diácono · 41 anos · líder");
+    expect(profileMeta({ status: "visitor_returning", office: "", birthDate: "", isLeader: "false" }, true, now)).toBe("Arquivado");
+  });
+  it("linha do tempo em ordem de data, com forma de entrada e saída", () => {
+    const t = churchTimeline({
+      firstVisit: "2012-02-10",
+      conversionDate: "2013-05-01",
+      baptismDate: "2013-12-08",
+      membershipDate: "2013-12-08",
+      admissionType: "baptism",
+      exitDate: "2020-05-03",
+      exitReason: "transfer",
+    });
+    expect(t.map((m) => `${m.label}|${m.when}`)).toEqual([
+      "Primeira visita|fev/2012",
+      "Conversão|mai/2013",
+      "Batismo|dez/2013",
+      "Membro desde|dez/2013, por batismo",
+      "Saída|mai/2020, transferência",
+    ]);
+    // datas fora de ordem e marcos ausentes
+    const u = churchTimeline({ firstVisit: "", conversionDate: "", baptismDate: "2010-06-10", membershipDate: "2008-01-01", admissionType: "", exitDate: "", exitReason: "moved" });
+    expect(u.map((m) => `${m.label}|${m.when}`)).toEqual(["Membro desde|jan/2008", "Batismo|jun/2010", "Saída|mudança"]);
+    expect(churchTimeline({ firstVisit: "", conversionDate: "", baptismDate: "", membershipDate: "", admissionType: "baptism", exitDate: "", exitReason: "" })).toEqual([]);
   });
 });

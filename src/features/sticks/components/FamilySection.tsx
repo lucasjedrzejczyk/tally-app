@@ -1,12 +1,12 @@
 "use client";
 
-// Família da pessoa (spec 13): membros com o papel de cada um, juntar a outra pessoa (ou criar
-// a família) e tirar da família. O endereço da família fica na seção Endereço da ficha.
+// Família no modo Editar (spec 13): membros com o papel de cada um (Select), juntar a outra pessoa
+// (ou criar a família) e tirar da família. Na leitura a família é só uma linha (PersonRead).
 import { useMemo, useState } from "react";
 import { Select } from "@/components/shared/Select";
 import { Popover } from "@/features/study/components/Popover";
 import { addToFamilyAction, removeFromFamilyAction, setFamilyRoleAction } from "../actions";
-import { normalize, optionLabel, ROLE_OPTIONS } from "../domain";
+import { normalize, ROLE_OPTIONS } from "../domain";
 import type { Family, PersonListItem } from "../types";
 import studyStyles from "@/features/study/study.module.css";
 import styles from "../people.module.css";
@@ -15,16 +15,12 @@ export function FamilySection({
   personId,
   family,
   people,
-  canEdit,
-  onOpenPerson,
   onFamily,
   onSaved,
 }: {
   personId: string;
   family: Family | null;
   people: PersonListItem[];
-  canEdit: boolean;
-  onOpenPerson: (id: string) => void;
   onFamily: (f: Family | null) => void;
   onSaved: () => void;
 }) {
@@ -35,8 +31,6 @@ export function FamilySection({
     const n = normalize(q);
     return people.filter((p) => p.id !== personId && !p.archived && (!n || normalize(p.name).includes(n))).slice(0, 8);
   }, [people, personId, q]);
-
-  if (!family && !canEdit) return null;
 
   async function add(withId: string | null, close: () => void) {
     setErr("");
@@ -71,25 +65,15 @@ export function FamilySection({
           <p className={styles.famName}>{family.name}</p>
           {family.members.map((m) => (
             <div key={m.stickId} className={styles.famRow}>
-              {m.stickId === personId ? (
-                <span className={styles.famSelf}>{m.name}</span>
-              ) : (
-                <button type="button" className={styles.famLink} onClick={() => onOpenPerson(m.stickId)}>{m.name}</button>
-              )}
-              {canEdit ? (
-                <Select compact aria-label={`Papel de ${m.name}`} value={m.role} onChange={(e) => void role(m.stickId, e.target.value)}>
-                  {ROLE_OPTIONS.map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </Select>
-              ) : (
-                <span className={styles.famRole}>{optionLabel(ROLE_OPTIONS, m.role)}</span>
-              )}
+              <span className={m.stickId === personId ? styles.famSelf : undefined}>{m.name}</span>
+              <Select compact aria-label={`Papel de ${m.name}`} value={m.role} onChange={(e) => void role(m.stickId, e.target.value)}>
+                {ROLE_OPTIONS.map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </Select>
             </div>
           ))}
-          {canEdit ? (
-            <button type="button" className={`link ${styles.famLeave}`} onClick={() => void leave()}>Tirar da família</button>
-          ) : null}
+          <button type="button" className={`link ${styles.famLeave}`} onClick={() => void leave()}>Tirar da família</button>
         </>
       ) : (
         <Popover trigger="Adicionar à família" triggerClass={`link ${styles.famAdd}`} label="Adicionar à família" haspopup="dialog">

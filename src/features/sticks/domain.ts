@@ -394,3 +394,84 @@ export function personSubtitle(p: Pick<PersonLite, "status" | "office" | "archiv
   const status = p.archived ? "Arquivado" : p.status === "member" ? "" : relLabel(p.status);
   return [status, p.office].filter(Boolean).join(" · ");
 }
+
+// --- ficha em modo leitura (spec 13, C2) -------------------------------------------------
+// "dez/2013"
+export function monthYear(iso: string | null | undefined): string {
+  const b = parts(iso);
+  return b ? `${MONTHS[b.m - 1]}/${b.y}` : "";
+}
+// "12/03"
+function dayMonth(iso: string | null | undefined): string {
+  const b = parts(iso);
+  return b ? `${String(b.d).padStart(2, "0")}/${String(b.m).padStart(2, "0")}` : "";
+}
+
+// Estado civil no feminino/masculino quando o sexo é conhecido ("Casada"); senão o rótulo "Casado(a)".
+const MARITAL_BY_GENDER: Record<string, readonly [string, string]> = {
+  single: ["Solteiro", "Solteira"],
+  married: ["Casado", "Casada"],
+  divorced: ["Divorciado", "Divorciada"],
+  widowed: ["Viúvo", "Viúva"],
+};
+export function maritalLabel(status: string, gender: string): string {
+  const pair = MARITAL_BY_GENDER[status];
+  if (pair && (gender === "male" || gender === "female")) return pair[gender === "male" ? 0 : 1];
+  return optionLabel(MARITAL_OPTIONS, status);
+}
+
+// Linha "Sobre": "41 anos (12/03) · Casada · Professora". Só entra o que existe.
+export function aboutLine(v: { birthDate: string; gender: string; maritalStatus: string; profession: string }, now: Date): string {
+  const dm = dayMonth(v.birthDate);
+  const age = ageLabel(v.birthDate, now);
+  const birth = age && dm ? `${age} (${dm})` : age || dm;
+  return [birth, maritalLabel(v.maritalStatus, v.gender), v.profession.trim()].filter(Boolean).join(" · ");
+}
+
+// Endereço em uma linha: "Rua das Flores, 120, Casa 2, Joinville/SC, 89201-000".
+export function addressLine(a: { line1: string; line2: string; city: string; state: string; postalCode: string }): string {
+  return [a.line1.trim(), a.line2.trim(), [a.city.trim(), a.state.trim()].filter(Boolean).join("/"), a.postalCode.trim() ? formatCep(a.postalCode) : ""]
+    .filter(Boolean)
+    .join(", ");
+}
+
+// Cabeçalho da ficha: "Membro · Diácono · 41 anos · líder".
+export function profileMeta(
+  v: { status: string; office: string; birthDate: string; isLeader: string },
+  archived: boolean,
+  now: Date,
+): string {
+  return [archived ? "Arquivado" : relLabel(statusValue(v.status) as Relationship), v.office, ageLabel(v.birthDate, now), v.isLeader === "true" ? "líder" : ""]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export interface Milestone {
+  key: string;
+  label: string;
+  when: string; // "dez/2013, por batismo"
+}
+// Marcos da vida na igreja em ordem de data (empate: ordem natural; sem data vai para o fim).
+export function churchTimeline(v: {
+  firstVisit: string;
+  conversionDate: string;
+  baptismDate: string;
+  membershipDate: string;
+  admissionType: string;
+  exitDate: string;
+  exitReason: string;
+}): Milestone[] {
+  const by = v.admissionType && v.admissionType !== "other" ? `por ${optionLabel(ADMISSION_OPTIONS, v.admissionType).toLowerCase()}` : "";
+  const why = v.exitReason ? optionLabel(EXIT_OPTIONS, v.exitReason).toLowerCase() : "";
+  const rows: (Milestone & { date: string })[] = [
+    { key: "firstVisit", label: "Primeira visita", date: v.firstVisit, when: monthYear(v.firstVisit) },
+    { key: "conversionDate", label: "Conversão", date: v.conversionDate, when: monthYear(v.conversionDate) },
+    { key: "baptismDate", label: "Batismo", date: v.baptismDate, when: monthYear(v.baptismDate) },
+    { key: "membershipDate", label: "Membro desde", date: v.membershipDate, when: [monthYear(v.membershipDate), by].filter(Boolean).join(", ") },
+    { key: "exit", label: "Saída", date: v.exitDate || "9999", when: [monthYear(v.exitDate), why].filter(Boolean).join(", ") },
+  ];
+  return rows
+    .filter((r) => (r.key === "exit" ? r.when : parts(r.date)))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(({ key, label, when }) => ({ key, label, when }));
+}

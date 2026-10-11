@@ -3,7 +3,7 @@
 // Pessoas: a lista à esquerda e a ficha à direita (>= 900px); no celular só a lista, e a ficha
 // entra em tela cheia pela direita (mesmo movimento de Notas). A seleção vive em ?p=<id>
 // (replaceState no computador, pushState no celular para o voltar do aparelho fechar a ficha);
-// os filtros também ficam na URL.
+// os filtros também ficam na URL, e o modo Editar da ficha é ?edit=1.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { UiIcon } from "@/components/shared/UiIcon";
@@ -17,9 +17,10 @@ import { PeopleList } from "./PeopleList";
 import { PersonProfile } from "./PersonProfile";
 import styles from "../people.module.css";
 
-function urlFor(f: PeopleFilters, id: string | null): string {
+function urlFor(f: PeopleFilters, id: string | null, edit = false): string {
   const p = new URLSearchParams(filtersQuery(f));
   if (id) p.set("p", id);
+  if (id && edit) p.set("edit", "1");
   const qs = p.toString();
   return qs ? `/people?${qs}` : "/people";
 }
@@ -31,6 +32,7 @@ export function PeopleView({
   initialSelected,
   initialDetail,
   initialMobileOpen,
+  initialEditing,
   initialLists,
   canEdit,
   canDocs,
@@ -42,6 +44,7 @@ export function PeopleView({
   initialSelected: string | null;
   initialDetail: PersonDetail | null;
   initialMobileOpen: boolean;
+  initialEditing: boolean;
   initialLists: SavedList[];
   canEdit: boolean;
   canDocs: boolean;
@@ -52,6 +55,7 @@ export function PeopleView({
   const [sel, setSel] = useState(initialSelected);
   const [mobileOpen, setMobileOpen] = useState(initialMobileOpen);
   const [details, setDetails] = useState<Record<string, PersonDetail>>(initialDetail ? { [initialDetail.id]: initialDetail } : {});
+  const [editing, setEditing] = useState(initialEditing);
   const [fresh, setFresh] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [lists, setLists] = useState(initialLists);
@@ -64,18 +68,25 @@ export function PeopleView({
   const have = sel ? Boolean(details[sel]) : true;
 
   const select = useCallback(
-    (id: string, f: PeopleFilters = filters) => {
+    (id: string, f: PeopleFilters = filters, edit = false) => {
       setSel(id);
       setError("");
+      setEditing(edit);
       setFresh((cur) => (cur === id ? cur : null));
       if (isMobile()) {
         setMobileOpen(true);
-        window.history.pushState({ p: id }, "", urlFor(f, id));
+        window.history.pushState({ p: id }, "", urlFor(f, id, edit));
         pushed.current = true;
-      } else window.history.replaceState(null, "", urlFor(f, id));
+      } else window.history.replaceState(null, "", urlFor(f, id, edit));
     },
     [filters],
   );
+
+  function setEdit(on: boolean) {
+    setEditing(on);
+    if (!on) setFresh(null);
+    window.history.replaceState(null, "", urlFor(filters, sel, on));
+  }
 
   function closeMobile() {
     if (pushed.current) {
@@ -118,6 +129,7 @@ export function PeopleView({
     if (sel && !filterPeople(people, f, new Date()).some((p) => p.id === sel)) {
       id = filterPeople(people, f, new Date())[0]?.id ?? null;
       setSel(id);
+      setEditing(false);
       setError("");
     }
     window.history.replaceState(null, "", urlFor(f, id));
@@ -132,7 +144,7 @@ export function PeopleView({
     const item: PersonListItem = { id: r.data.id, name: "Nova pessoa", status: "visitor_first", office: "", phone: "", whatsapp: "", email: "", birthDate: null, archived: false, groupIds: [], photoUrl: null };
     setPeople((l) => [item, ...l]);
     setFilters(NO_FILTERS);
-    select(item.id, NO_FILTERS);
+    select(item.id, NO_FILTERS, true);
     setFresh(item.id);
   }
 
@@ -175,7 +187,9 @@ export function PeopleView({
             canEdit={canEdit}
             canDocs={canDocs}
             canFinance={canFinance}
-            focusName={sel === fresh ? 1 : 0}
+            focusName={sel === fresh}
+            editing={canEdit && editing}
+            onEditing={setEdit}
             update={update}
             patchList={patchList}
             onOpenPerson={(id) => select(id)}

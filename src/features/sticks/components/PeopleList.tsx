@@ -83,7 +83,9 @@ export function PeopleList({
     <button type="button" className={styles.primary} onClick={onNew} disabled={creating}>Nova pessoa</button>
   ) : null;
   const statusLabel = STATUS_CHIPS.find(([k]) => k === filters.s)?.[1] ?? "Todos";
+  const statusText = statusLabel === "Todos" ? "Situação" : statusLabel;
   const filterCount = [filters.cargo, filters.aniv, filters.celula].filter(Boolean).length;
+  const filtersText = filterCount ? `Filtros (${filterCount})` : "Filtros";
   const savedMatch = lists.find((l) => hasFilters(l.filters) && sameFilters(filters, l.filters));
   const tags: { key: string; label: string; clear: () => void }[] = savedMatch
     ? [{ key: "lista", label: savedMatch.name, clear: () => onFilters(NO_FILTERS) }]
@@ -152,7 +154,7 @@ export function PeopleList({
           />
 
           <div className={styles.chips} role="group" aria-label="Filtros">
-            <Popover trigger={<>{statusLabel === "Todos" ? "Situação" : statusLabel}<UiIcon icon={ChevronDown} /></>} triggerClass={studyStyles.chipBtn} label="Situação">
+            <Popover trigger={<>{statusText}<UiIcon icon={ChevronDown} /></>} triggerClass={studyStyles.chipBtn} label={statusText}>
               {(close) => (
                 <>
                   {STATUS_CHIPS.map(([key, label]) => (
@@ -161,7 +163,7 @@ export function PeopleList({
                 </>
               )}
             </Popover>
-            <Popover trigger={<>{filterCount ? `Filtros (${filterCount})` : "Filtros"}<UiIcon icon={ChevronDown} /></>} triggerClass={studyStyles.chipBtn} label="Filtros">
+            <Popover trigger={<>{filtersText}<UiIcon icon={ChevronDown} /></>} triggerClass={studyStyles.chipBtn} label={filtersText}>
               {(close) => (
                 <div className={studyStyles.popList}>
                   <p className={styles.menuHead}>Cargo</p>

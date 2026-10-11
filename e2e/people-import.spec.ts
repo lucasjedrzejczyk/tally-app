@@ -83,12 +83,14 @@ test("pessoas: importar planilha, listas salvas, exportar e imprimir", async ({ 
   await page.getByRole("button", { name: /Importacao Teste Alfa/ }).click();
   await expect(page).toHaveURL(/[?&]p=/);
   const id = new URL(page.url()).searchParams.get("p");
-  await page.getByRole("link", { name: "Imprimir ficha" }).click();
+  await page.getByRole("button", { name: "Mais ações da pessoa" }).click();
+  await page.getByRole("menuitem", { name: "Imprimir ficha" }).click();
   await expect(page.getByRole("heading", { name: "Ficha cadastral" })).toBeVisible();
   await expect(page.getByText("Importacao Teste Alfa").first()).toBeVisible();
   await expect(page.getByText("05/03/1985")).toBeVisible();
   await page.goto(`/people/${id}`);
-  await page.getByRole("link", { name: "Certificado de batismo" }).click();
+  await page.getByRole("button", { name: "Mais ações da pessoa" }).click();
+  await page.getByRole("menuitem", { name: "Certificado de batismo" }).click();
   await expect(page.getByRole("heading", { name: "Certificado de batismo" })).toBeVisible();
   await expect(page.getByText(/foi batizada nas águas em 10 de junho de 2010/)).toBeVisible();
 

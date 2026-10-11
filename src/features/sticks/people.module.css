@@ -250,11 +250,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--s-1) var(--s-3);
+  gap: var(--s-1) var(--s-2);
   min-height: var(--control-h);
 }
 .saved {
+  margin-right: auto;
   font-size: var(--t-11);
   line-height: var(--lh-11);
   color: var(--text-2);
@@ -315,32 +315,6 @@ button.photo:focus-visible {
   font: 600 var(--t-22)/var(--lh-22) var(--font-ui);
   overflow-wrap: anywhere;
 }
-.nameBtn {
-  display: block;
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: text;
-  overflow-wrap: anywhere;
-}
-.nameBtn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--blue);
-  border-radius: var(--r-6);
-}
-.nameInput {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text);
-  font: 600 var(--t-22)/var(--lh-22) var(--font-ui);
-  outline: none;
-}
 .sec {
   margin-top: var(--s-6);
 }
@@ -348,55 +322,107 @@ button.photo:focus-visible {
   margin: 0 0 var(--s-2);
   font-size: var(--t-13);
   line-height: var(--lh-13);
-  font-weight: 500;
-  color: var(--text-2);
+  font-weight: 600;
+  color: var(--text);
 }
-.fRow {
-  display: grid;
-  grid-template-columns: 9rem minmax(0, 1fr);
-  column-gap: var(--s-3);
-  align-items: start;
-  min-height: 2.25rem;
-  padding: var(--s-1) 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-}
-.fLabel {
-  padding-top: calc(var(--s-1) + 0.125rem);
-  font-size: var(--t-13);
-  line-height: var(--lh-13);
-  color: var(--text-2);
-}
-.fVal {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-1) var(--s-3);
-  min-width: 0;
-  padding-top: var(--s-1);
+.line {
+  margin: 0;
   font-size: var(--t-15);
   line-height: var(--lh-15);
   overflow-wrap: anywhere;
 }
-.fBtn {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: text;
-}
-.fBtn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--blue);
-  border-radius: var(--r-6);
-}
-.fHint {
-  color: var(--text-2);
-}
-.fNote {
+.dim {
   font-size: var(--t-13);
   color: var(--text-2);
+}
+.blank {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+  font-size: var(--t-15);
+  color: var(--text-2);
+}
+.blank p {
+  margin: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+.actions a {
+  text-decoration: none;
+}
+.tl {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tlItem {
+  position: relative;
+  padding: 0 0 var(--s-3) var(--s-4);
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+}
+.tlItem::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: var(--r-pill);
+  background: var(--text-2);
+}
+.tlItem:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(0.1875rem - 0.5px);
+  top: 0.95rem;
+  bottom: -0.5rem;
+  width: 1px;
+  background: var(--border);
+}
+.tlItem:last-child {
+  padding-bottom: 0;
+}
+.fade {
+  animation: fadeIn 150ms ease;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--s-3) var(--s-4);
+}
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.fldWide {
+  grid-column: 1 / -1;
+}
+.fLabel {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.dateBox {
+  margin: 0;
+}
+.doneRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--s-6);
 }
 .fEdit {
   min-width: 0;
@@ -437,19 +463,18 @@ button.photo:focus-visible {
   font: 500 var(--t-13)/1 var(--font-ui);
   cursor: pointer;
 }
-.famName {
-  margin: 0 0 var(--s-1);
-  font-size: var(--t-13);
-  color: var(--text-2);
-}
 .famRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
   min-height: 2.25rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   font-size: var(--t-15);
+}
+.famName {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-13);
+  color: var(--text-2);
 }
 .famSelf {
   font-weight: 500;
@@ -462,10 +487,6 @@ button.photo:focus-visible {
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-.famRole {
-  font-size: var(--t-13);
-  color: var(--text-2);
 }
 .famLeave,
 .famAdd {
@@ -488,19 +509,12 @@ button.photo:focus-visible {
   display: flex;
   gap: var(--s-2);
 }
-.tithes {
-  margin: 0 0 var(--s-2);
-  font-size: var(--t-15);
-  line-height: var(--lh-15);
-}
-@media (max-width: 56.1875rem) {
-  .fRow {
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   button.photo:active {
     transform: none;
+  }
+  .fade {
+    animation: none;
   }
 }
 
