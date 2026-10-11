@@ -46,7 +46,7 @@ test("pessoas: importar planilha, listas salvas, exportar e imprimir", async ({ 
   const search = page.getByLabel("Buscar por nome, telefone ou e-mail");
   await search.fill("Importacao Teste");
   const alfa = page.getByRole("button", { name: /Importacao Teste Alfa/ });
-  await expect(alfa).toContainText("Membro · Diácono(isa) · (47) 98888-0001");
+  await expect(alfa).toContainText("Diácono(isa)");
   await expect(page.getByRole("button", { name: /Importacao Teste (Beta|Gama)/ })).toHaveCount(2);
   await expect(page.getByRole("button", { name: /Importacao Teste Erro/ })).toHaveCount(0);
 
@@ -68,12 +68,14 @@ test("pessoas: importar planilha, listas salvas, exportar e imprimir", async ({ 
   expect(csv).toContain("Importacao Teste Beta;Membro;;(47) 98888-0002;;;12/11/1990;Masculino");
 
   // 5) salvar a lista, recarregar e usar o atalho
-  await page.getByRole("button", { name: "Salvar lista" }).click();
+  await page.getByRole("button", { name: "Listas", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Salvar lista atual" }).click();
   await page.getByLabel("Nome da lista").fill(LIST);
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
-  await expect(page.getByRole("button", { name: LIST, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Remover ${LIST}` })).toBeVisible();
   await page.goto("/people");
-  await page.getByRole("button", { name: LIST, exact: true }).click();
+  await page.getByRole("button", { name: "Listas", exact: true }).click();
+  await page.getByRole("menuitemradio", { name: LIST, exact: true }).click();
   await expect(page).toHaveURL(/q=Importacao/);
   await expect(page.getByRole("button", { name: /Importacao Teste Alfa/ })).toBeVisible();
 
@@ -92,7 +94,9 @@ test("pessoas: importar planilha, listas salvas, exportar e imprimir", async ({ 
 
   // 7) apagar a lista pelo menu
   await page.goto("/people");
+  await page.getByRole("button", { name: "Listas", exact: true }).click();
   await page.getByRole("button", { name: `Mais ações da lista ${LIST}` }).click();
   await page.getByRole("menuitem", { name: "Apagar" }).click();
-  await expect(page.getByRole("button", { name: LIST, exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Listas", exact: true }).click();
+  await expect(page.getByRole("menuitemradio", { name: LIST, exact: true })).toHaveCount(0);
 });

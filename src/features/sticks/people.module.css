@@ -23,7 +23,9 @@
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
-.head .primary {
+.headEnd {
+  display: flex;
+  align-items: center;
   margin-left: auto;
 }
 .primary {
@@ -502,17 +504,55 @@ button.photo:focus-visible {
   }
 }
 
-/* Listas salvas */
-.sl {
-  display: inline-flex;
+/* Menus Filtros e Listas, etiquetas de filtro ligado */
+.menuHead {
+  margin: var(--s-2) 0 0;
+  padding: 0 var(--control-px);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  font-weight: 500;
+  color: var(--text-2);
+}
+.listRow {
+  display: flex;
   align-items: center;
 }
-.slHint {
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.tag {
   display: inline-flex;
   align-items: center;
   height: 1.75rem;
-  font-size: var(--t-13);
+  padding: 0 var(--s-1) 0 var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font: 500 var(--t-13)/1 var(--font-ui);
+}
+.tagX {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: none;
   color: var(--text-2);
+  cursor: pointer;
+}
+.tagX:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tagX:hover {
+    color: var(--text);
+  }
 }
 
 /* Importar planilha */

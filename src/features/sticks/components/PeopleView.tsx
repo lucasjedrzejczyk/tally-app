@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { createPersonAction } from "../actions";
-import { NO_FILTERS, filtersQuery, type PeopleFilters } from "../domain";
+import { NO_FILTERS, filterPeople, filtersQuery, type PeopleFilters } from "../domain";
 import { useSwipeToClose } from "../swipe";
 import type { PersonDetail, PersonListItem, SavedList } from "../types";
 import { Panel } from "@/features/finance/components/Panel";
@@ -113,7 +113,14 @@ export function PeopleView({
   function apply(next: Partial<PeopleFilters>) {
     const f = { ...filters, ...next };
     setFilters(f);
-    window.history.replaceState(null, "", urlFor(f, sel));
+    // Se o filtro tira da lista a pessoa aberta, abre a primeira que sobrou (ou deixa a ficha vazia).
+    let id = sel;
+    if (sel && !filterPeople(people, f, new Date()).some((p) => p.id === sel)) {
+      id = filterPeople(people, f, new Date())[0]?.id ?? null;
+      setSel(id);
+      setError("");
+    }
+    window.history.replaceState(null, "", urlFor(f, id));
   }
 
   async function create() {
@@ -175,7 +182,9 @@ export function PeopleView({
           />
         ) : sel ? (
           <p className="muted" role={error ? "alert" : undefined}>{error || "Abrindo a ficha…"}</p>
-        ) : null}
+        ) : (
+          <p className="muted">Nenhuma pessoa para mostrar.</p>
+        )}
         {error && detail ? <p className={styles.fErr} role="alert">{error}</p> : null}
       </div>
 

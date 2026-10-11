@@ -388,8 +388,9 @@ export function filterPeople<T extends PersonLite>(list: T[], f: PeopleFilters, 
   return out.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
-// "Membro · Diácono · (47) 99999-0000"
-export function personSubtitle(p: Pick<PersonLite, "status" | "office" | "phone" | "archived">): string {
-  const status = p.archived ? "Arquivado" : relLabel(p.status);
-  return [status, p.office, p.phone ? formatPhone(p.phone) : ""].filter(Boolean).join(" · ");
+// Linha de baixo da lista: só o que foge do normal. Membro sem cargo = nada (a linha some).
+// Ex.: "Diácono", "Visitante", "Inativo · Diácono", "Arquivado".
+export function personSubtitle(p: Pick<PersonLite, "status" | "office" | "archived">): string {
+  const status = p.archived ? "Arquivado" : p.status === "member" ? "" : relLabel(p.status);
+  return [status, p.office].filter(Boolean).join(" · ");
 }

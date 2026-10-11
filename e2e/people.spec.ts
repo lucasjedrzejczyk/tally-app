@@ -70,10 +70,12 @@ test("pessoas: criar, editar telefone, buscar, filtrar e abrir por URL", async (
   await search.fill(name);
 
   // filtrar Membros e Visitantes
-  await page.getByRole("button", { name: "Membros" }).click();
+  await page.getByRole("button", { name: "Situação" }).click();
+  await page.getByRole("menuitemradio", { name: "Membros" }).click();
   await expect(page).toHaveURL(/s=member/);
   await expect(page.getByRole("button", { name: new RegExp(name) }).first()).toBeVisible();
-  await page.getByRole("button", { name: "Visitantes" }).click();
+  await page.getByRole("button", { name: "Membros" }).click();
+  await page.getByRole("menuitemradio", { name: "Visitantes" }).click();
   await expect(page.getByText("Nenhuma pessoa com esses filtros.")).toBeVisible();
 
   // abrir a ficha pela URL

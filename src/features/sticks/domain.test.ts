@@ -198,8 +198,11 @@ describe("filtros da lista", () => {
     expect(parseFilters({ s: "lixo", aniv: "x" })).toEqual(NO_FILTERS);
   });
   it("subtítulo da linha e rótulos", () => {
-    expect(personSubtitle(person({ office: "Diácono", phone: "47999990000" }))).toBe("Membro · Diácono · (47) 99999-0000");
+    expect(personSubtitle(person({ office: "Diácono", phone: "47999990000" }))).toBe("Diácono");
+    expect(personSubtitle(person({}))).toBe("");
     expect(personSubtitle(person({ status: "visitor_returning" }))).toBe("Visitante");
+    expect(personSubtitle(person({ status: "inactive", office: "Diácono" }))).toBe("Inativo · Diácono");
+    expect(personSubtitle(person({ archived: true }))).toBe("Arquivado");
     expect(statusValue("visitor_returning")).toBe("visitor_first");
     expect(normalize("Álvaro")).toBe("alvaro");
   });
