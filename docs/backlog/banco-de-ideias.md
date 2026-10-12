@@ -69,3 +69,19 @@ OSS-Fuzz), avaliado caso a caso. A Mercy hoje é repositório privado, então n�
 Quando voltar: ver se algum pedaço da Mercy vira open source (ex.: dados/alinhamento bíblico em PT)
 e se teria peso para entrar; senão, usar a mesma ideia internamente (revisão de segurança com o
 Claude antes de abrir dados de membros, LGPD).
+
+## Network com pastores, anotada em 2026-10-12
+
+Pedido do dono, ainda em aberto: criar uma rede (network) de pastores em volta da Mercy. A definir
+quando entrar: se é comunidade fora do app (grupo, encontros, lista de contatos para divulgação e
+indicação) ou um espaço dentro da Mercy onde pastores de igrejas diferentes conversam e trocam
+material (esboços, séries). Liga com a divulgação abaixo e com o crescimento por indicação.
+
+## Stories da Mercy com CTA para a liderança, anotada em 2026-10-12
+
+Ideia de divulgação nos stories (Instagram). CTA no estilo: "Se você faz parte da equipe pastoral
+ou da liderança de algum ministério, clique neste botão". O botão (figurinha de link) leva para
+joinmercy.com.
+A decidir quando entrar: sequência de stories (problema, demo curta do app, CTA), se o link leva
+para a página inicial ou para uma página própria da campanha (ex.: /pt com o texto para liderança),
+e como medir quem veio pelos stories (parâmetro utm no link).
