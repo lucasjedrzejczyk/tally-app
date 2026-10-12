@@ -93,9 +93,11 @@ test("ministérios: funções, quem serve, escala por toque, conflito, WhatsApp 
   await page.getByRole("button", { name: "Montar escala" }).click();
   const sheet = page.getByRole("dialog", { name: "Escala" });
   await expect(sheet).toBeVisible();
+  await expect(sheet.getByRole("heading", { name: /^Domingo, \d{2}\/\d{2} · 19h$/ })).toBeVisible();
   await sheet.getByRole("button", { name: "Escalar Vocal" }).first().click();
   const sugg = page.getByRole("dialog", { name: "Escalar Vocal" });
   await expect(sugg.getByRole("button").first()).toContainText(ana); // faz a função, vem primeiro
+  await expect(sugg.getByText("Também servem aqui")).toBeVisible(); // quem não marcou Vocal vem num 2º grupo
   await sugg.getByRole("button", { name: new RegExp(ana) }).click();
   await expect(sheet.getByRole("button", { name: `${ana}, Vocal` })).toBeVisible();
   await sheet.getByRole("button", { name: "Escalar Vocal" }).click();
@@ -117,6 +119,13 @@ test("ministérios: funções, quem serve, escala por toque, conflito, WhatsApp 
   await page.keyboard.press("Escape");
 
   // tirar a Bia reabre a vaga; ao fechar, a ficha mostra "1 vaga" no culto
+  await sheet.getByRole("button", { name: `${bia}, Vocal` }).click();
+  await page.getByRole("dialog", { name: bia }).getByRole("button", { name: "Tirar" }).click();
+  await expect(sheet.getByText("2 de 3")).toBeVisible();
+  // desfazer devolve a Bia; tirar de novo
+  await expect(sheet.getByText("Bia saiu da escala")).toBeVisible();
+  await sheet.getByRole("button", { name: "Desfazer" }).click();
+  await expect(sheet.getByText("3 de 3")).toBeVisible();
   await sheet.getByRole("button", { name: `${bia}, Vocal` }).click();
   await page.getByRole("dialog", { name: bia }).getByRole("button", { name: "Tirar" }).click();
   await expect(sheet.getByText("2 de 3")).toBeVisible();

@@ -359,3 +359,25 @@ button.seat:focus-visible {
     opacity: 0;
   }
 }
+
+/* Calendário do topo da escala (abre pelo ícone) */
+.datePick {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--s-3);
+}
+
+/* Sugestões: quem faz a função primeiro; o resto do ministério num segundo grupo */
+.suggGroup {
+  margin: var(--s-2) var(--s-2) var(--s-1);
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* No escuro o painel ficava da mesma cor da escala: um tom acima e sombra mais funda (superfície maior = mais espessa) */
+:global([data-theme="dark"]) .anchored {
+  background: var(--surface-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .06);
+}

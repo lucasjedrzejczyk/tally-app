@@ -11,7 +11,8 @@ import { UiIcon } from "@/components/shared/UiIcon";
 import { sheetCloses } from "../domain";
 import g from "../groups.module.css";
 
-export function Sheet({ title, headExtra, onClose, children, foot, tall }: { title: string; headExtra?: ReactNode; onClose: () => void; children: ReactNode; foot?: ReactNode; tall?: boolean }) {
+// `heading` troca o texto visível do topo (o nome acessível continua `title`).
+export function Sheet({ title, heading, headExtra, onClose, children, foot, tall }: { title: string; heading?: ReactNode; headExtra?: ReactNode; onClose: () => void; children: ReactNode; foot?: ReactNode; tall?: boolean }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: number; y0: number; dy: number; hist: { y: number; t: number }[] } | null>(null);
@@ -70,7 +71,7 @@ export function Sheet({ title, headExtra, onClose, children, foot, tall }: { tit
         <div className={g.sheetTop} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
           <span className={g.grab} aria-hidden="true" />
           <div className={g.sheetHead}>
-            <h2>{title}</h2>
+            <h2>{heading ?? title}</h2>
             {headExtra}
             <button ref={closeRef} type="button" className="iconbtn" aria-label="Fechar" onClick={onClose}>
               <UiIcon icon={X} />

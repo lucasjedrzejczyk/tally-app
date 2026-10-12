@@ -114,7 +114,12 @@ export function serviceLabel(date: string, time: string): string {
   const t = timeLabel(time);
   return `${day} ${date.slice(8, 10)}/${date.slice(5, 7)}${t ? ` às ${t}` : ""}`;
 }
-/** "Dom 19/10 · 19h" (cartões e topo da escala). */
+/** "Domingo, 19/10 · 19h" (topo da Montar escala). */
+export function serviceLong(date: string, time: string): string {
+  const t = timeLabel(time);
+  return `${WEEKDAYS[weekdayOf(date)] ?? ""}, ${date.slice(8, 10)}/${date.slice(5, 7)}${t ? ` · ${t}` : ""}`;
+}
+/** "Dom 19/10 · 19h" (cartões). */
 export function serviceShort(date: string, time: string): string {
   const day = (WEEKDAYS[weekdayOf(date)] ?? "").slice(0, 3);
   const t = timeLabel(time);

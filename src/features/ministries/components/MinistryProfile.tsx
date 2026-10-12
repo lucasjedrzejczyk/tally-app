@@ -151,8 +151,8 @@ export function MinistryProfile({
 
       {editing ? null : (
         <div className={g.presenceRow}>
-          <button type="button" className={styles.primary} onClick={() => setService(next)} disabled={!detail.roles.length || !detail.members.length}>Montar escala</button>
-          {!detail.roles.length ? <span className={g.lastText}>Cadastre as funções no Editar.</span> : !detail.members.length ? <span className={g.lastText}>Adicione quem serve no Editar.</span> : null}
+          <button type="button" className={styles.primary} onClick={() => (detail.roles.length && detail.members.length ? setService(next) : canManage ? onEditing(true) : undefined)}>Montar escala</button>
+          {!detail.roles.length ? <span className={g.lastText}>Primeiro, as funções (ex.: Vocal, Som).</span> : !detail.members.length ? <span className={g.lastText}>Primeiro, quem serve.</span> : null}
         </div>
       )}
 

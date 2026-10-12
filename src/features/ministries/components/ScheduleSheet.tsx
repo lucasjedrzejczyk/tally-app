@@ -6,7 +6,7 @@
 // (otimista); as gravações de uma mesma função entram numa fila, nunca fora de ordem.
 // Trocar de culto pelas setas não anima (uso repetido).
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { Check, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Avatar } from "@/components/shared/Avatar";
 import { DateField } from "@/components/shared/DateField";
 import { UiIcon } from "@/components/shared/UiIcon";
@@ -14,7 +14,7 @@ import { firstName, isIso } from "@/features/groups/domain";
 import { Sheet } from "@/features/groups/components/Sheet";
 import studyStyles from "@/features/study/study.module.css";
 import { assignAction, assignManyAction, markNotifiedAction, removeAssignmentsAction, setAssignmentStatusAction } from "../actions";
-import { addDays, previousService, repeatPlan, seats, serviceShort, servedLabel, suggestPeople, waLink, whatsappText } from "../domain";
+import { addDays, previousService, repeatPlan, seats, serviceLong, servedLabel, suggestPeople, waLink, whatsappText } from "../domain";
 import type { Assignment, Conflict, MinistryDetail } from "../types";
 import { Anchored } from "./Anchored";
 import people from "@/features/sticks/people.module.css";
@@ -55,7 +55,8 @@ export function ScheduleSheet({
   const [confirming, setConfirming] = useState<string | null>(null); // pessoa com conflito: precisa de 2º toque
   const [fresh, setFresh] = useState<Map<string, number>>(new Map()); // id -> atraso da entrada (cascata)
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
-  const [undo, setUndo] = useState<string[] | null>(null);
+  const [undo, setUndo] = useState<{ text: string; run: () => void } | null>(null); // "Desfazer" por 5 s
+  const [dating, setDating] = useState(false); // calendário aberto no topo
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(0);
   const listRef = useRef(list);
@@ -101,6 +102,12 @@ export function ScheduleSheet({
     queues.current.set(role, next);
   }
   const idOf = (id: string) => real.current.get(id) ?? id;
+  function offerUndo(text: string, run: () => void) {
+    window.clearTimeout(undoTimer.current);
+    setUndo({ text, run });
+    undoTimer.current = window.setTimeout(() => setUndo(null), UNDO_MS);
+  }
+  const firstOf = (stickId: string) => firstName(nameOf.get(stickId)?.name ?? "");
 
   function assign(role: string, stickId: string) {
     const tmp: Assignment = { id: `tmp-${++tmpSeq}`, date: svc.date, time: svc.time, role, stickId, status: "assigned", notifiedAt: null };
@@ -110,6 +117,11 @@ export function ScheduleSheet({
     setMsg("");
     setFresh((f) => new Map(f).set(tmp.id, 0));
     commit((l) => [...l, tmp]);
+    try {
+      navigator.vibrate?.(10); // só Android; o iPhone ignora
+    } catch {
+      /* sem vibração */
+    }
     enqueue(role, async () => {
       const r = await assignAction(detail.id, at.date, at.time, role, stickId);
       if (r.success) {
@@ -137,6 +149,10 @@ export function ScheduleSheet({
 
   function remove(a: Assignment) {
     setPick(null);
+    offerUndo(`${firstOf(a.stickId)} saiu da escala`, () => {
+      setUndo(null);
+      assign(a.role, a.stickId);
+    });
     const before = listRef.current;
     fadeOut(a.id, () => commit((l) => l.filter((x) => x.id !== a.id)));
     enqueue(a.role, async () => {
@@ -150,6 +166,16 @@ export function ScheduleSheet({
 
   function status(a: Assignment, s: "confirmed" | "declined") {
     setPick(null);
+    if (s === "declined")
+      offerUndo(`${firstOf(a.stickId)} não pode`, () => {
+        setUndo(null);
+        setFresh((f) => new Map(f).set(a.id, 0));
+        commit((l) => l.map((x) => (x.id === a.id ? { ...x, status: a.status } : x)));
+        enqueue(a.role, async () => {
+          const r = await setAssignmentStatusAction(idOf(a.id), a.status);
+          if (!r.success) setMsg(r.message || FAIL);
+        });
+      });
     const apply = () => commit((l) => l.map((x) => (x.id === a.id ? { ...x, status: s } : x)));
     if (s === "declined") fadeOut(a.id, apply);
     else apply();
@@ -198,14 +224,12 @@ export function ScheduleSheet({
         if (i >= 0) real.current.set(t.id, saved.splice(i, 1)[0]!.id);
       }
       commit((l) => [...l]);
-      setUndo(temps.map((t) => t.id));
-      window.clearTimeout(undoTimer.current);
-      undoTimer.current = window.setTimeout(() => setUndo(null), UNDO_MS);
+      const madeIds = temps.map((t) => t.id);
+      offerUndo("Escala anterior repetida", () => undoRepeat(madeIds));
     });
   }
-  function undoRepeat() {
-    if (!undo) return;
-    const ids = new Set(undo);
+  function undoRepeat(list: string[]) {
+    const ids = new Set(list);
     const before = listRef.current;
     setUndo(null);
     commit((l) => l.filter((a) => !ids.has(a.id)));
@@ -229,26 +253,33 @@ export function ScheduleSheet({
   const head = (
     <span className={m.nav}>
       <button type="button" className="iconbtn" aria-label="Culto anterior" onClick={() => go(-7)}><UiIcon icon={ChevronLeft} /></button>
+      <button type="button" className="iconbtn" aria-label="Escolher a data" aria-expanded={dating} onClick={() => setDating((d) => !d)}><UiIcon icon={CalendarDays} /></button>
+      <button type="button" className="iconbtn" aria-label="Próximo culto" onClick={() => go(7)}><UiIcon icon={ChevronRight} /></button>
+    </span>
+  );
+  const datePick = dating ? (
+    <div className={m.datePick}>
       <span className={`field ${people.dateBox} ${g.sheetDate}`}>
         <DateField
           value={svc.date}
           onChange={(iso) => {
             if (!isIso(iso)) return;
             setPick(null);
+            setDating(false);
             setSvc((s) => ({ ...s, date: iso }));
           }}
           aria-label="Data do culto"
         />
       </span>
-      <button type="button" className="iconbtn" aria-label="Próximo culto" onClick={() => go(7)}><UiIcon icon={ChevronRight} /></button>
-    </span>
-  );
+    </div>
+  ) : null;
   const foot = (
     <>
       {msg ? <p className={g.footMsg} role="alert">{msg}</p> : null}
       <div className={g.footRow}>
         <span className={g.footCount}>{filled} de {total}</span>
-        {undo ? <button type="button" className="btn ghost sm" onClick={undoRepeat}>Desfazer</button> : <span className={m.footWhen} aria-live="polite">{saving > 0 ? "Salvando…" : serviceShort(svc.date, svc.time)}</span>}
+        <span className={m.footWhen} aria-live="polite">{undo ? undo.text : saving > 0 ? "Salvando…" : ""}</span>
+        {undo ? <button type="button" className="btn ghost sm" onClick={undo.run}>Desfazer</button> : null}
       </div>
     </>
   );
@@ -258,7 +289,8 @@ export function ScheduleSheet({
   const suggestions = pickSeat ? suggestPeople(pickSeat.role, detail.members, list, svc.date, svc.time, today, conflicts) : [];
 
   return (
-    <Sheet title="Escala" headExtra={head} onClose={onClose} foot={foot} tall>
+    <Sheet title="Escala" heading={serviceLong(svc.date, svc.time)} headExtra={head} onClose={onClose} foot={foot} tall>
+      {datePick}
       {from ? (
         <div className={g.shortcut}>
           <button type="button" className="btn ghost sm" onClick={repeat}>Repetir a escala anterior</button>
@@ -302,10 +334,14 @@ export function ScheduleSheet({
           {suggestions.length === 0 ? (
             <p className={m.none}>Todo mundo já está neste culto.</p>
           ) : (
-            <ul className={m.sugg}>
-              {suggestions.map((s) => {
+            [suggestions.filter((x) => x.doesRole), suggestions.filter((x) => !x.doesRole)].map((group, gi) =>
+              group.length ? (
+                <div key={gi}>
+                  {gi === 1 ? <p className={m.suggGroup}>Também servem aqui</p> : null}
+                  <ul className={m.sugg}>
+                    {group.map((s) => {
                 const c = s.conflict;
-                const sub = c ? `Já está em ${c.ministryName}${c.role ? ` (${c.role})` : ""} neste horário` : `${servedLabel(s.served)}${s.doesRole ? "" : " · outra função"}`;
+                const sub = c ? `Já está em ${c.ministryName}${c.role ? ` (${c.role})` : ""} neste horário` : servedLabel(s.served);
                 const asking = confirming === s.member.stickId;
                 return (
                   <li key={s.member.stickId}>
@@ -322,8 +358,11 @@ export function ScheduleSheet({
                     </button>
                   </li>
                 );
-              })}
-            </ul>
+                    })}
+                  </ul>
+                </div>
+              ) : null,
+            )
           )}
         </Anchored>
       ) : null}

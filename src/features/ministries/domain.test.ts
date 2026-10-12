@@ -12,6 +12,7 @@ import {
   repeatPlan,
   seats,
   servedLabel,
+  serviceLong,
   suggestPeople,
   upcomingServices,
   waLink,
@@ -40,6 +41,7 @@ describe("datas e horários", () => {
   it("próximo domingo a partir de segunda", () => expect(nextServiceDate("Domingo", TODAY)).toBe("2026-10-18"));
   it("hoje quando é o dia", () => expect(nextServiceDate("Segunda", TODAY)).toBe(TODAY));
   it("sem dia padrão = hoje", () => expect(nextServiceDate("", TODAY)).toBe(TODAY));
+  it("rótulo longo do culto", () => expect(serviceLong("2026-10-18", "19:00")).toBe("Domingo, 18/10 · 19h"));
   it("normaliza o horário do banco", () => {
     expect(normTime("19:00:00")).toBe("19:00");
     expect(normTime(null)).toBe("");
