@@ -19,7 +19,11 @@ export function AddMembers({
   memberIds,
   onAdd,
   onClose,
+  title = "Adicionar membros",
+  allIn = "Todas as pessoas já estão nesta célula.",
 }: {
+  title?: string;
+  allIn?: string;
   cellId: string;
   persons: PersonListItem[];
   cells: CellListItem[];
@@ -72,10 +76,10 @@ export function AddMembers({
   );
 
   return (
-    <Sheet title="Adicionar membros" tall onClose={onClose} foot={foot}>
+    <Sheet title={title} tall onClose={onClose} foot={foot}>
       <input className={`${people.search} ${g.addSearch}`} type="search" placeholder="Buscar pessoa" aria-label="Buscar pessoa" value={q} onChange={(e) => setQ(e.target.value)} />
       {shown.length === 0 ? (
-        <p className="muted">{q ? "Ninguém com esse nome." : "Todas as pessoas já estão nesta célula."}</p>
+        <p className="muted">{q ? "Ninguém com esse nome." : allIn}</p>
       ) : (
         <ul className={g.list}>
           {shown.map((p) => {

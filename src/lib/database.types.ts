@@ -2459,6 +2459,10 @@ export type Database = {
       }
       ministries: {
         Row: {
+          meeting_day: string | null
+          meeting_time: string | null
+          roles: Json
+          slots: Json
           campus_id: string | null
           color: string | null
           created_at: string
@@ -2470,6 +2474,10 @@ export type Database = {
           status: string
         }
         Insert: {
+          meeting_day?: string | null
+          meeting_time?: string | null
+          roles?: Json
+          slots?: Json
           campus_id?: string | null
           color?: string | null
           created_at?: string
@@ -2481,6 +2489,10 @@ export type Database = {
           status?: string
         }
         Update: {
+          meeting_day?: string | null
+          meeting_time?: string | null
+          roles?: Json
+          slots?: Json
           campus_id?: string | null
           color?: string | null
           created_at?: string
@@ -2511,6 +2523,57 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ministry_members: {
+        Row: {
+          created_at: string
+          id: string
+          joined_at: string
+          left_at: string | null
+          ministry_id: string
+          org_id: string
+          role: string
+          roles: string[]
+          stick_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          ministry_id: string
+          org_id: string
+          role?: string
+          roles?: string[]
+          stick_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          ministry_id?: string
+          org_id?: string
+          role?: string
+          roles?: string[]
+          stick_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ministry_members_ministry_id_fkey"
+            columns: ["ministry_id"]
+            isOneToOne: false
+            referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_members_stick_id_fkey"
+            columns: ["stick_id"]
+            isOneToOne: false
+            referencedRelation: "sticks"
             referencedColumns: ["id"]
           },
         ]
@@ -2843,6 +2906,9 @@ export type Database = {
       }
       schedule_assignments: {
         Row: {
+          ministry_id: string | null
+          notified_at: string | null
+          service_time: string | null
           assignment_date: string | null
           confirmed_at: string | null
           created_at: string
@@ -2856,6 +2922,9 @@ export type Database = {
           team_id: string | null
         }
         Insert: {
+          ministry_id?: string | null
+          notified_at?: string | null
+          service_time?: string | null
           assignment_date?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -2869,6 +2938,9 @@ export type Database = {
           team_id?: string | null
         }
         Update: {
+          ministry_id?: string | null
+          notified_at?: string | null
+          service_time?: string | null
           assignment_date?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -4697,6 +4769,12 @@ export type Database = {
       can_manage_groups: { Args: { p_org: string }; Returns: boolean }
       has_perm: { Args: { p_org: string; p_perm: string }; Returns: boolean }
       leads_group: { Args: { p_group: string }; Returns: boolean }
+      leads_ministry: { Args: { p_ministry: string }; Returns: boolean }
+      can_manage_ministries: { Args: { p_org: string }; Returns: boolean }
+      schedule_conflicts: {
+        Args: { p_date: string; p_ministry: string; p_org: string }
+        Returns: { ministry_name: string; role: string | null; service_time: string | null; stick_id: string }[]
+      }
       is_dm_participant: { Args: { p_thread: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }

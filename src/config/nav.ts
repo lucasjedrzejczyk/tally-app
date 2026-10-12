@@ -116,7 +116,7 @@ export interface StudyNavItem {
   key: string;
   label: string;
   href: string;
-  icon: "book" | "sermon" | "notes" | "people" | "groups" | "finance";
+  icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "finance";
   match: string[];
 }
 export const STUDY_ITEMS: StudyNavItem[] = [
@@ -127,23 +127,27 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "people", label: "Pessoas", href: "/people", icon: "people", match: ["/people"] },
   // Células (spec 14): lista + ficha + presença; a equipe vê todas (o RLS decide, líder só as dele).
   { key: "groups", label: "Células", href: "/groups", icon: "groups", match: ["/groups"] },
+  // Ministérios e escalas (spec 15): equipe vê todos; o líder do ministério, só o dele (RLS).
+  { key: "ministries", label: "Ministérios", href: "/ministries", icon: "ministries", match: ["/ministries"] },
   // Finanças liberada pelo dono em 2026-10-08 (spec 10/11), mesmo no modo só Estudo.
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
 
-// Menu de quem não é equipe (líder/supervisor de célula): só Bíblia e, se lidera algo, Células.
-export function studyNavFor(isStaff: boolean, hasCells: boolean): StudyNavItem[] {
-  return isStaff ? STUDY_ITEMS : STUDY_ITEMS.filter((i) => i.key === "bible" || (i.key === "groups" && hasCells));
+// Menu de quem não é equipe (líder de célula ou de ministério): Bíblia e o que ele lidera.
+export function studyNavFor(isStaff: boolean, hasCells: boolean, hasMinistries = false): StudyNavItem[] {
+  return isStaff
+    ? STUDY_ITEMS
+    : STUDY_ITEMS.filter((i) => i.key === "bible" || (i.key === "groups" && hasCells) || (i.key === "ministries" && hasMinistries));
 }
 
 // Para onde vai quem não é equipe ao abrir uma tela só da equipe (null = pode ficar).
-export function nonStaffRedirect(isStaff: boolean, hasCells: boolean): string | null {
-  return isStaff ? null : hasCells ? "/groups" : STUDY_HOME;
+export function nonStaffRedirect(isStaff: boolean, hasCells: boolean, hasMinistries = false): string | null {
+  return isStaff ? null : hasCells ? "/groups" : hasMinistries ? "/ministries" : STUDY_HOME;
 }
 
 // Barra de abas do celular: cabem 5 itens; passou disso, os 4 primeiros ficam e o resto vai para "Mais".
 export const TAB_LIMIT = 5;
-const TAB_ORDER = ["bible", "people", "groups", "finance", "sermons", "notes"];
+const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "sermons", "notes"];
 export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; more: T[] } {
   const rank = (k: string) => (TAB_ORDER.includes(k) ? TAB_ORDER.indexOf(k) : TAB_ORDER.length);
   const sorted = [...tabs].sort((a, b) => rank(a.key) - rank(b.key));
@@ -151,7 +155,7 @@ export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; m
 }
 
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
-const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups"];
+const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries"];
 
 // Rotas desligadas no modo só Estudo: tudo que o menu lista, menos o próprio Estudo.
 // O fluxo antigo de e-mail (/communication) não está no menu, entra à mão.

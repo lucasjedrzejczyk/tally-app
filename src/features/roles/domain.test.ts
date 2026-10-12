@@ -8,8 +8,8 @@ function role(over: Partial<RoleRow> = {}): RoleRow {
 
 describe("catálogo de permissões", () => {
   it("bate com o handoff: 11 chaves, sem duplicata", () => {
-    expect(PERMISSION_CATALOG).toHaveLength(11);
-    expect(new Set(PERMISSION_CATALOG.map((p) => p.key)).size).toBe(11);
+    expect(PERMISSION_CATALOG).toHaveLength(12);
+    expect(new Set(PERMISSION_CATALOG.map((p) => p.key)).size).toBe(12);
   });
   it("reconhece só chave conhecida", () => {
     expect(isPermissionKey("members.manage")).toBe(true);

@@ -1,0 +1,361 @@
+/* Ministérios (spec 15): o casco vem de sticks/people.module.css e groups.module.css (cartões,
+   rostos, folha); aqui só o que é próprio de ministérios e da escala. */
+
+/* Quem serve: rosto, primeiro nome e as funções embaixo */
+.person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-1) 0;
+  border-radius: var(--r-10);
+  text-align: center;
+}
+a.person:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.functions {
+  max-width: 100%;
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+/* Próximas escalas: cartões de culto com os rostos escalados */
+.services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+button.service {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-4);
+  border: 0;
+  border-radius: var(--r-10);
+  background: var(--surface-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+button.service:active {
+  transform: scale(.98);
+}
+button.service:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+button.service .servicePill {
+  background: var(--surface);
+}
+.serviceTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+.serviceDate {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.serviceFaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+.serviceFace {
+  background: var(--surface);
+}
+.serviceEmpty {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+
+/* Editar: funções com vagas, e as funções de cada pessoa */
+.roleList {
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  list-style: none;
+}
+.roleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 2.5rem;
+}
+.roleName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-15);
+  overflow-wrap: anywhere;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.stepN {
+  min-width: 4rem;
+  font-size: var(--t-13);
+  color: var(--text-2);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.roleInput {
+  max-width: 20rem;
+}
+.mRow {
+  padding: var(--s-2) 0;
+}
+.mRole {
+  width: 8rem;
+}
+.fnChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin-top: var(--s-1);
+}
+.fnChip {
+  min-height: 1.75rem;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.fnChip:active {
+  transform: scale(.96);
+}
+.fnChip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.fnOn {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+
+/* Escala: setas + data no topo da folha */
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.footWhen {
+  font-size: var(--t-13);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Uma seção por função, vagas como círculos */
+.roleSec + .roleSec {
+  margin-top: var(--s-5, var(--s-4));
+}
+.roleHead {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: var(--s-4) var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+button.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  padding: var(--s-1) 0;
+  border: 0;
+  border-radius: var(--r-10);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-press);
+  -webkit-tap-highlight-color: transparent;
+}
+button.seat:active {
+  transform: scale(.94);
+  transition: none;
+}
+button.seat:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.empty {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  button.seat:hover .empty {
+    border-color: var(--text-2);
+    color: var(--text);
+  }
+}
+.seatName {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ring {
+  position: relative;
+  display: block;
+  border-radius: var(--r-pill);
+}
+/* avisado e sem resposta: anel tracejado discreto */
+.ringSent::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 2px dashed var(--text-2);
+  border-radius: var(--r-pill);
+}
+.ringOk {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--blue);
+}
+
+/* Rosto entra na vaga (nunca de 0) e sai com fade curto; cascata via --d no "Repetir". */
+.in {
+  animation: seatIn 150ms cubic-bezier(.23, 1, .32, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes seatIn {
+  from {
+    opacity: 0;
+    transform: scale(.9);
+  }
+}
+.out {
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+/* Sugestões e ações (painel preso ao toque) */
+.anchored {
+  position: fixed;
+  z-index: 90;
+  width: 17.5rem;
+  max-height: min(22rem, calc(100dvh - 2rem));
+  overflow-y: auto;
+  padding: var(--s-1);
+  border-radius: var(--r-10);
+  background: var(--surface);
+  box-shadow: var(--e-2);
+  opacity: 0;
+  transform: scale(.96);
+}
+.anchoredOn {
+  opacity: 1;
+  transform: none;
+  transition: opacity 150ms cubic-bezier(.23, 1, .32, 1), transform 150ms cubic-bezier(.23, 1, .32, 1);
+}
+.sugg {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.suggRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--s-1) var(--s-2);
+  border: 0;
+  border-radius: var(--r-6);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.suggRow:active {
+  transform: scale(.98);
+}
+.suggRow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+@media (hover: hover) and (pointer: fine) {
+  .suggRow:hover {
+    background: var(--surface-2);
+  }
+}
+.suggBusy {
+  opacity: .6;
+}
+.suggMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.suggName {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  overflow-wrap: anywhere;
+}
+.suggSub {
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+}
+.none {
+  margin: var(--s-3);
+  font-size: var(--t-13);
+  color: var(--text-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.service:active,
+  button.seat:active,
+  .fnChip:active,
+  .suggRow:active {
+    transform: none;
+  }
+  .in {
+    animation-name: fadeOnly;
+  }
+  .anchored {
+    transform: none;
+  }
+}
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}

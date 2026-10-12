@@ -15,6 +15,7 @@ export type PermissionKey =
   | "prayer.manage"
   | "groups.manage_all"
   | "groups.manage_assigned"
+  | "ministries.manage_all"
   | "communication.send";
 
 export interface PermissionOption {

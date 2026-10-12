@@ -5,7 +5,7 @@ import { FIELD_META, type PersonField } from "./domain";
 
 const empty = Object.fromEntries((Object.keys(FIELD_META) as PersonField[]).map((k) => [k, ""])) as Record<PersonField, string>;
 const detail = (v: Partial<Record<PersonField, string>>, family: PersonDetail["family"] = null): PersonDetail => ({
-  id: "1", values: { ...empty, ...v }, archived: false, photoUrl: null, family, tithes: null, cell: null,
+  id: "1", values: { ...empty, ...v }, archived: false, photoUrl: null, family, tithes: null, cell: null, serves: [],
 });
 const NOW = new Date(2026, 9, 9);
 

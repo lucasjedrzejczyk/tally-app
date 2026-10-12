@@ -26,6 +26,8 @@ describe("telas só da equipe", () => {
   it("não redireciona a equipe", () => expect(nonStaffRedirect(true, false)).toBeNull());
   it("líder volta para as células", () => expect(nonStaffRedirect(false, true)).toBe("/groups"));
   it("sem célula volta para a Bíblia", () => expect(nonStaffRedirect(false, false)).toBe("/study/bible"));
+  it("líder só de ministério vai para Ministérios", () => expect(nonStaffRedirect(false, false, true)).toBe("/ministries"));
+  it("menu do líder de ministério", () => expect(studyNavFor(false, false, true).map((i) => i.key)).toEqual(["bible", "ministries"]));
 });
 
 describe("barra de abas do celular", () => {
@@ -35,10 +37,10 @@ describe("barra de abas do celular", () => {
     expect(r.more).toEqual([]);
     expect(r.shown.map((t) => t.key)).toEqual(["bible", "groups"]);
   });
-  it("equipe (8 itens): 4 primeiros com Pessoas e Células à mostra, o resto em Mais", () => {
+  it("equipe (9 itens): 4 primeiros com Pessoas e Células à mostra, o resto em Mais", () => {
     const all = [...STUDY_ITEMS, tab("search"), tab("settings")];
     const r = splitTabs(all);
     expect(r.shown.map((t) => t.key)).toEqual(["bible", "people", "groups", "finance"]);
-    expect(r.more.map((t) => t.key)).toEqual(["sermons", "notes", "search", "settings"]);
+    expect(r.more.map((t) => t.key)).toEqual(["ministries", "sermons", "notes", "search", "settings"]);
   });
 });

@@ -17,10 +17,11 @@ export const PERMISSION_CATALOG: PermissionOption[] = [
   { key: "prayer.manage", label: "Gerenciar orações", group: "Oração" },
   { key: "groups.manage_all", label: "Gerenciar todos os grupos", group: "Grupos" },
   { key: "groups.manage_assigned", label: "Gerenciar os grupos de que é líder", group: "Grupos" },
+  { key: "ministries.manage_all", label: "Gerenciar ministérios e escalas", group: "Ministérios" },
   { key: "communication.send", label: "Enviar comunicações", hint: "Mandar mensagens para um público da igreja", group: "Comunicação" },
 ];
 
-export const PERMISSION_GROUPS = ["Administração", "Pessoas", "Oração", "Grupos", "Comunicação"] as const;
+export const PERMISSION_GROUPS = ["Administração", "Pessoas", "Oração", "Grupos", "Ministérios", "Comunicação"] as const;
 
 const KEYS = new Set<string>(PERMISSION_CATALOG.map((p) => p.key));
 

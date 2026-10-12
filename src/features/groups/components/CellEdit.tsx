@@ -19,7 +19,7 @@ export type SaveCellField = (field: "name" | "day" | "time" | "location", raw: s
 type Track = <T>(p: Promise<T>) => Promise<T>;
 
 // Campo de texto que salva ao sair (mesmo comportamento dos campos de Pessoas).
-function TextField({ label, value, onSave, onState, wide, autoFocus, placeholder }: {
+export function TextField({ label, value, onSave, onState, wide, autoFocus, placeholder }: {
   label: string;
   value: string;
   onSave: (raw: string) => Promise<string | null>;

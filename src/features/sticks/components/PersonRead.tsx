@@ -79,7 +79,7 @@ export function PersonRead({
         </section>
       ) : null}
 
-      {timeline.length || detail.cell ? (
+      {timeline.length || detail.cell || detail.serves.length ? (
         <section className={styles.sec} aria-labelledby="sec-church">
           <h2 id="sec-church" className={styles.secTitle}>Na igreja</h2>
           {detail.cell ? (
@@ -88,6 +88,12 @@ export function PersonRead({
               <span className={styles.dim}> (desde {monthYear(detail.cell.since)})</span>
             </p>
           ) : null}
+          {detail.serves.map((m) => (
+            <p key={m.id} className={`${styles.line} ${styles.cellLine}`}>
+              Serve em <Link className="link" href={`/ministries?m=${m.id}`}>{m.name}</Link>
+              {m.roles.length ? <span className={styles.dim}> ({m.roles.join(", ")})</span> : null}
+            </p>
+          ))}
           {timeline.length ? (
             <ol className={styles.tl}>
               {timeline.map((m) => (

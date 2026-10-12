@@ -25,7 +25,7 @@ type View = "agenda" | "week" | "month";
 function hrefFor(it: CalItem): string {
   if (it.kind === "service") return `/services/${it.ref}`;
   if (it.kind === "event") return `/events/${it.ref}`;
-  return "/teams/schedule";
+  return "/ministries";
 }
 function brShort(iso: string): string {
   return iso.split("-").reverse().join("/").slice(0, 5);

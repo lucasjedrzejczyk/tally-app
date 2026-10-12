@@ -7,19 +7,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { inviteUrl } from "@/features/invites/domain";
 import { inviteLeaderAction } from "../actions";
-import { leadersNeedingAccess } from "../domain";
-import type { CellDetail } from "../types";
+import type { CellAccess } from "../types";
 import { Sheet } from "./Sheet";
 import g from "../groups.module.css";
 
-export function GiveAccess({ detail, onClose }: { detail: CellDetail; onClose: () => void }) {
+// Também usado em Ministérios: quem chama passa a lista de quem lidera e ainda não tem login.
+export function GiveAccess({ list, allDone, onClose }: { list: { id: string; name: string; roles: string; access: CellAccess }[]; allDone: string; onClose: () => void }) {
   const [origin, setOrigin] = useState("");
   const [links, setLinks] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState("");
   const [copied, setCopied] = useState("");
   const [err, setErr] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
-  const list = leadersNeedingAccess(detail);
 
   async function invite(id: string) {
     setBusy(id);
@@ -42,7 +41,7 @@ export function GiveAccess({ detail, onClose }: { detail: CellDetail; onClose: (
   return (
     <Sheet title="Dar acesso ao líder" onClose={onClose}>
       {list.length === 0 ? (
-        <p className="muted">Todos os líderes e o supervisor desta célula já têm acesso ao app.</p>
+        <p className="muted">{allDone}</p>
       ) : (
         <ul className={g.list}>
           {list.map((p) => (

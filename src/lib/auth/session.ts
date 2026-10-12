@@ -29,6 +29,7 @@ export interface OrgContext extends UserContext {
   roleName: string | null; // nome do cargo (ex.: "Pastor"), para exibir na UI
   permissions: string[]; // UNIÃO: permissões do próprio membership + as do cargo
   isStaff: boolean; // equipe = dono ou alguma permissão (espelha is_org_staff do banco, m66)
+  ledMinistryIds: string[]; // ministérios que o usuário lidera; idem, só para quem NÃO é equipe
   ledGroupIds: string[]; // células que o usuário lidera/supervisiona; só para quem NÃO é equipe (equipe vê todas)
   plan: PlanCode; // plano da igreja (organizations.plan) — trava comercial de recursos
   flags: FlagKey[]; // feature flags LIGADAS para esta org — trava de maturidade (ver features/flags)
@@ -77,9 +78,14 @@ export async function requireOrg(): Promise<OrgContext> {
   // Quem não é equipe só enxerga, por RLS (groups_read), as células que lidera: então a lista de
   // células visíveis É a lista das que ele lidera. A decisão nunca vem do navegador.
   let ledGroupIds: string[] = [];
+  let ledMinistryIds: string[] = [];
   if (!isStaff) {
-    const { data: led } = await supabase.from("groups").select("id").eq("org_id", data.org_id).eq("archived", false);
-    ledGroupIds = (led ?? []).map((g) => g.id);
+    const [led, ledM] = await Promise.all([
+      supabase.from("groups").select("id").eq("org_id", data.org_id).eq("archived", false),
+      supabase.from("ministries").select("id").eq("org_id", data.org_id).neq("status", "archived"),
+    ]);
+    ledGroupIds = (led.data ?? []).map((g) => g.id);
+    ledMinistryIds = (ledM.data ?? []).map((g) => g.id);
   }
 
   return {
@@ -93,6 +99,7 @@ export async function requireOrg(): Promise<OrgContext> {
     permissions,
     isStaff,
     ledGroupIds,
+    ledMinistryIds,
     plan: asPlanCode(data.organizations?.plan),
     flags: (flagRows ?? []).filter(isFlagKey),
   };
@@ -102,7 +109,7 @@ export async function requireOrg(): Promise<OrgContext> {
 // volta para as células dele, ou para a Bíblia se não lidera nada. O RLS continua sendo a barreira.
 export async function requireStaff(): Promise<OrgContext> {
   const ctx = await requireOrg();
-  const to = nonStaffRedirect(ctx.isStaff, ctx.ledGroupIds.length > 0);
+  const to = nonStaffRedirect(ctx.isStaff, ctx.ledGroupIds.length > 0, ctx.ledMinistryIds.length > 0);
   if (to) redirect(to);
   return ctx;
 }

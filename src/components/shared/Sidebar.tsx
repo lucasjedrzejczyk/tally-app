@@ -8,7 +8,7 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { BookOpen, Mic, FileText, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
+import { BookOpen, Mic, FileText, HandHeart, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
@@ -24,8 +24,8 @@ export interface NavCounts {
   tasks: number;
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
-const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, finance: Wallet, trash: Trash2,
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
+const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, finance: Wallet, trash: Trash2,
   settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut, more: Menu };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;
@@ -54,6 +54,7 @@ export function Sidebar({
   plan = "free",
   isStaff = true,
   hasCells = false,
+  hasMinistries = false,
 }: {
   userLabel: string;
   orgName: string;
@@ -62,6 +63,7 @@ export function Sidebar({
   plan?: PlanCode;
   isStaff?: boolean; // false = líder/supervisor de célula: só Bíblia e Células
   hasCells?: boolean;
+  hasMinistries?: boolean; // líder de ministério (não equipe): mostra Ministérios
 }) {
   const path = usePathname();
   const router = useRouter();
@@ -162,7 +164,7 @@ export function Sidebar({
   }
 
   const countOf = (c?: "inbox" | "people" | "tasks"): number | undefined => (c ? counts[c] || undefined : undefined);
-  const navItems = studyNavFor(isStaff, hasCells);
+  const navItems = studyNavFor(isStaff, hasCells, hasMinistries);
   const dests: Dest[] = STUDY_ONLY ? navItems : [];
   // ponytail: fora do modo só Estudo os itens usam um ícone genérico; desenhar um por módulo quando eles voltarem.
   const groups = STUDY_ONLY

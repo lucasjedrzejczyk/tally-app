@@ -10,7 +10,7 @@ import type { PersonListItem } from "@/features/sticks/types";
 import { Popover } from "@/features/study/components/Popover";
 import studyStyles from "@/features/study/study.module.css";
 import { addMembersAction, removeMemberAction, setCellArchivedAction, setMemberRoleAction, setSupervisorAction, updateCellFieldAction } from "../actions";
-import { defaultMeetingDate, meetingLabel, shortDate, todayIso } from "../domain";
+import { defaultMeetingDate, leadersNeedingAccess, meetingLabel, shortDate, todayIso } from "../domain";
 import type { CellDetail, CellListItem } from "../types";
 import { CellEdit, type SaveCellField } from "./CellEdit";
 import { CellRead } from "./CellRead";
@@ -196,7 +196,7 @@ export function CellProfile({
         )}
       </div>
 
-      {access ? <GiveAccess detail={detail} onClose={() => setAccess(false)} /> : null}
+      {access ? <GiveAccess list={leadersNeedingAccess(detail)} allDone="Todos os líderes e o supervisor desta célula já têm acesso ao app." onClose={() => setAccess(false)} /> : null}
 
       {presence ? (
         <PresenceSheet
