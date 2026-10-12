@@ -72,7 +72,7 @@ export function AddMembers({
   );
 
   return (
-    <Sheet title="Adicionar membros" onClose={onClose} foot={foot}>
+    <Sheet title="Adicionar membros" tall onClose={onClose} foot={foot}>
       <input className={`${people.search} ${g.addSearch}`} type="search" placeholder="Buscar pessoa" aria-label="Buscar pessoa" value={q} onChange={(e) => setQ(e.target.value)} />
       {shown.length === 0 ? (
         <p className="muted">{q ? "Ninguém com esse nome." : "Todas as pessoas já estão nesta célula."}</p>

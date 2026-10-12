@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { signInTestUser } from "../src/test-support/supabase";
 
-// Células (spec 14, fase A): criar a célula, adicionar 3 membros, marcar presença de 2, reabrir o dia
-// e ver 2 marcados, "Não teve encontro" em outro dia. As pessoas e a célula criadas são apagadas no fim.
+// Células (spec 14, fases A e C): criar a célula, adicionar 3 membros, marcar presença de 2 (tocando nos
+// rostos), reabrir o dia pelo gráfico e ver 2 marcados, "Não teve encontro" em outro dia. As pessoas e a célula criadas são apagadas no fim.
 const EMAIL = process.env.TALLY_TEST_EMAIL ?? "";
 const PASSWORD = process.env.TALLY_TEST_PASSWORD ?? "";
 
@@ -70,26 +70,27 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   // Pronto volta para a leitura
   await page.getByRole("button", { name: "Pronto" }).first().click();
   await expect(page).not.toHaveURL(/edit=1/);
-  await expect(page.getByText("Quintas, 20h", { exact: true })).toBeVisible();
+  await expect(page.getByRole("article").getByText("Quintas, 20h", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Membros (3)" })).toBeVisible();
-  await expect(page.getByText("Ainda sem presença")).toHaveCount(3);
+  for (const n of people) await expect(page.getByRole("button", { name: n })).toBeVisible(); // um rosto por membro
 
   // (o dia padrão é anterior à entrada do terceiro, que não veio: o encontro conta 2 de 2, sem mexer na entrada)
   // marcar presença de 2 no dia padrão (último dia da semana da célula)
   await page.getByRole("button", { name: "Marcar presença" }).click();
   const dialog = page.getByRole("dialog", { name: "Presença" });
-  await expect(dialog.getByRole("checkbox")).toHaveCount(3);
-  await dialog.getByRole("checkbox", { name: people[0]! }).click();
-  await dialog.getByRole("checkbox", { name: people[1]! }).click();
+  await expect(dialog.getByRole("button", { name: /^Marcar Teste Membro/ })).toHaveCount(3);
+  await dialog.getByRole("button", { name: `Marcar ${people[0]!}` }).click();
+  await dialog.getByRole("button", { name: `Marcar ${people[1]!}` }).click();
+  await expect(dialog.getByRole("button", { name: `Desmarcar ${people[0]!}` })).toBeVisible();
   await expect(dialog.getByText("2 de 3")).toBeVisible();
   await dialog.getByRole("button", { name: "Salvar" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /· 2 de 2$/ })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /: 2 de 2$/ })).toHaveCount(1);
 
-  // reabrir o dia pelo encontro: 2 marcados
-  await page.getByRole("button", { name: /· 2 de 2$/ }).click();
-  await expect(dialog.getByRole("checkbox", { checked: true })).toHaveCount(2);
-  await expect(dialog.getByRole("checkbox", { name: people[2]! })).toHaveAttribute("aria-checked", "false");
+  // reabrir o dia pela coluna do gráfico: 2 marcados
+  await page.getByRole("button", { name: /: 2 de 2$/ }).click();
+  await expect(dialog.getByRole("button", { name: /^Desmarcar / })).toHaveCount(2);
+  await expect(dialog.getByRole("button", { name: `Marcar ${people[2]!}` })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 
@@ -101,7 +102,7 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await expect(dialog.getByText("0 de 3")).toBeVisible();
   await dialog.getByRole("button", { name: "Não teve encontro neste dia" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Não teve encontro$/ })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /: sem encontro$/ })).toHaveCount(1);
 
   // a ficha abre pela URL e a lista mostra a célula
   await page.goto(`/groups/${id}`);

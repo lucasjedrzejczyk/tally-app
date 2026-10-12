@@ -9,7 +9,7 @@ export function Avatar({ name, photoUrl, size = 32, className }: { name: string;
   return (
     <span className={`${styles.avatar} ${SIZE[size]}${className ? " " + className : ""}`} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {photoUrl ? <img src={photoUrl} alt="" /> : initialsOf(name)}
+      {photoUrl ? <img src={photoUrl} alt="" /> : size === 24 ? initialsOf(name).slice(0, 1) : initialsOf(name)}
     </span>
   );
 }

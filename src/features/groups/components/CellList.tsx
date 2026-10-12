@@ -144,10 +144,10 @@ export function CellList({
                       <span className={g.cardName}>{c.name}</span>
                       {c.faces.length ? (
                         <span className={g.stack} role="img" aria-label={peopleCount(c.memberCount)}>
-                          {c.faces.slice(0, STACK_SIZE).map((f, i) => (
+                          {more > 0 ? <span className={g.more}>+{more}</span> : null}
+                          {c.faces.slice(0, STACK_SIZE).reverse().map((f, i) => (
                             <Avatar key={i} name={f.name} photoUrl={f.photoUrl} size={24} className={g.stackFace} />
                           ))}
-                          {more > 0 ? <span className={g.more}>+{more}</span> : null}
                         </span>
                       ) : null}
                     </span>
