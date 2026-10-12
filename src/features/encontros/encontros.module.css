@@ -20,6 +20,7 @@
 
 /* Faixa dos 7 dias (como o calendário do iPhone) */
 .strip {
+  touch-action: pan-y; /* o arrasto lateral troca a semana */
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--s-1);
@@ -87,9 +88,13 @@
 
 /* Agenda: só os dias com encontro */
 .agenda {
+  transition: opacity 150ms ease;
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+}
+.agenda[aria-busy="true"] {
+  opacity: .5;
 }
 .dayHead {
   display: flex;
@@ -112,6 +117,7 @@
 
 /* Linha: coluna do horário | nome e subtítulo | vagas e rostos. Serve à agenda e ao "Quem serve". */
 .row {
+  --ring: var(--bg); /* contorno dos rostos da pilha */
   display: flex;
   align-items: flex-start; /* horário alinha com a 1ª linha do nome */
   gap: var(--s-3);
@@ -233,6 +239,11 @@ a.row:focus-visible {
   align-items: center;
   gap: var(--s-1);
   margin-left: auto;
+}
+@media (max-width: 40rem) {
+  .actions {
+    margin-left: calc(-1 * var(--s-1));
+  }
 }
 .when {
   display: flex;

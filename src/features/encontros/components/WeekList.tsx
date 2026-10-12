@@ -3,7 +3,7 @@
 // A semana da igreja (spec 16, A3): faixa dos 7 dias no topo (ponto nos dias com encontro, hoje
 // em destaque) e, embaixo, só os dias que têm alguma coisa, em linhas alinhadas pelo horário.
 // Setas trocam a semana sem animar (uso repetido).
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Avatar } from "@/components/shared/Avatar";
 import { UiIcon } from "@/components/shared/UiIcon";
@@ -58,7 +58,25 @@ export function WeekList({
     onSelect(next.key);
     (ev.currentTarget as HTMLElement).querySelector<HTMLElement>(`[data-key="${CSS.escape(next.key)}"]`)?.focus();
   }
+  // Arrastar a faixa para o lado troca a semana: distância ou um peteleco rápido.
+  const swipe = useRef<{ x: number; t: number; moved: boolean } | null>(null);
+  function swipeStart(ev: React.PointerEvent) {
+    if (ev.pointerType === "mouse") return;
+    swipe.current = { x: ev.clientX, t: ev.timeStamp, moved: false };
+  }
+  function swipeEnd(ev: React.PointerEvent) {
+    const s = swipe.current;
+    if (!s) return;
+    const dx = ev.clientX - s.x;
+    const v = Math.abs(dx) / Math.max(1, ev.timeStamp - s.t);
+    if (Math.abs(dx) > 48 || (Math.abs(dx) > 16 && v > 0.3)) {
+      s.moved = true; // engole o clique que vem logo depois do arrasto
+      window.setTimeout(() => (swipe.current = null), 300);
+      onWeek(dx < 0 ? 1 : -1);
+    } else swipe.current = null;
+  }
   function pickDay(d: string) {
+    if (swipe.current?.moved) return void (swipe.current = null);
     const first = cards?.find((c) => c.date === d);
     if (first) onSelect(first.key);
   }
@@ -83,7 +101,7 @@ export function WeekList({
         <button type="button" className="iconbtn" aria-label="Próxima semana" onClick={() => onWeek(1)}><UiIcon icon={ChevronRight} /></button>
       </div>
 
-      <div className={e.strip} role="group" aria-label="Dias da semana">
+      <div className={e.strip} role="group" aria-label="Dias da semana" onPointerDown={swipeStart} onPointerUp={swipeEnd} onPointerCancel={() => (swipe.current = null)}>
         {days.map((d) => {
           const has = busy.includes(d);
           return (
@@ -104,8 +122,8 @@ export function WeekList({
       </div>
 
       {cards === null ? (
-        <p className="muted" role="status">{loading ? "Abrindo a semana…" : ""}</p>
-      ) : cards.length === 0 ? (
+        <p className="muted" role="status">Abrindo a semana…</p>
+      ) : cards.length === 0 && !loading ? (
         <div className={styles.empty}>
           <p>{thisWeek ? "Nenhum culto cadastrado ainda." : "Nada marcado nesta semana."}</p>
           {canManage && thisWeek ? <button type="button" className={styles.primary} onClick={onNewService} disabled={creating}>Cadastrar o primeiro culto</button> : null}

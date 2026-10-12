@@ -62,22 +62,30 @@ export function EncontrosView({
   const isMobile = () => window.matchMedia("(max-width: 56.1875rem)").matches;
 
   const week = weeks[start];
-  const cards = useMemo(
+  const fresh_ = useMemo(
     () => (week ? weekCards(occurrences(services, week.events, week.dates, start, addDays(start, 6)), ministries) : null),
     [week, services, ministries, start],
   );
+  // Enquanto a semana chega, a anterior fica na tela (esmaecida) em vez de sumir.
+  const last = useRef(fresh_);
+  if (fresh_) last.current = fresh_;
+  const cards = fresh_ ?? last.current;
 
-  // Semana nova: busca eventos e dias mexidos (os cultos já estão aqui).
+  // Semana pedida + as vizinhas por trás (as setas abrem na hora). Cada semana é buscada uma vez.
+  const asked = useRef(new Set<string>());
   useEffect(() => {
-    if (weeks[start]) return;
-    let alive = true;
-    fetch(`/api/encontros/week?start=${start}`)
-      .then((r) => (r.ok ? (r.json() as Promise<Week>) : Promise.reject(new Error("Não consegui abrir a semana."))))
-      .then((w) => alive && setWeeks((all) => ({ ...all, [start]: w })))
-      .catch((e: Error) => alive && setError(e.message));
-    return () => {
-      alive = false;
-    };
+    for (const s of [start, addDays(start, 7), addDays(start, -7)]) {
+      if (weeks[s] || asked.current.has(s)) continue;
+      asked.current.add(s);
+      const mine = s === start;
+      fetch(`/api/encontros/week?start=${s}`)
+        .then((r) => (r.ok ? (r.json() as Promise<Week>) : Promise.reject(new Error("Não consegui abrir a semana."))))
+        .then((w) => setWeeks((all) => ({ ...all, [s]: w })))
+        .catch((e: Error) => {
+          asked.current.delete(s);
+          if (mine) setError(e.message);
+        });
+    }
   }, [start, weeks]);
 
   // Ficha ainda não carregada.
