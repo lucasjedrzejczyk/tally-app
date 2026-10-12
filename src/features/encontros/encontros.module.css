@@ -1,12 +1,13 @@
 /* Encontros (spec 16): o casco (lista à esquerda, ficha à direita, campos) vem de
-   sticks/people.module.css; cartões, rostos e pílulas de groups.module.css; aqui só o próprio. */
+   sticks/people.module.css; pílulas e pilha de rostos de groups.module.css. Aqui só o próprio.
+   Regra da tela: linhas alinhadas por uma coluna de horário, separadas por fio, sem caixas. */
 
-/* Semana */
+/* Semana: rótulo e setas */
 .weekNav {
   display: flex;
   align-items: center;
   gap: var(--s-1);
-  margin: 0 0 var(--s-4);
+  margin: 0 0 var(--s-2);
 }
 .weekLabel {
   flex: 1;
@@ -16,87 +17,274 @@
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
-.days {
+
+/* Faixa dos 7 dias (como o calendário do iPhone) */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s-1);
+  margin-bottom: var(--s-4);
+}
+.stripDay {
   display: flex;
   flex-direction: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  align-items: center;
+  gap: 2px;
+  padding: var(--s-2) 0;
+  border: 0;
+  border-radius: var(--r-10);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
 }
-.day + .day {
-  margin-top: var(--s-2);
+.stripDay:disabled {
+  color: var(--text-2);
+  cursor: default;
+}
+.stripDay:not(:disabled):active {
+  transform: scale(.96);
+}
+.stripDay:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.stripDow {
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+}
+.stripN {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.stripToday .stripN,
+.stripToday .stripDow {
+  color: var(--blue);
+}
+.stripOn {
+  background: var(--surface-2);
+}
+.dot {
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: var(--r-pill);
+}
+.dotOn {
+  background: var(--text-2);
+}
+.stripToday .dotOn {
+  background: var(--blue);
+}
+@media (hover: hover) and (pointer: fine) {
+  .stripDay:not(:disabled):hover {
+    background: var(--surface-2);
+  }
+}
+
+/* Agenda: só os dias com encontro */
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
 }
 .dayHead {
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
-  padding: 0 var(--s-4);
+  margin: 0 0 var(--s-1);
+  padding: 0 var(--s-3);
   font-size: var(--t-13);
   line-height: var(--lh-13);
   font-weight: 600;
+}
+.dayDate {
+  font-weight: 400;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 .today {
   color: var(--blue);
 }
-/* Dia sem nada: só a linha do rótulo, sem cartão */
-.dayEmpty {
-  min-height: 1.75rem;
+
+/* Linha: coluna do horário | nome e subtítulo | vagas e rostos. Serve à agenda e ao "Quem serve". */
+.row {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* horário alinha com a 1ª linha do nome */
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  border: 0;
+  border-radius: var(--r-10);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
 }
-.dayEmpty .dayHead {
-  font-weight: 400;
+button.row,
+a.row {
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
 }
-.dayCards {
-  margin-top: var(--s-1);
+button.row:active,
+a.row:active {
+  transform: scale(.98);
+}
+button.row:focus-visible,
+a.row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.row[aria-current="true"] {
+  --ring: var(--surface-2);
+  background: var(--surface-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  button.row:hover,
+  a.row:hover {
+    --ring: var(--surface-2);
+    background: var(--surface-2);
+  }
+}
+@media (max-width: 56.1875rem) {
+  .row[aria-current="true"]:not(:hover) {
+    --ring: var(--bg);
+    background: none;
+  }
 }
 .time {
+  flex: none;
+  width: 2.75rem;
   font-size: var(--t-13);
-  line-height: var(--lh-13);
+  line-height: var(--lh-15);
   font-weight: 600;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
-.cardHead {
+.rowMain {
   display: flex;
-  align-items: baseline;
-  gap: var(--s-2);
+  flex: 1;
+  flex-direction: column;
   min-width: 0;
 }
-.tag {
-  padding: 0 var(--s-2);
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--blue) 12%, transparent);
-  font-size: var(--t-11);
-  line-height: var(--lh-11);
-  color: var(--blue);
+.rowName {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
-.cancelled .cardName,
+.rowSub {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rowEnd {
+  display: flex;
+  flex: none;
+  align-self: center;
+  align-items: center;
+  gap: var(--s-2);
+}
+.cancelled .rowName,
 .cancelled .time {
   color: var(--text-2);
   text-decoration: line-through;
 }
+.list {
+  margin: 0 calc(-1 * var(--s-3));
+  padding: 0;
+  list-style: none;
+}
+.list li + li {
+  border-top: 1px solid var(--border);
+}
+.faces {
+  display: flex;
+  gap: var(--s-1);
+}
 
-/* Ficha: números da contagem */
+/* Ficha: título com as ações na mesma linha; setas coladas na data */
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+}
+.titleRow h1 {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-left: auto;
+}
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-1);
+  margin-left: calc(-1 * var(--s-2));
+}
+.whenPlain {
+  margin-left: 0;
+}
+.whenText {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-left: var(--s-3);
+  font-size: var(--t-13);
+  color: var(--text-2);
+}
+.desc {
+  margin: var(--s-2) 0 0;
+  max-width: 36rem;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  color: var(--text-2);
+}
+
+/* Contagem: três números soltos, sem caixa; tocar vira campo */
 .counts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s-2);
+  margin: 0 calc(-1 * var(--s-3));
 }
 button.count,
 .countEdit {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--s-1);
+  gap: 2px;
+  width: 100%;
   min-width: 0;
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-2) var(--s-3);
   border: 0;
   border-radius: var(--r-10);
-  background: var(--surface-2);
+  background: none;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -105,18 +293,26 @@ button.count {
   cursor: pointer;
   transition: transform 120ms var(--ease-press);
 }
-button.count:active {
+button.count:disabled {
+  cursor: default;
+}
+button.count:not(:disabled):active {
   transform: scale(.98);
 }
 button.count:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--blue);
 }
+@media (hover: hover) and (pointer: fine) {
+  button.count:not(:disabled):hover {
+    background: var(--surface-2);
+  }
+}
 .countN {
   font-size: calc(var(--t-22) * 1.25);
   line-height: 1.1;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .countN.countNone {
@@ -146,6 +342,7 @@ button.count:focus-visible {
   font-size: calc(var(--t-22) * 1.25);
   line-height: 1.1;
   font-weight: 600;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   outline: none;
 }
@@ -153,20 +350,20 @@ button.count:focus-visible {
   box-shadow: 0 0 0 2px var(--blue);
 }
 
-/* Barras das últimas contagens (sem animação ao abrir) */
+/* Barras das últimas contagens: discretas, sem animação ao abrir */
 .bars {
   display: flex;
   align-items: flex-end;
-  gap: var(--s-2);
-  height: 4rem;
-  margin-top: var(--s-4);
+  gap: var(--s-1);
+  height: 2.5rem;
+  margin-top: var(--s-3);
 }
 .bar {
   flex: 1;
-  max-width: 2rem;
+  max-width: 1.5rem;
   height: max(calc(var(--h) * 100%), 0.125rem);
   border-radius: 2px 2px 0 0;
-  background: color-mix(in srgb, var(--text-2) 30%, transparent);
+  background: color-mix(in srgb, var(--text-2) 22%, transparent);
 }
 .barNow {
   background: var(--blue);
@@ -179,16 +376,6 @@ button.count:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
-/* Quem serve: um bloco por ministério */
-.serving {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 /* Ordem do culto */
 .plan {
   margin: 0;
@@ -197,7 +384,7 @@ button.count:focus-visible {
 }
 .planRow {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
+  grid-template-columns: 2.75rem minmax(0, 1fr);
   gap: var(--s-3);
   padding: var(--s-2) 0;
   font-size: var(--t-15);
@@ -207,6 +394,7 @@ button.count:focus-visible {
   border-top: 1px solid var(--border);
 }
 .planTime {
+  font-size: var(--t-13);
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -235,6 +423,7 @@ button.count:focus-visible {
 .planActions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--s-2);
   margin-top: var(--s-3);
 }
@@ -319,7 +508,10 @@ button.count:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button.count:active {
+  button.count:active,
+  button.row:active,
+  a.row:active,
+  .stripDay:active {
     transform: none;
   }
   .checkTick {

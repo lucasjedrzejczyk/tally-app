@@ -4,7 +4,7 @@
 // barras, ordem do culto, sermão e convite. "Editar" troca para os dados do culto.
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, CalendarDays, ChevronLeft, ChevronRight, MapPin, MoreHorizontal, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, MapPin, MoreHorizontal, X } from "lucide-react";
 import { Select } from "@/components/shared/Select";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { Popover } from "@/features/study/components/Popover";
@@ -98,36 +98,35 @@ export function ServiceDayView({
     return null;
   };
 
+  // Título com as ações na mesma linha; as setas ficam coladas na data, que é o que elas mudam.
   const head = (
     <>
-      <div className={styles.profBar}>
-        <span className={g.lastText}>{day.date === today ? "Hoje" : ""}</span>
-        <span className={e.weekNav}>
-          <button type="button" className="iconbtn" aria-label="Semana anterior deste culto" onClick={() => onGo(addDays(day.date, -7))}><UiIcon icon={ChevronLeft} /></button>
-          <button type="button" className="iconbtn" aria-label="Próxima semana deste culto" onClick={() => onGo(addDays(day.date, 7))}><UiIcon icon={ChevronRight} /></button>
-        </span>
-        {canManage ? (editing ? <button type="button" className={styles.primary} onClick={() => onEditing(false)}>Pronto</button> : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>) : null}
-        {canManage ? (
-          <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações do culto" align="right">
-            {(close) => (
-              <>
-                <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void cancel(!cancelled, close)}>{cancelled ? "Reabrir este dia" : "Cancelar este dia"}</button>
-                <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar culto</button>
-              </>
-            )}
-          </Popover>
-        ) : null}
-      </div>
-      <header className={styles.ph}>
-        <div className={styles.phMain}>
+      <header className={e.top}>
+        <div className={e.titleRow}>
           <h1 className={styles.name}>{s.name}</h1>
-          {editing ? null : (
-            <div className={g.chips}>
-              <span className={g.chip}><UiIcon icon={CalendarDays} />{occurrenceTitle(day.date, s.time)}</span>
-              {s.location ? <span className={g.chip}><UiIcon icon={MapPin} />{s.location}</span> : null}
-            </div>
-          )}
+          <span className={e.actions}>
+            {editing || cancelled ? null : <CopyInvite item={{ date: day.date, time: s.time, name: s.name, location: s.location }} />}
+            {canManage ? (editing ? <button type="button" className={styles.primary} onClick={() => onEditing(false)}>Pronto</button> : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>) : null}
+            {canManage ? (
+              <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações do culto" align="right">
+                {(close) => (
+                  <>
+                    <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void cancel(!cancelled, close)}>{cancelled ? "Reabrir este dia" : "Cancelar este dia"}</button>
+                    <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar culto</button>
+                  </>
+                )}
+              </Popover>
+            ) : null}
+          </span>
         </div>
+        {editing ? null : (
+          <div className={e.when}>
+            <button type="button" className="iconbtn" aria-label="Semana anterior deste culto" onClick={() => onGo(addDays(day.date, -7))}><UiIcon icon={ChevronLeft} /></button>
+            <span className={e.whenText}>{day.date === today ? "Hoje, " + occurrenceTitle(day.date, s.time).split(", ")[1] : occurrenceTitle(day.date, s.time)}</span>
+            <button type="button" className="iconbtn" aria-label="Próxima semana deste culto" onClick={() => onGo(addDays(day.date, 7))}><UiIcon icon={ChevronRight} /></button>
+            {s.location ? <span className={e.where}><UiIcon icon={MapPin} />{s.location}</span> : null}
+          </div>
+        )}
       </header>
       {err ? <p className={styles.fErr} role="alert">{err}</p> : null}
     </>
@@ -162,11 +161,7 @@ export function ServiceDayView({
           <span className={g.lastText}>Culto cancelado neste dia.</span>
           {canManage ? <button type="button" className="btn ghost sm" onClick={() => void cancel(false)}>Reabrir</button> : null}
         </div>
-      ) : (
-        <div className={g.presenceRow}>
-          <CopyInvite item={{ date: day.date, time: s.time, name: s.name, location: s.location }} />
-        </div>
-      )}
+      ) : null}
 
       {cancelled ? null : (
         <>

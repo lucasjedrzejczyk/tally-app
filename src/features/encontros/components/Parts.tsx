@@ -46,40 +46,41 @@ export function CopyInvite({ item }: { item: { date: string; time: string; name:
   );
 }
 
-/** Quem serve: um cartão por ministério com os rostos escalados; tocar abre a Montar escala. */
+/** Quem serve: uma linha por ministério (nome, vagas e rostos escalados); tocar abre a Montar escala. */
 export function ServingList({ serving, linkNames, onOpen }: { serving: Serving[]; linkNames: boolean; onOpen: (m: MinistryDetail) => void }) {
   if (!serving.length) return <p className={g.lastText}>Nenhum ministério ligado a este culto. No Editar do ministério, escolha este culto.</p>;
   return (
-    <ul className={m.services}>
+    <ul className={e.list}>
       {serving.map((s) => {
         const ready = s.ministry.roles.length > 0 && s.ministry.members.length > 0;
         const body = (
           <>
-            <span className={m.serviceTop}>
-              <span className={m.serviceDate}>{s.ministry.name}</span>
-              {s.open ? <span className={`${g.pill} ${m.servicePill}`}>{openLabel(s.open)}</span> : null}
+            <span className={e.rowMain}>
+              <span className={e.rowName}>{s.ministry.name}</span>
+              <span className={e.rowSub}>{s.faces.length ? `${s.faces.length} ${s.faces.length === 1 ? "escalado" : "escalados"}` : ready ? "Montar escala" : "Sem funções ou pessoas ainda"}</span>
             </span>
-            {s.faces.length ? (
-              <span className={m.serviceFaces} role="img" aria-label={s.faces.map((f) => f.name).join(", ")}>
-                {s.faces.map((f) => (
-                  <span key={f.stickId} className={[m.ring, f.status === "confirmed" ? m.ringOk : f.notified ? m.ringSent : ""].filter(Boolean).join(" ")}>
-                    <Avatar name={f.name} photoUrl={f.photoUrl} size={32} className={m.serviceFace} />
-                  </span>
-                ))}
-              </span>
-            ) : (
-              <span className={m.serviceEmpty}>{ready ? "Montar escala" : "Sem funções ou pessoas ainda"}</span>
-            )}
+            <span className={e.rowEnd}>
+              {s.open ? <span className={g.pill}>{openLabel(s.open)}</span> : null}
+              {s.faces.length ? (
+                <span className={e.faces} role="img" aria-label={s.faces.map((f) => f.name).join(", ")}>
+                  {s.faces.map((f) => (
+                    <span key={f.stickId} className={[m.ring, f.status === "confirmed" ? m.ringOk : f.notified ? m.ringSent : ""].filter(Boolean).join(" ")}>
+                      <Avatar name={f.name} photoUrl={f.photoUrl} size={32} />
+                    </span>
+                  ))}
+                </span>
+              ) : null}
+            </span>
           </>
         );
         return (
           <li key={s.ministry.id}>
             {ready ? (
-              <button type="button" className={m.service} onClick={() => onOpen(s.ministry)} aria-label={`Escala de ${s.ministry.name}`}>{body}</button>
+              <button type="button" className={e.row} onClick={() => onOpen(s.ministry)} aria-label={`Escala de ${s.ministry.name}`}>{body}</button>
             ) : linkNames ? (
-              <Link className={m.service} href={`/ministries?m=${s.ministry.id}`}>{body}</Link>
+              <Link className={e.row} href={`/ministries?m=${s.ministry.id}`}>{body}</Link>
             ) : (
-              <div className={m.service}>{body}</div>
+              <div className={e.row}>{body}</div>
             )}
           </li>
         );

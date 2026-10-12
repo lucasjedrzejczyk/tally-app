@@ -1,19 +1,22 @@
 "use client";
 
-// A semana da igreja (spec 16, A3): dia a dia, cultos e eventos em cartões com os rostos de quem serve
-// e "2 vagas" quando falta gente. Dia vazio é só a linha do rótulo. Setas trocam a semana sem animar.
+// A semana da igreja (spec 16, A3): faixa dos 7 dias no topo (ponto nos dias com encontro, hoje
+// em destaque) e, embaixo, só os dias que têm alguma coisa, em linhas alinhadas pelo horário.
+// Setas trocam a semana sem animar (uso repetido).
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Avatar } from "@/components/shared/Avatar";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { peopleCount } from "@/features/groups/domain";
+import { WEEKDAYS, peopleCount } from "@/features/groups/domain";
 import { STACK_SIZE, openLabel } from "@/features/ministries/domain";
 import { Anchored } from "@/features/ministries/components/Anchored";
-import { dayShort, registeredLabel, timeShort, weekDays, weekLabel } from "../domain";
+import { registeredLabel, timeShort, weekDays, weekLabel } from "../domain";
 import type { WeekCard } from "../types";
 import styles from "@/features/sticks/people.module.css";
 import g from "@/features/groups/groups.module.css";
 import e from "../encontros.module.css";
+
+const dow = (iso: string) => WEEKDAYS[new Date(`${iso}T00:00:00Z`).getUTCDay()] ?? "";
 
 export function WeekList({
   start,
@@ -43,7 +46,8 @@ export function WeekList({
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const days = weekDays(start);
   const thisWeek = days.includes(today);
-  const nothing = cards !== null && cards.length === 0;
+  const busy = days.filter((d) => cards?.some((c) => c.date === d));
+  const selDate = cards?.find((c) => c.key === selectedKey)?.date;
 
   function onKey(ev: React.KeyboardEvent) {
     if ((ev.key !== "ArrowDown" && ev.key !== "ArrowUp") || !cards?.length) return;
@@ -53,6 +57,10 @@ export function WeekList({
     ev.preventDefault();
     onSelect(next.key);
     (ev.currentTarget as HTMLElement).querySelector<HTMLElement>(`[data-key="${CSS.escape(next.key)}"]`)?.focus();
+  }
+  function pickDay(d: string) {
+    const first = cards?.find((c) => c.date === d);
+    if (first) onSelect(first.key);
   }
 
   return (
@@ -75,63 +83,70 @@ export function WeekList({
         <button type="button" className="iconbtn" aria-label="Próxima semana" onClick={() => onWeek(1)}><UiIcon icon={ChevronRight} /></button>
       </div>
 
+      <div className={e.strip} role="group" aria-label="Dias da semana">
+        {days.map((d) => {
+          const has = busy.includes(d);
+          return (
+            <button
+              key={d}
+              type="button"
+              className={`${e.stripDay}${d === today ? " " + e.stripToday : ""}${d === selDate ? " " + e.stripOn : ""}`}
+              disabled={!has}
+              aria-label={`${dow(d)} ${Number(d.slice(8, 10))}${has ? "" : ", nada marcado"}`}
+              onClick={() => pickDay(d)}
+            >
+              <span className={e.stripDow}>{dow(d).slice(0, 3)}</span>
+              <span className={e.stripN}>{Number(d.slice(8, 10))}</span>
+              <span className={`${e.dot}${has ? " " + e.dotOn : ""}`} aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
+
       {cards === null ? (
         <p className="muted" role="status">{loading ? "Abrindo a semana…" : ""}</p>
-      ) : nothing && thisWeek ? (
+      ) : cards.length === 0 ? (
         <div className={styles.empty}>
-          <p>Nenhum culto cadastrado ainda.</p>
-          {canManage ? <button type="button" className={styles.primary} onClick={onNewService} disabled={creating}>Cadastrar o primeiro culto</button> : null}
+          <p>{thisWeek ? "Nenhum culto cadastrado ainda." : "Nada marcado nesta semana."}</p>
+          {canManage && thisWeek ? <button type="button" className={styles.primary} onClick={onNewService} disabled={creating}>Cadastrar o primeiro culto</button> : null}
         </div>
       ) : (
-        <ul className={e.days} onKeyDown={onKey} aria-busy={loading || undefined}>
-          {days.map((d) => {
-            const here = cards.filter((c) => c.date === d);
-            const label = (
-              <span className={`${e.dayHead}${d === today ? " " + e.today : ""}`}>
-                {dayShort(d)}
-                {d === today ? <span>Hoje</span> : null}
-              </span>
-            );
-            if (!here.length) return <li key={d} className={`${e.day} ${e.dayEmpty}`}>{label}</li>;
-            return (
-              <li key={d} className={e.day}>
-                {label}
-                <div className={`${g.cards} ${e.dayCards}`}>
-                  {here.map((c) => {
-                    const more = c.faces.length - STACK_SIZE;
-                    return (
-                      <button key={c.key} type="button" data-key={c.key} className={`${g.card}${c.cancelled ? " " + e.cancelled : ""}`} aria-current={c.key === selectedKey ? "true" : undefined} onClick={() => onSelect(c.key)}>
-                        <span className={g.cardTop}>
-                          <span className={e.cardHead}>
-                            <span className={e.time}>{timeShort(c.time)}</span>
-                            <span className={g.cardName}>{c.name}</span>
-                          </span>
-                          {c.faces.length ? (
-                            <span className={g.stack} role="img" aria-label={`Servem: ${peopleCount(c.faces.length)}`}>
-                              {more > 0 ? <span className={g.more}>+{more}</span> : null}
-                              {c.faces.slice(0, STACK_SIZE).reverse().map((f) => (
-                                <Avatar key={f.stickId} name={f.name} photoUrl={f.photoUrl} size={24} className={g.stackFace} />
-                              ))}
-                            </span>
-                          ) : null}
-                        </span>
-                        {c.cancelled || c.kind === "event" || c.open ? (
-                          <span className={g.cardFoot}>
-                            <span className={g.cardSub}>
-                              {c.cancelled ? "Cancelado" : c.kind === "event" ? <span className={e.tag}>Evento</span> : null}
-                              {!c.cancelled && c.registration ? ` ${registeredLabel(c.registered, null)}` : null}
-                            </span>
-                            {!c.cancelled && c.open ? <span className={g.pill}>{openLabel(c.open)}</span> : null}
+        <div className={e.agenda} onKeyDown={onKey} aria-busy={loading || undefined}>
+          {busy.map((d) => (
+            <section key={d} aria-label={`${dow(d)} ${d.slice(8, 10)}/${d.slice(5, 7)}`}>
+              <h2 className={`${e.dayHead}${d === today ? " " + e.today : ""}`}>
+                {d === today ? "Hoje" : dow(d)}
+                <span className={e.dayDate}>{d.slice(8, 10)}/{d.slice(5, 7)}</span>
+              </h2>
+              {cards
+                .filter((c) => c.date === d)
+                .map((c) => {
+                  const more = c.faces.length - STACK_SIZE;
+                  const sub = c.cancelled ? "Cancelado" : c.kind === "event" ? (c.registration ? `Evento · ${registeredLabel(c.registered, null)}` : "Evento") : c.location;
+                  return (
+                    <button key={c.key} type="button" data-key={c.key} className={`${e.row}${c.cancelled ? " " + e.cancelled : ""}`} aria-current={c.key === selectedKey ? "true" : undefined} onClick={() => onSelect(c.key)}>
+                      <span className={e.time}>{timeShort(c.time)}</span>
+                      <span className={e.rowMain}>
+                        <span className={e.rowName}>{c.name}</span>
+                        {sub ? <span className={e.rowSub}>{sub}</span> : null}
+                      </span>
+                      <span className={e.rowEnd}>
+                        {!c.cancelled && c.open ? <span className={g.pill}>{openLabel(c.open)}</span> : null}
+                        {c.faces.length ? (
+                          <span className={g.stack} role="img" aria-label={`Servem: ${peopleCount(c.faces.length)}`}>
+                            {more > 0 ? <span className={g.more}>+{more}</span> : null}
+                            {c.faces.slice(0, STACK_SIZE).reverse().map((f) => (
+                              <Avatar key={f.stickId} name={f.name} photoUrl={f.photoUrl} size={24} className={g.stackFace} />
+                            ))}
                           </span>
                         ) : null}
-                      </button>
-                    );
-                  })}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                      </span>
+                    </button>
+                  );
+                })}
+            </section>
+          ))}
+        </div>
       )}
 
       {menu ? (

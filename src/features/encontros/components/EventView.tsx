@@ -3,7 +3,7 @@
 // Ficha do evento (spec 16, Fase C): dados, convite, quem serve e inscritos em rostos. No dia, tocar no
 // rosto marca que chegou (selo azul); tocar de novo desfaz. Inscrição é feita pela equipe.
 import { useState } from "react";
-import { CalendarDays, Check, MapPin, MoreHorizontal } from "lucide-react";
+import { Check, MapPin, MoreHorizontal } from "lucide-react";
 import { Avatar } from "@/components/shared/Avatar";
 import { DateField } from "@/components/shared/DateField";
 import { UiIcon } from "@/components/shared/UiIcon";
@@ -102,23 +102,36 @@ export function EventView({
     onDay(() => r.data);
   }
 
-  const bar = (
-    <div className={styles.profBar}>
-      <span className={g.lastText}>{ev.date === today ? "Hoje" : ""}</span>
+  const actions = (
+    <span className={e.actions}>
+      {editing ? null : <CopyInvite item={ev} />}
       {canManage ? (editing ? <button type="button" className={styles.primary} onClick={() => onEditing(false)}>Pronto</button> : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>) : null}
       {canManage ? (
         <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações do evento" align="right">
           {(close) => <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar evento</button>}
         </Popover>
       ) : null}
-    </div>
+    </span>
+  );
+  const head = (
+    <header className={e.top}>
+      <div className={e.titleRow}>
+        <h1 className={styles.name}>{ev.name}</h1>
+        {actions}
+      </div>
+      {editing ? null : (
+        <div className={`${e.when} ${e.whenPlain}`}>
+          <span className={e.whenText}>{occurrenceTitle(ev.date, ev.time)}</span>
+          {ev.location ? <span className={e.where}><UiIcon icon={MapPin} />{ev.location}</span> : null}
+        </div>
+      )}
+    </header>
   );
 
   if (editing)
     return (
       <article className={styles.prof}>
-        {bar}
-        <header className={styles.ph}><div className={styles.phMain}><h1 className={styles.name}>{ev.name}</h1></div></header>
+        {head}
         {err ? <p className={styles.fErr} role="alert">{err}</p> : null}
         <section className={styles.sec} aria-label="Dados do evento">
           <div className={styles.grid}>
@@ -165,21 +178,9 @@ export function EventView({
   const full = Boolean(ev.capacity && day.registrations.length >= ev.capacity);
   return (
     <article className={styles.prof}>
-      {bar}
-      <header className={styles.ph}>
-        <div className={styles.phMain}>
-          <h1 className={styles.name}>{ev.name}</h1>
-          <div className={g.chips}>
-            <span className={g.chip}><UiIcon icon={CalendarDays} />{occurrenceTitle(ev.date, ev.time)}</span>
-            {ev.location ? <span className={g.chip}><UiIcon icon={MapPin} />{ev.location}</span> : null}
-          </div>
-        </div>
-      </header>
+      {head}
       {err ? <p className={styles.fErr} role="alert">{err}</p> : null}
-      <div className={g.presenceRow}>
-        <CopyInvite item={ev} />
-      </div>
-      {ev.description ? <p className={styles.sec}>{ev.description}</p> : null}
+      {ev.description ? <p className={e.desc}>{ev.description}</p> : null}
 
       {ev.registration ? (
         <section className={styles.sec} aria-labelledby="sec-reg">
