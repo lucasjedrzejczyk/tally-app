@@ -55,6 +55,7 @@ export interface PersonDetail {
   tithes: { year: number; total: number; count: number; currency: string } | null; // null = sem acesso
   cell: { id: string; name: string; since: string } | null; // célula ativa (left_at nulo) e desde quando
   serves: { id: string; name: string; roles: string[] }[]; // ministérios onde serve (spec 15)
+  care: { id: string; assignedName: string } | null; // caso aberto visível para quem olha (spec 17)
 }
 
 // Lista salva: nome + filtros (o mesmo objeto da querystring).

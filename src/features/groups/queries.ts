@@ -48,7 +48,7 @@ const KEEP_SESSIONS = 12; // encontros recentes por célula (o gráfico da ficha
 const CHUNK = 80;
 
 // URLs assinadas das fotos. Só a equipe lê o bucket: para o líder volta vazio e a tela mostra iniciais.
-async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Promise<Map<string, string>> {
+export async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Promise<Map<string, string>> {
   const urls = new Map<string, string>();
   const list = [...new Set(paths.filter((p): p is string => Boolean(p)))];
   if (!list.length) return urls;
@@ -60,7 +60,7 @@ async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Pr
 const asRole = (v: string): CellRole => (v === "leader" || v === "co_leader" || v === "host" ? v : "member");
 
 // Encontros recentes (com quem veio) de cada célula, recentes primeiro. Cancelado = "não teve encontro".
-async function recentSessions(supabase: DB, orgId: string, groupIds: string[]): Promise<Map<string, CellSession[]>> {
+export async function recentSessions(supabase: DB, orgId: string, groupIds: string[]): Promise<Map<string, CellSession[]>> {
   const out = new Map<string, CellSession[]>();
   if (!groupIds.length) return out;
   const { data, error } = await supabase

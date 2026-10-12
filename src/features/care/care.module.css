@@ -1,60 +1,513 @@
-.header {
-  margin-bottom: var(--s-2);
+/* Cuidado (spec 17). O layout lista + ficha vem de sticks/people.module.css; aqui só o que é do
+   Cuidado: abas, linhas da lista, ficha (status segmentado, contato, linha do tempo, rodapé do
+   celular) e a aba Orações. Linhas e fio, sem caixas cinza. */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.sectionTitle {
-  font-size: var(--t-15);
-  font-weight: 600;
-  margin: var(--s-5) 0 var(--s-3);
-  color: var(--text);
+.muted {
+  color: var(--text-2);
 }
-.pos {
-  color: var(--green);
+.plain {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.neg {
-  color: var(--coral);
+.none {
+  margin: 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.sec {
+  margin-top: var(--s-6);
+}
+.fold {
+  margin-top: 0;
+}
+.single {
+  max-width: 42rem;
 }
 
-.itemTop {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-3);
+/* Abas segmentadas (troca instantânea) */
+.top {
+  margin-bottom: var(--s-2);
 }
-.itemBody {
-  flex: 1;
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
 }
-.itemName {
-  font-weight: 500;
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 1.75rem;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--text-2);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  cursor: pointer;
+}
+.tab[aria-selected="true"] {
+  background: var(--surface);
   color: var(--text);
+}
+.tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.tabN {
+  min-width: 1.125rem;
+  padding: 0 var(--s-1);
+  border-radius: var(--r-pill);
+  background: var(--blue);
+  color: var(--on-blue);
+  font-size: var(--t-11);
+  line-height: 1.125rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lista */
+.row {
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+}
+.rowName {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-width: 0;
+  font: 500 var(--t-15)/var(--lh-15) var(--font-ui);
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lock {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-2);
+}
+.lock svg {
+  width: 14px;
+  height: 14px;
+}
+.since {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+}
+.since svg {
+  width: 12px;
+  height: 12px;
+}
+.late {
+  color: var(--blue);
+}
+.resp {
+  align-self: start;
+}
+.sugg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  transition: opacity 150ms ease;
+}
+.suggRow {
+  grid-template-columns: 2rem minmax(0, 1fr);
+  padding-right: 2.5rem;
+}
+.reason {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.x {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-2);
+}
+.gone {
+  opacity: 0;
+}
+.moreLink {
+  margin-top: var(--s-2);
+}
+.undo {
   display: flex;
   align-items: center;
   gap: var(--s-2);
-}
-.itemMeta {
+  margin: var(--s-2) 0 0;
   font-size: var(--t-13);
   color: var(--text-2);
-  margin-top: var(--s-1);
 }
-.itemActions {
+.pickRow {
+  grid-template-columns: 2rem minmax(0, 1fr);
+}
+
+/* Ficha */
+.prof {
+  padding-bottom: var(--s-4);
+}
+.nameLink {
+  color: inherit;
+  text-decoration: none;
+}
+.why {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  overflow-wrap: anywhere;
+}
+.chipFace {
+  margin-left: calc(-1 * var(--s-2));
+}
+.secret {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.next {
+  margin-top: var(--s-4);
+}
+.nextText {
+  margin: 0;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+}
+.nextLabel {
+  display: block;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.respBtn {
+  align-self: flex-start;
+  gap: var(--s-2);
+}
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+/* Status: a pílula desliza para a opção escolhida */
+.seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 24rem;
+  margin-top: var(--s-4);
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+.segPill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / 3);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  transform: translateX(calc(var(--i, 0) * 100%));
+  transition: transform 200ms cubic-bezier(.23, 1, .32, 1);
+}
+.segBtn {
+  position: relative;
+  min-height: 1.875rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--text-2);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  cursor: pointer;
+}
+.segBtn[aria-checked="true"] {
+  color: var(--text);
+}
+.segBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* Registrar contato e nota */
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.area {
+  height: auto;
+  min-height: 4.5rem;
+  padding: var(--s-2) var(--control-px);
+  resize: vertical;
+  line-height: var(--lh-13);
+}
+.contactEnd {
+  display: flex;
+  justify-content: flex-end;
+}
+.noteRow {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+/* Linha do tempo */
+.tl {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tlItem {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.tlItem:last-child {
+  border-bottom: 0;
+}
+.tlNew {
+  animation: tlIn 150ms ease-out;
+}
+@keyframes tlIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.tlIcon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.tlBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tlHead {
+  font: 500 var(--t-13)/var(--lh-13) var(--font-ui);
+}
+.tlText {
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé fixo do celular: material translúcido, o conteúdo passa por baixo */
+.dock {
+  display: none;
+}
+@media (max-width: 56.1875rem) {
+  .inlineOnly {
+    display: none;
+  }
+  .prof {
+    padding-bottom: 5rem;
+  }
+  .dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    padding: var(--s-3) var(--s-4) calc(var(--s-3) + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--main) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .dockBtn {
+    flex: 1;
+  }
+}
+@media (max-width: 56.1875rem) and (prefers-reduced-transparency: reduce) {
+  .dock {
+    background: var(--main);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Orações */
+.prTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1);
+  margin-top: var(--s-4);
+}
+.hint {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 200ms ease, opacity 200ms ease;
+}
+.leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.collapseIn {
+  min-height: 0;
+  overflow: hidden;
+}
+.pr {
   display: flex;
   flex-direction: column;
   gap: var(--s-1);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
-.log {
-  margin-top: var(--s-2);
-  border-top: 0;
-  padding-top: var(--s-1);
-}
-.logLine {
+.prHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-2);
   font-size: var(--t-13);
-  color: var(--text-2);
-  padding: var(--s-1) 0;
+  line-height: var(--lh-13);
 }
-.logLine b {
+.prName {
+  font-weight: 600;
   color: var(--text);
 }
-.noteLine {
-  font-size: var(--t-13);
+.tag {
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
   color: var(--text-2);
-  padding: var(--s-1) 0;
-  font-style: italic;
+  font-size: var(--t-11);
+  line-height: 1.25rem;
+}
+.prText {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.prText:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+  border-radius: var(--r-6);
+}
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.prContact {
+  align-self: flex-start;
+  font-size: var(--t-13);
+  color: var(--blue);
+  text-decoration: none;
+}
+.prEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-1);
+}
+.orei {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 1.75rem;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.orei:active {
+  transform: scale(.96);
+}
+.orei:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.oreiDone {
+  color: var(--blue);
+  cursor: default;
+}
+.oreiN {
+  min-width: 1ch;
+  font-variant-numeric: tabular-nums;
+}
+.numSwap {
+  animation: numIn 150ms ease-out;
+}
+@keyframes numIn {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segPill,
+  .collapse,
+  .sugg {
+    transition: none;
+  }
+  .tlNew,
+  .numSwap {
+    animation: none;
+  }
+  .orei:active {
+    transform: none;
+  }
+}
+.btnLink {
+  text-decoration: none;
+}
+.nowrap {
+  white-space: nowrap;
 }

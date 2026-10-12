@@ -1,107 +1,47 @@
-// Domínio Oração. Regras portadas 1:1 de derived.js (prayerCloudData/prayerMatch/
-// ansLeft) e da regra de prune (+30 dias). Interface pública desta feature.
+// Domínio Oração (spec 17, Fase C): mural, pedidos que chegaram pelo link e respondidas.
+// Respondida some do mural 30 dias depois (regra de sempre).
 import { today } from "@/lib/utils/date";
 
 export type Privacy = "church" | "group" | "leader" | "private";
 
-export const PRIVACY_LABELS: Record<Privacy, string> = {
-  church: "Igreja toda",
-  group: "Só o grupo",
-  leader: "Só líderes",
-  private: "Reservado",
-};
-
-export const PRIVACY_OPTIONS: ReadonlyArray<readonly [Privacy, string]> = [
-  ["church", "Igreja toda"],
-  ["group", "Só o grupo"],
-  ["leader", "Só líderes"],
-];
-
-// Motivos de oração sugeridos (roadmap #3) — o "Novo pedido" oferece esta lista +
-// "adicionar novo tema". Gravados em prayer_requests.topics (coluna já existe).
-export const PRAYER_TOPICS: readonly string[] = [
-  "Saúde",
-  "Família",
-  "Casamento",
-  "Filhos",
-  "Finanças",
-  "Trabalho",
-  "Vida espiritual",
-  "Libertação",
-  "Cura emocional",
-  "Ansiedade",
-  "Luto",
-  "Relacionamentos",
-  "Estudos",
-  "Ministério",
-  "Outros",
-];
-
 export interface PrayerRequest {
   id: string;
-  title: string;
   author: string;
   request: string;
   privacy: Privacy;
-  group: string;
-  topics: string[];
   praying: number;
   answered: boolean;
   answeredDate: string | null;
-  date: string;
+  date: string; // date
+  pending: boolean; // chegou pelo link e a equipe ainda não aprovou
+  contact: string; // telefone de quem pediu pelo link
 }
 
-export type CloudCategory = "topic" | "group" | "name";
-export interface CloudWord {
-  text: string;
-  cat: CloudCategory;
-  count: number;
-}
-export interface CloudFilter {
-  cat: CloudCategory;
-  val: string;
-}
-
-// "Foco de Oração": agrega temas, grupos e autores (≠ Anônimo) dos pedidos NÃO
-// respondidos, por frequência. Top 28. (prayerCloudData de derived.js.)
-export function prayerCloudData(prayers: PrayerRequest[]): CloudWord[] {
-  const m = new Map<string, CloudWord>();
-  const add = (text: string, cat: CloudCategory) => {
-    if (!text) return;
-    const k = cat + "|" + text;
-    const cur = m.get(k);
-    if (cur) cur.count++;
-    else m.set(k, { text, cat, count: 1 });
-  };
-  for (const p of prayers) {
-    if (p.answered) continue;
-    for (const t of p.topics) add(t, "topic");
-    if (p.group) add(p.group, "group");
-    if (p.author && p.author !== "Anônimo") add(p.author, "name");
-  }
-  return [...m.values()].sort((a, b) => b.count - a.count).slice(0, 28);
-}
-
-export function prayerMatch(p: PrayerRequest, f: CloudFilter | null): boolean {
-  if (!f) return true;
-  if (f.cat === "topic") return p.topics.includes(f.val);
-  if (f.cat === "group") return p.group === f.val;
-  if (f.cat === "name") return p.author === f.val;
-  return true;
-}
+export const PRIVATE_LABEL = "Só a equipe pastoral";
+export const NAME_MAX = 80;
+export const REQUEST_MAX = 1000;
+export const CONTACT_MAX = 30;
 
 function daysSince(iso: string): number {
   return (today().getTime() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
 }
 
 // Respondidas sem answered_on nunca somem. Com data: some 30 dias depois.
-export function isPrunable(p: PrayerRequest): boolean {
+export function isPrunable(p: Pick<PrayerRequest, "answered" | "answeredDate">): boolean {
   return p.answered && !!p.answeredDate && daysSince(p.answeredDate) >= 30;
 }
 
-// "some em N dias" (contagem regressiva do prune). ansLeft de derived.js.
-export function ansLeft(p: PrayerRequest): string {
-  if (!p.answeredDate) return "";
-  const d = Math.ceil(30 - daysSince(p.answeredDate));
-  return d > 0 ? "some em " + d + " dia" + (d > 1 ? "s" : "") : "some em breve";
+/** Separa o que chegou pelo link, o mural e as respondidas (todas, mais novas primeiro). */
+export function splitPrayers(list: PrayerRequest[]): { pending: PrayerRequest[]; wall: PrayerRequest[]; answered: PrayerRequest[] } {
+  const byNew = (a: PrayerRequest, b: PrayerRequest) => b.date.localeCompare(a.date);
+  return {
+    pending: list.filter((p) => p.pending).sort(byNew),
+    wall: list.filter((p) => !p.pending && !p.answered).sort(byNew),
+    answered: list.filter((p) => !p.pending && p.answered && !isPrunable(p)).sort(byNew),
+  };
+}
+
+/** Link público de pedidos para a igreja: token comprido, só letras e números. */
+export function newPrayerToken(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => "abcdefghijkmnpqrstuvwxyz23456789"[b % 32]).join("");
 }

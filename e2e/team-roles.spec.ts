@@ -54,25 +54,25 @@ test.describe("Configurações → Equipe e cargos", () => {
     await page.getByRole("button", { name: "+ Novo cargo" }).click();
     await page.getByLabel("Nome do cargo").fill(ROLE);
     await page.getByRole("checkbox", { name: /Editar pessoas/ }).check();
-    await page.getByRole("checkbox", { name: /Ver Care/ }).check();
+    await page.getByRole("checkbox", { name: /Ver acompanhamentos/ }).check();
     await page.getByRole("button", { name: "Criar cargo" }).click();
 
     const row = roles.locator("li").filter({ hasText: ROLE }).first();
     await expect(row).toBeVisible();
     await expect(row).toContainText("Editar pessoas");
-    await expect(row).toContainText("Ver Care");
+    await expect(row).toContainText("Ver acompanhamentos");
     await expect(row).toContainText("0 pessoas");
     await expect(row).not.toContainText("padrão"); // personalizado, não de sistema
 
     // Editar: renomear e tirar uma permissão.
     await row.getByRole("button", { name: "Editar" }).click();
     await page.getByLabel("Nome do cargo").fill(RENAMED);
-    await page.getByRole("checkbox", { name: /Ver Care/ }).uncheck();
+    await page.getByRole("checkbox", { name: /Ver acompanhamentos/ }).uncheck();
     await page.getByRole("button", { name: "Salvar" }).click();
 
     const renamed = roles.locator("li").filter({ hasText: RENAMED }).first();
     await expect(renamed).toBeVisible();
-    await expect(renamed).not.toContainText("Ver Care");
+    await expect(renamed).not.toContainText("Ver acompanhamentos");
 
     // Excluir (é personalizado → o botão existe e o RLS permite).
     await renamed.getByRole("button", { name: `Excluir ${RENAMED}` }).click();

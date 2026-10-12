@@ -79,13 +79,19 @@ export function PersonRead({
         </section>
       ) : null}
 
-      {timeline.length || detail.cell || detail.serves.length ? (
+      {timeline.length || detail.cell || detail.serves.length || detail.care ? (
         <section className={styles.sec} aria-labelledby="sec-church">
           <h2 id="sec-church" className={styles.secTitle}>Na igreja</h2>
           {detail.cell ? (
             <p className={`${styles.line} ${styles.cellLine}`}>
               <Link className="link" href={`/groups?g=${detail.cell.id}`}>{detail.cell.name}</Link>
               <span className={styles.dim}> (desde {monthYear(detail.cell.since)})</span>
+            </p>
+          ) : null}
+          {detail.care ? (
+            <p className={`${styles.line} ${styles.cellLine}`}>
+              <Link className="link" href={`/care?c=${detail.care.id}`}>Em acompanhamento</Link>
+              {detail.care.assignedName ? <span className={styles.dim}> com {detail.care.assignedName}</span> : null}
             </p>
           ) : null}
           {detail.serves.map((m) => (

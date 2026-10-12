@@ -1,68 +1,53 @@
-import { describe, it, expect } from "vitest";
-import { prayerCloudData, prayerMatch, ansLeft, isPrunable, type PrayerRequest } from "./domain";
+import { describe, expect, it, vi, afterEach } from "vitest";
+import { isPrunable, newPrayerToken, splitPrayers, type PrayerRequest } from "./domain";
 
-function mk(p: Partial<PrayerRequest>): PrayerRequest {
-  return {
-    id: p.id ?? "1",
-    title: p.title ?? "",
-    author: p.author ?? "Anônimo",
-    request: p.request ?? "pedido",
-    privacy: p.privacy ?? "church",
-    group: p.group ?? "",
-    topics: p.topics ?? [],
-    praying: p.praying ?? 0,
-    answered: p.answered ?? false,
-    answeredDate: p.answeredDate ?? null,
-    date: p.date ?? "2026-07-01",
-  };
-}
+afterEach(() => vi.useRealTimers());
 
-function daysAgoIso(n: number): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
+const p = (id: string, over: Partial<PrayerRequest> = {}): PrayerRequest => ({
+  id,
+  author: "Ana",
+  request: "x",
+  privacy: "church",
+  praying: 0,
+  answered: false,
+  answeredDate: null,
+  date: "2026-10-01",
+  pending: false,
+  contact: "",
+  ...over,
+});
 
-describe("prayerCloudData (paridade com derived.js)", () => {
-  it("agrega temas, grupos e autores (≠ Anônimo) só de pedidos não respondidos", () => {
-    const words = prayerCloudData([
-      mk({ id: "a", author: "Ruth", topics: ["saúde", "família"], group: "Mulheres" }),
-      mk({ id: "b", author: "Ruth", topics: ["saúde"], group: "" }),
-      mk({ id: "c", author: "Anônimo", topics: ["saúde"], answered: true }), // ignorado (respondido)
+describe("isPrunable (+30 dias)", () => {
+  it("respondida sem data nunca some", () => expect(isPrunable({ answered: true, answeredDate: null })).toBe(false));
+  it("respondida há 40 dias some; há 10 fica", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-12T12:00:00"));
+    expect(isPrunable({ answered: true, answeredDate: "2026-09-02" })).toBe(true);
+    expect(isPrunable({ answered: true, answeredDate: "2026-10-02" })).toBe(false);
+  });
+});
+
+describe("splitPrayers", () => {
+  it("separa pendentes, mural e respondidas, mais novos primeiro", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-12T12:00:00"));
+    const r = splitPrayers([
+      p("a", { date: "2026-10-01" }),
+      p("b", { date: "2026-10-05" }),
+      p("c", { pending: true }),
+      p("d", { answered: true, answeredDate: "2026-10-10" }),
+      p("e", { answered: true, answeredDate: "2026-08-01" }),
     ]);
-    const saude = words.find((w) => w.cat === "topic" && w.text === "saúde");
-    const ruth = words.find((w) => w.cat === "name" && w.text === "Ruth");
-    expect(saude?.count).toBe(2);
-    expect(ruth?.count).toBe(2);
-    // Anônimo nunca vira palavra de nome:
-    expect(words.some((w) => w.cat === "name" && w.text === "Anônimo")).toBe(false);
-  });
-
-  it("ordena por frequência e limita a 28", () => {
-    const many: PrayerRequest[] = Array.from({ length: 40 }, (_, i) => mk({ id: String(i), topics: ["t" + i] }));
-    expect(prayerCloudData(many).length).toBe(28);
+    expect(r.pending.map((x) => x.id)).toEqual(["c"]);
+    expect(r.wall.map((x) => x.id)).toEqual(["b", "a"]);
+    expect(r.answered.map((x) => x.id)).toEqual(["d"]);
   });
 });
 
-describe("prayerMatch", () => {
-  const p = mk({ topics: ["saúde"], group: "Mulheres", author: "Ruth" });
-  it("sem filtro casa tudo", () => expect(prayerMatch(p, null)).toBe(true));
-  it("por tema", () => expect(prayerMatch(p, { cat: "topic", val: "saúde" })).toBe(true));
-  it("por grupo", () => expect(prayerMatch(p, { cat: "group", val: "Homens" })).toBe(false));
-  it("por nome", () => expect(prayerMatch(p, { cat: "name", val: "Ruth" })).toBe(true));
-});
-
-describe("prune de respondidas (+30 dias)", () => {
-  it("respondida sem data nunca some", () => {
-    expect(isPrunable(mk({ answered: true, answeredDate: null }))).toBe(false);
-  });
-  it("respondida há 40 dias é podável", () => {
-    expect(isPrunable(mk({ answered: true, answeredDate: daysAgoIso(40) }))).toBe(true);
-  });
-  it("respondida há 10 dias ainda fica, com contagem regressiva", () => {
-    const p = mk({ answered: true, answeredDate: daysAgoIso(10) });
-    expect(isPrunable(p)).toBe(false);
-    expect(ansLeft(p)).toMatch(/some em \d+ dias?/);
+describe("newPrayerToken", () => {
+  it("vira texto do mesmo tamanho, sem letras que confundem", () => {
+    const t = newPrayerToken(new Uint8Array([0, 31, 32, 255, 8, 11]));
+    expect(t).toHaveLength(6);
+    expect(t).toMatch(/^[a-km-np-z2-9]+$/);
   });
 });

@@ -64,7 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "cuidado",
     label: "Cuidado",
     items: [
-      { key: "care", label: "Care", href: "/care" },
+      { key: "care", label: "Cuidado", href: "/care" },
       { key: "prayer", label: "Oração", href: "/prayer" },
     ],
   },
@@ -114,7 +114,7 @@ export interface StudyNavItem {
   key: string;
   label: string;
   href: string;
-  icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "finance";
+  icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "finance";
   match: string[];
 }
 export const STUDY_ITEMS: StudyNavItem[] = [
@@ -129,6 +129,8 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "ministries", label: "Ministérios", href: "/ministries", icon: "ministries", match: ["/ministries"] },
   // Encontros (spec 16): a semana da igreja com cultos e eventos; só a equipe.
   { key: "encontros", label: "Encontros", href: "/encontros", icon: "encontros", match: ["/encontros"] },
+  // Cuidado (spec 17): acompanhamentos e orações; só a equipe (care.view decide o resto).
+  { key: "care", label: "Cuidado", href: "/care", icon: "care", match: ["/care"] },
   // Finanças liberada pelo dono em 2026-10-08 (spec 10/11), mesmo no modo só Estudo.
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
@@ -147,7 +149,7 @@ export function nonStaffRedirect(isStaff: boolean, hasCells: boolean, hasMinistr
 
 // Barra de abas do celular: cabem 5 itens; passou disso, os 4 primeiros ficam e o resto vai para "Mais".
 export const TAB_LIMIT = 5;
-const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "encontros", "sermons", "notes"];
+const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "encontros", "care", "sermons", "notes"];
 export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; more: T[] } {
   const rank = (k: string) => (TAB_ORDER.includes(k) ? TAB_ORDER.indexOf(k) : TAB_ORDER.length);
   const sorted = [...tabs].sort((a, b) => rank(a.key) - rank(b.key));
@@ -155,7 +157,7 @@ export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; m
 }
 
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
-const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries", "/encontros"];
+const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries", "/encontros", "/care", "/prayer"];
 
 // Rotas desligadas no modo só Estudo: tudo que o menu lista, menos o próprio Estudo.
 // O fluxo antigo de e-mail (/communication) não está no menu, entra à mão.

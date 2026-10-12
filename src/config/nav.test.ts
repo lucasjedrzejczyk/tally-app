@@ -37,10 +37,10 @@ describe("barra de abas do celular", () => {
     expect(r.more).toEqual([]);
     expect(r.shown.map((t) => t.key)).toEqual(["bible", "groups"]);
   });
-  it("equipe (10 itens): 4 primeiros com Pessoas e Células à mostra, o resto em Mais", () => {
+  it("equipe (11 itens): 4 primeiros com Pessoas e Células à mostra, o resto em Mais", () => {
     const all = [...STUDY_ITEMS, tab("search"), tab("settings")];
     const r = splitTabs(all);
     expect(r.shown.map((t) => t.key)).toEqual(["bible", "people", "groups", "finance"]);
-    expect(r.more.map((t) => t.key)).toEqual(["ministries", "encontros", "sermons", "notes", "search", "settings"]);
+    expect(r.more.map((t) => t.key)).toEqual(["ministries", "encontros", "care", "sermons", "notes", "search", "settings"]);
   });
 });

@@ -366,6 +366,11 @@ input[type="checkbox"]:disabled { opacity: .5; cursor: not-allowed; }
   .sb-menuitem:hover { background: var(--surface-2); }
 }
 .sb.mini .sb-label, .sb.mini .sb-sectionhd, .sb.mini .sb-count { display: none; }
+.sb-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--blue); margin-left: auto; flex: none; }
+.sb.mini .sb-item { position: relative; }
+.sb.mini .sb-dot { position: absolute; top: var(--s-2); right: var(--s-2); }
+.sb-tabbar a { position: relative; }
+.sb-tabbar .sb-dot { position: absolute; top: var(--s-1); left: calc(50% + .5rem); margin: 0; }
 .sb.mini .sb-item { justify-content: center; padding: 0; }
 .sb-tabbar { display: none; }
 .main { background: var(--main); display: flex; flex-direction: column; min-width: 0; }

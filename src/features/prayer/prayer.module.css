@@ -1,28 +1,81 @@
-.cloudbox { position: relative; height: 20.625rem; width: 100%; overflow: hidden; }
-.cw { position: absolute; top: 0; left: 0; border: none; background: none; font-family: inherit; font-weight: 500; line-height: 1; padding: var(--s-1) var(--s-1); border-radius: var(--r-6); white-space: nowrap; cursor: pointer; }
-.cw[data-vert="1"] { transform: rotate(-90deg); }
-@media (hover: hover) and (pointer: fine) {
-.cw:hover { opacity: .65; } }
-.cwOn { text-decoration: underline; text-underline-offset: 0.1875rem; }
-.cwTopic { color: var(--green); }
-.cwName { color: var(--blue); }
-.cwGroup { color: var(--blue); }
-
-.cloudleg { display: flex; gap: var(--s-3); font-size: var(--t-11); color: var(--text-2); align-items: center; }
-.cloudleg span { display: flex; align-items: center; gap: var(--s-1); }
-.cloudleg i { width: 0.5625rem; height: 0.5625rem; border-radius: var(--r-6); display: inline-block; }
-.lgName { background: var(--blue); }
-.lgTopic { background: var(--green); }
-.lgGroup { background: var(--blue); }
-
-.pray { background: var(--surface); border: 0; border-radius: var(--r-6); padding: var(--s-4); margin-bottom: var(--s-3); }
-.prayAnswered { border-color: color-mix(in srgb, var(--green) 50%, transparent); background: color-mix(in srgb, var(--green) 6%, transparent); }
-.ph2 { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
-.who { font-weight: 500; color: var(--text); }
-.pv { font-size: var(--t-11); font-weight: 500; text-transform: uppercase; letter-spacing: .03em; color: var(--text-2); background: var(--surface-2); padding: var(--s-1) var(--s-2); border-radius: var(--r-6); }
-.rx { color: var(--text); font-size: var(--t-15); line-height: 1.5; }
-.pa { margin-top: var(--s-3); display: flex; gap: var(--s-3); align-items: center; }
-.answeredtag { font-size: var(--t-11); font-weight: 500; color: var(--green); text-transform: uppercase; letter-spacing: .04em; margin-left: auto; }
-.ptopics { display: flex; flex-wrap: wrap; gap: var(--s-1); margin-top: var(--s-2); }
-.ptag { font-size: var(--t-11); font-weight: 500; color: var(--text-2); background: var(--surface-2); padding: var(--s-1) var(--s-2); border-radius: var(--r-6); }
-.prbar { display: flex; align-items: center; margin-bottom: var(--s-2); }
+/* Página pública de pedido de oração (spec 17, C5). Mesma casca do convite (.gate/.gcard). */
+.pub {
+  text-align: left;
+}
+.pub :global(.gtitle),
+.pub :global(.gsub) {
+  text-align: center;
+}
+.pubLabel {
+  display: block;
+  margin-bottom: var(--s-1);
+  font-size: var(--t-13);
+  color: var(--text-2);
+}
+.pubArea {
+  width: 100%;
+  padding: var(--s-2) var(--control-px);
+  border: 0;
+  border-radius: var(--r-6);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  resize: vertical;
+}
+.pubArea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.pubHint {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-11);
+  color: var(--text-2);
+}
+.pubChip {
+  min-height: 2rem;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  cursor: pointer;
+}
+.pubChipOn {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+.pubChip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.thanks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.check {
+  margin-top: var(--s-2);
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  animation: draw 400ms cubic-bezier(.23, 1, .32, 1) forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

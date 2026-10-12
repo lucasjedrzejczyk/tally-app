@@ -8,7 +8,7 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { BookOpen, CalendarDays, Mic, FileText, HandHeart, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
+import { BookOpen, CalendarDays, Mic, FileText, HandHeart, HeartHandshake, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
@@ -22,10 +22,11 @@ export interface NavCounts {
   inbox: number;
   people: number;
   tasks: number;
+  prayer?: number; // pedidos do link esperando aprovação (ponto no Cuidado)
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
-const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, encontros: CalendarDays, finance: Wallet, trash: Trash2,
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
+const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, encontros: CalendarDays, care: HeartHandshake, finance: Wallet, trash: Trash2,
   settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut, more: Menu };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;
@@ -39,6 +40,7 @@ interface Dest {
   match: string[];
   count?: number;
   feature?: FeatureKey;
+  dot?: boolean;
 }
 const isOn = (path: string, d: Dest): boolean =>
   d.match.some((m) => (m === "/" || m === "/study" ? path === m : path === m || path.startsWith(m + "/")));
@@ -165,7 +167,8 @@ export function Sidebar({
 
   const countOf = (c?: "inbox" | "people" | "tasks"): number | undefined => (c ? counts[c] || undefined : undefined);
   const navItems = studyNavFor(isStaff, hasCells, hasMinistries);
-  const dests: Dest[] = STUDY_ONLY ? navItems : [];
+  const navDests: Dest[] = navItems.map((i) => (i.key === "care" && counts.prayer ? { ...i, dot: true } : i));
+  const dests: Dest[] = STUDY_ONLY ? navDests : [];
   // ponytail: fora do modo só Estudo os itens usam um ícone genérico; desenhar um por módulo quando eles voltarem.
   const groups = STUDY_ONLY
     ? []
@@ -192,6 +195,7 @@ export function Sidebar({
         <Icon name={d.icon} />
         <span className="sb-label">{d.label}</span>
         {d.count ? <span className="sb-count">{d.count}</span> : null}
+        {d.dot ? <span className="sb-dot" aria-label="Pedidos esperando" /> : null}
         {locked(d) ? <span className="sb-count" title="Recurso do plano Igreja">Igreja</span> : null}
       </Link>
     );
@@ -200,7 +204,7 @@ export function Sidebar({
   const initial = (userLabel.trim()[0] ?? "?").toUpperCase();
   // Barra de abas do celular. Líder (não equipe): só Bíblia e Células. Equipe: cabem 5; o resto vai para "Mais".
   const tabItems: Dest[] = STUDY_ONLY
-    ? [...navItems, ...(isStaff ? [{ key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }, { key: "settings", label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }] : [])]
+    ? [...navDests, ...(isStaff ? [{ key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }, { key: "settings", label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }] : [])]
     : [];
   const { shown: tabs, more: moreTabs } = splitTabs(tabItems);
   return (
@@ -268,6 +272,7 @@ export function Sidebar({
               <Link key={d.key} href={d.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
                 <Icon name={d.icon} />
                 <span>{d.label}</span>
+                {d.dot ? <span className="sb-dot" aria-label="Pedidos esperando" /> : null}
               </Link>
             );
           })}
@@ -283,6 +288,7 @@ export function Sidebar({
                     <Link key={d.key} href={d.href} role="menuitem" className="sb-menuitem" aria-current={isOn(path, d) ? "page" : undefined}>
                       <Icon name={d.icon} />
                       {d.label}
+                      {d.dot ? <span className="sb-dot" aria-label="Pedidos esperando" /> : null}
                     </Link>
                   ))}
                 </div>

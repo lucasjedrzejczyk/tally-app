@@ -1,163 +1,126 @@
 "use server";
 
-// Server Actions de Care. RLS por PERMISSÃO (diferente do resto do app):
-//  - criar/editar item, notas e contatos → exigem `care.view`;
-//  - apagar item → exige `care.manage`.
-// A RLS do banco é a barreira real; `can(ctx, ...)` aqui só devolve um erro amigável
-// ANTES de bater na RLS (evita mensagem crua). Owner tem tudo (fixture de teste).
-//
-// IDs de staff (assigned_to/author_id/contacted_by) são de auth.users — usamos
-// SEMPRE `ctx.user.id` como autor real; o "responsável" vem do select de membros.
-// Ver docs/handoffs/care-supabase.md.
+// Ações do Cuidado (spec 17). A RLS é a barreira (care.view, sigilo por caso, care.manage para
+// apagar); `can` aqui só troca o erro cru por uma frase. Toda ação que muda o caso devolve a ficha nova.
 import { revalidatePath } from "next/cache";
 import { requireOrg, can, type OrgContext } from "@/lib/auth/session";
-import { type ActionResult, ok, done, fail, toMessage } from "@/lib/errors";
-import { parseCareItemInput, parseContactInput, parseNoteInput } from "./schema";
+import { type ActionResult, ok, fail, toMessage } from "@/lib/errors";
+import { todayIso } from "@/features/groups/domain";
+import { asContactKind, GROUP_STATUS } from "./domain";
+import { getCare } from "./queries";
+import type { Database } from "@/lib/database.types";
+import type { CareDetail, StatusGroup } from "./types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-function uuidOrNull(v: string | null): string | null {
-  return v && UUID.test(v) ? v : null;
-}
-// Rótulos de app (NÃO segurança — ver handoff). Defaults não-nulos exigidos pelo banco.
-const DEFAULT_CONFIDENTIALITY = "standard";
-const DEFAULT_NOTE_VISIBILITY = "team";
+const NO_PERM = "Você não tem acesso ao Cuidado.";
+const FAIL = "Não deu para salvar. Tente de novo.";
+const TEXT_MAX = 2000;
 
-function ensureCanView(ctx: OrgContext): boolean {
-  return can(ctx, "care.view");
-}
-
-// Cria um Care Item. created_by = usuário real. Pode nascer de um Signal (signalId).
-export async function createCareItemAction(_prev: ActionResult<{ id: string }>, fd: FormData): Promise<ActionResult<{ id: string }>> {
-  const parsed = parseCareItemInput(fd);
-  if (!parsed.ok) return fail("Confira os campos.", parsed.fieldErrors);
+async function viewer(): Promise<OrgContext | null> {
   const ctx = await requireOrg();
-  if (!ensureCanView(ctx)) return fail("Você não tem permissão para gerenciar Care.");
-  try {
-    const d = parsed.data;
-    const { data, error } = await ctx.supabase
-      .from("care_items")
-      .insert({
-        org_id: ctx.orgId,
-        stick_id: uuidOrNull(d.stickId),
-        signal_id: uuidOrNull(d.signalId),
-        category: d.category || null,
-        title: d.title,
-        description: d.description || null,
-        assigned_to: uuidOrNull(d.assignedTo),
-        priority: d.priority,
-        status: d.status,
-        due_date: d.dueDate || null,
-        confidentiality_level: DEFAULT_CONFIDENTIALITY,
-        next_action: d.nextAction || null,
-        created_by: ctx.user.id,
-      })
-      .select("id")
-      .single();
-    if (error || !data) return fail(toMessage(error, "Não consegui criar o Care."));
-    revalidatePath("/care");
-    return ok({ id: data.id });
-  } catch (e) {
-    return fail(toMessage(e));
-  }
+  return can(ctx, "care.view") ? ctx : null;
 }
-
-// Edita um Care Item (responsável, prioridade, status, próxima ação, prazo...).
-// Ao resolver/fechar, carimba resolved_at; ao reabrir, limpa.
-export async function updateCareItemAction(_prev: ActionResult, fd: FormData): Promise<ActionResult> {
-  const id = String(fd.get("id") ?? "");
-  const parsed = parseCareItemInput(fd);
-  if (!UUID.test(id)) return fail("Care inválido.");
-  if (!parsed.ok) return fail("Confira os campos.", parsed.fieldErrors);
-  const ctx = await requireOrg();
-  if (!ensureCanView(ctx)) return fail("Você não tem permissão para gerenciar Care.");
-  try {
-    const d = parsed.data;
-    const closing = d.status === "resolved" || d.status === "closed";
-    const { error } = await ctx.supabase
-      .from("care_items")
-      .update({
-        stick_id: uuidOrNull(d.stickId),
-        category: d.category || null,
-        title: d.title,
-        description: d.description || null,
-        assigned_to: uuidOrNull(d.assignedTo),
-        priority: d.priority,
-        status: d.status,
-        due_date: d.dueDate || null,
-        next_action: d.nextAction || null,
-        resolved_at: closing ? new Date().toISOString() : null,
-      })
-      .eq("id", id);
-    if (error) return fail(toMessage(error, "Não consegui salvar o Care."));
-    revalidatePath("/care");
-    return done();
-  } catch (e) {
-    return fail(toMessage(e));
-  }
-}
-
-// DESTRUTIVO: apagar item → CASCADE em care_notes e care_contacts. Exige care.manage.
-export async function deleteCareItemAction(fd: FormData): Promise<void> {
-  const id = String(fd.get("id") ?? "");
-  if (!UUID.test(id)) return;
-  const ctx = await requireOrg();
-  if (!can(ctx, "care.manage")) return; // RLS também barra; evita ação silenciosa sem perm
-  await ctx.supabase.from("care_items").delete().eq("id", id);
+async function fresh(ctx: OrgContext, id: string): Promise<ActionResult<CareDetail>> {
+  const d = await getCare(ctx.supabase, ctx.orgId, id);
   revalidatePath("/care");
+  return d ? ok(d) : fail("Este acompanhamento não está mais disponível.");
 }
 
-// Nota interna (care_notes). author_id = usuário real; visibility é rótulo.
-export async function addCareNoteAction(_prev: ActionResult, fd: FormData): Promise<ActionResult> {
-  const itemId = String(fd.get("careItemId") ?? "");
-  const parsed = parseNoteInput(fd);
-  if (!UUID.test(itemId)) return fail("Care inválido.");
-  if (!parsed.ok) return fail(parsed.message);
-  const ctx = await requireOrg();
-  if (!ensureCanView(ctx)) return fail("Você não tem permissão para gerenciar Care.");
-  try {
-    const { error } = await ctx.supabase.from("care_notes").insert({
-      care_item_id: itemId,
-      author_id: ctx.user.id,
-      visibility: DEFAULT_NOTE_VISIBILITY,
-      content: parsed.data.content,
-    });
-    if (error) return fail(toMessage(error, "Não consegui salvar a nota."));
-    revalidatePath("/care");
-    return done();
-  } catch (e) {
-    return fail(toMessage(e));
-  }
+/** Novo acompanhamento de uma pessoa (de uma sugestão já vem o motivo). Quem abre fica responsável. */
+export async function createCareAction(stickId: string, reason: string): Promise<ActionResult<CareDetail>> {
+  if (!UUID.test(stickId)) return fail("Escolha uma pessoa.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const { data, error } = await ctx.supabase
+    .from("care_items")
+    .insert({ org_id: ctx.orgId, stick_id: stickId, title: reason.trim().slice(0, 200), assigned_to: ctx.user.id, status: "in_progress", created_by: ctx.user.id })
+    .select("id")
+    .single();
+  if (error || !data) return fail(toMessage(error, FAIL));
+  return fresh(ctx, data.id);
 }
 
-// Registra um contato (care_contacts) e move o item: resolvido (checkbox) ou em
-// andamento. contacted_by = usuário real. Espelha o contactModal do legado.
-export async function addCareContactAction(_prev: ActionResult, fd: FormData): Promise<ActionResult> {
-  const itemId = String(fd.get("careItemId") ?? "");
-  const parsed = parseContactInput(fd);
-  if (!UUID.test(itemId)) return fail("Care inválido.");
-  if (!parsed.ok) return fail(parsed.message);
+export type CareField = "reason" | "nextStep" | "nextDate" | "assignedTo" | "confidential";
+
+export async function updateCareFieldAction(id: string, field: CareField, raw: string): Promise<ActionResult<CareDetail>> {
+  if (!UUID.test(id)) return fail("Acompanhamento inválido.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const v = raw.trim();
+  let patch: Database["public"]["Tables"]["care_items"]["Update"];
+  if (field === "reason") patch = { title: v.slice(0, 200) };
+  else if (field === "nextStep") patch = { next_action: v.slice(0, 200) || null };
+  else if (field === "nextDate") {
+    if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return fail("Data inválida.");
+    patch = { due_date: v || null };
+  } else if (field === "assignedTo") {
+    if (v && !UUID.test(v)) return fail("Responsável inválido.");
+    patch = { assigned_to: v || null };
+  } else patch = { confidential: v === "1" };
+  const { error } = await ctx.supabase.from("care_items").update(patch).eq("id", id);
+  if (error) return fail(toMessage(error, FAIL));
+  return fresh(ctx, id);
+}
+
+export async function setCareStatusAction(id: string, group: StatusGroup): Promise<ActionResult<CareDetail>> {
+  if (!UUID.test(id) || !(group in GROUP_STATUS)) return fail("Acompanhamento inválido.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const { error } = await ctx.supabase
+    .from("care_items")
+    .update({ status: GROUP_STATUS[group], resolved_at: group === "done" ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) return fail(toMessage(error, FAIL));
+  return fresh(ctx, id);
+}
+
+/** Registra um contato de hoje e atualiza o "último contato" do caso. */
+export async function addContactAction(id: string, method: string, note: string): Promise<ActionResult<CareDetail>> {
+  if (!UUID.test(id)) return fail("Acompanhamento inválido.");
+  const kind = asContactKind(method);
+  if (!kind) return fail("Escolha o tipo de contato.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const today = todayIso();
+  const { data: item } = await ctx.supabase.from("care_items").select("stick_id").eq("id", id).maybeSingle();
+  if (!item) return fail("Este acompanhamento não está mais disponível.");
+  const { error } = await ctx.supabase
+    .from("care_contacts")
+    .insert({ care_item_id: id, stick_id: item.stick_id, contacted_by: ctx.user.id, contacted_on: today, method: kind, note: note.trim().slice(0, TEXT_MAX) || null });
+  if (error) return fail(toMessage(error, FAIL));
+  await ctx.supabase.from("care_items").update({ last_contact_on: today }).eq("id", id);
+  return fresh(ctx, id);
+}
+
+export async function addNoteAction(id: string, text: string): Promise<ActionResult<CareDetail>> {
+  if (!UUID.test(id)) return fail("Acompanhamento inválido.");
+  const content = text.trim().slice(0, TEXT_MAX);
+  if (!content) return fail("Escreva a nota.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const { error } = await ctx.supabase.from("care_notes").insert({ care_item_id: id, author_id: ctx.user.id, visibility: "care_team", content });
+  if (error) return fail(toMessage(error, FAIL));
+  return fresh(ctx, id);
+}
+
+export async function deleteCareAction(id: string): Promise<ActionResult<null>> {
+  if (!UUID.test(id)) return fail("Acompanhamento inválido.");
   const ctx = await requireOrg();
-  if (!ensureCanView(ctx)) return fail("Você não tem permissão para gerenciar Care.");
-  try {
-    const d = parsed.data;
-    const cRes = await ctx.supabase.from("care_contacts").insert({
-      care_item_id: itemId,
-      contacted_by: ctx.user.id,
-      contacted_on: d.contactedOn,
-      method: d.method || null,
-      note: d.note || null,
-    });
-    if (cRes.error) return fail(toMessage(cRes.error, "Não consegui registrar o contato."));
-    await ctx.supabase
-      .from("care_items")
-      .update({
-        status: d.resolve ? "resolved" : "in_progress",
-        resolved_at: d.resolve ? new Date().toISOString() : null,
-      })
-      .eq("id", itemId);
-    revalidatePath("/care");
-    return done();
-  } catch (e) {
-    return fail(toMessage(e));
-  }
+  if (!can(ctx, "care.manage")) return fail("Só quem gerencia o Cuidado pode excluir.");
+  const { error } = await ctx.supabase.from("care_items").delete().eq("id", id);
+  if (error) return fail(toMessage(error, FAIL));
+  revalidatePath("/care");
+  return ok(null);
+}
+
+/** Dispensa (ou traz de volta) uma sugestão. A chave muda quando o fato muda, aí ela volta sozinha. */
+export async function dismissSuggestionAction(key: string, on: boolean): Promise<ActionResult<null>> {
+  if (!/^care:[a-z]+:[0-9a-f-]{36}:[\d-]{10}$/.test(key)) return fail("Sugestão inválida.");
+  const ctx = await viewer();
+  if (!ctx) return fail(NO_PERM);
+  const q = on
+    ? ctx.supabase.from("signal_overrides").upsert({ org_id: ctx.orgId, signal_key: key, status: "dismissed", updated_at: new Date().toISOString() }, { onConflict: "org_id,signal_key" })
+    : ctx.supabase.from("signal_overrides").delete().eq("org_id", ctx.orgId).eq("signal_key", key);
+  const { error } = await q;
+  return error ? fail(toMessage(error, FAIL)) : ok(null);
 }

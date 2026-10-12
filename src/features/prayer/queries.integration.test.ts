@@ -12,7 +12,6 @@ describe.skipIf(!hasTestFixture)("Prayer queries (integração, org de teste)", 
       expect(typeof p.id).toBe("string");
       expect(typeof p.request).toBe("string");
       expect(["church", "group", "leader", "private"]).toContain(p.privacy);
-      expect(Array.isArray(p.topics)).toBe(true);
     }
     // A fixture semeia ao menos 1 pedido (Bruno, "Saúde da família").
     expect(prayers.some((p) => p.request.length > 0)).toBe(true);

@@ -2,6 +2,7 @@
 // UI). Só os campos necessários, tipadas, tratando ausência. RLS filtra por org;
 // o filtro explícito por org_id é defesa em profundidade, não substitui o RLS.
 import { servesIn } from "@/features/ministries/queries";
+import { openCareFor } from "@/features/care/queries";
 import type { DB } from "@/lib/auth/session";
 import { rowToProfile } from "@/features/settings/fiscal";
 import type { Family, Person, PersonDetail, PersonListItem, SavedList } from "./types";
@@ -160,7 +161,7 @@ export async function getPerson(supabase: DB, orgId: string, id: string, withTit
   if (!s) return null;
 
   const year = new Date().getFullYear();
-  const [docRes, linkRes, titheRes, cellRes, serves] = await Promise.all([
+  const [docRes, linkRes, titheRes, cellRes, serves, care] = await Promise.all([
     supabase.from("stick_documents").select("cpf, rg").eq("stick_id", id).maybeSingle(),
     supabase.from("household_members").select("household_id").eq("stick_id", id).maybeSingle(),
     withTithes
@@ -174,6 +175,7 @@ export async function getPerson(supabase: DB, orgId: string, id: string, withTit
       : Promise.resolve(null),
     supabase.from("group_members").select("joined_at, groups(id, name, archived)").eq("stick_id", id).is("left_at", null).limit(1).maybeSingle(),
     servesIn(supabase, id),
+    openCareFor(supabase, orgId, id),
   ]);
 
   const family = linkRes.data ? await loadFamily(supabase, linkRes.data.household_id) : null;
@@ -218,7 +220,7 @@ export async function getPerson(supabase: DB, orgId: string, id: string, withTit
   const urls = await signedPhotoUrls(supabase, s.profile_photo ? [s.profile_photo] : []);
   const g = cellRes.data?.groups;
   const cell = g && !g.archived ? { id: g.id, name: g.name, since: cellRes.data!.joined_at } : null;
-  return { id: s.id, values, archived: s.archived, photoUrl: s.profile_photo ? urls.get(s.profile_photo) ?? null : null, family, tithes, cell, serves };
+  return { id: s.id, values, archived: s.archived, photoUrl: s.profile_photo ? urls.get(s.profile_photo) ?? null : null, family, tithes, cell, serves, care };
 }
 
 // Listas salvas (filtros nomeados) da org. `filters` é o mesmo objeto da querystring da lista.

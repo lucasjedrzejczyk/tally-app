@@ -601,6 +601,8 @@ export type Database = {
       }
       care_items: {
         Row: {
+          confidential: boolean
+          last_contact_on: string | null
           assigned_to: string | null
           category: string | null
           confidentiality_level: string
@@ -619,6 +621,8 @@ export type Database = {
           title: string
         }
         Insert: {
+          confidential?: boolean
+          last_contact_on?: string | null
           assigned_to?: string | null
           category?: string | null
           confidentiality_level?: string
@@ -637,6 +641,8 @@ export type Database = {
           title: string
         }
         Update: {
+          confidential?: boolean
+          last_contact_on?: string | null
           assigned_to?: string | null
           category?: string | null
           confidentiality_level?: string
@@ -2649,6 +2655,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          prayer_token: string | null
           country: string
           created_at: string
           currency: string
@@ -2658,6 +2665,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          prayer_token?: string | null
           country?: string
           created_at?: string
           currency?: string
@@ -2667,6 +2675,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          prayer_token?: string | null
           country?: string
           created_at?: string
           currency?: string
@@ -2697,6 +2706,8 @@ export type Database = {
       }
       prayer_requests: {
         Row: {
+          contact: string | null
+          status: string
           answered: boolean
           answered_on: string | null
           author_name: string | null
@@ -2713,6 +2724,8 @@ export type Database = {
           topics: string[]
         }
         Insert: {
+          contact?: string | null
+          status?: string
           answered?: boolean
           answered_on?: string | null
           author_name?: string | null
@@ -2729,6 +2742,8 @@ export type Database = {
           topics?: string[]
         }
         Update: {
+          contact?: string | null
+          status?: string
           answered?: boolean
           answered_on?: string | null
           author_name?: string | null
@@ -4797,6 +4812,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      prayer_link_org: { Args: { p_token: string }; Returns: string }
+      submit_prayer: {
+        Args: { p_contact: string; p_name: string; p_private: boolean; p_request: string; p_token: string }
+        Returns: boolean
+      }
       accept_member_invite: { Args: { p_token: string }; Returns: string }
       admin_list_orgs: {
         Args: never

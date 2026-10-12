@@ -5,6 +5,7 @@ import { Sidebar, type NavCounts } from "@/components/shared/Sidebar";
 import { signals } from "@/features/signals/domain";
 import { buildSignalsInput, loadOverrides } from "@/features/inbox/queries";
 import { visibleSignals } from "@/features/inbox/domain";
+import { pendingPrayerCount } from "@/features/prayer/queries";
 
 // Casca protegida. Toda rota deste grupo passa por requireOrg no servidor:
 // sem sessão → /login; sem org → /onboarding. Nada aqui confia no navegador.
@@ -12,11 +13,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const ctx = await requireOrg();
   const { supabase, user, orgId, plan, isStaff, ledGroupIds, ledMinistryIds } = ctx;
 
-  const [orgRes, campusRes, peopleRes, isAdmin] = await Promise.all([
+  const [orgRes, campusRes, peopleRes, isAdmin, prayer] = await Promise.all([
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle(),
     supabase.from("campuses").select("name").eq("org_id", orgId).eq("active", true).order("name"),
     supabase.from("sticks").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("archived", false),
     isPlatformAdmin(supabase),
+    isStaff ? pendingPrayerCount(supabase, orgId) : Promise.resolve(0),
   ]);
 
   const orgName = orgRes.data?.name ?? "Minha igreja";
@@ -41,7 +43,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   // tasks: feature de tarefas ainda sem contador dedicado → 0 (badge oculto).
-  const counts: NavCounts = { inbox, people: peopleRes.count ?? 0, tasks: 0 };
+  const counts: NavCounts = { inbox, people: peopleRes.count ?? 0, tasks: 0, prayer };
 
   return (
     <div className="app">
