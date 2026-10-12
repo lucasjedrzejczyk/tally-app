@@ -128,7 +128,7 @@ export function GroupsView({
     const r = await createCellAction();
     setCreating(false);
     if (!r.success) return void setError(r.message);
-    const item: CellListItem = { id: r.data.id, name: "Nova célula", day: "", time: "", location: "", supervisorId: null, supervisorName: "", leaderName: "", memberCount: 0, lastSession: null, missing: 0 };
+    const item: CellListItem = { id: r.data.id, name: "Nova célula", day: "", time: "", location: "", supervisorId: null, supervisorName: "", leaderName: "", memberCount: 0, lastSession: null, strip: [], faces: [], missing: 0 };
     setCells((l) => [item, ...l]);
     setFilters(NO_CELL_FILTERS);
     select(item.id, true);

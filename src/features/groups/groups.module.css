@@ -1,14 +1,139 @@
 /* Células (spec 14): o casco (lista, ficha, painel, campos) vem de sticks/people.module.css;
    aqui só o que é próprio das células. */
 
-/* Linha da lista: nome + frase à esquerda, aviso calmo à direita (sem avatar). */
-button.cellRow {
-  grid-template-columns: minmax(0, 1fr) auto;
+/* Lista: um cartão por célula. Nome + pilha de rostos, dia e hora, faixa de presença e etiqueta. */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
 }
-span.cellAside {
-  max-width: 9rem;
-  white-space: normal;
+button.card {
+  --ring: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  width: 100%;
+  padding: var(--s-4);
+  border: 0;
+  border-radius: var(--r-10);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+button.card:active {
+  transform: scale(.98);
+}
+button.card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+button.card[aria-current="true"] {
+  --ring: var(--surface-2);
+  background: var(--surface-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  button.card:hover {
+    --ring: var(--surface-2);
+    background: var(--surface-2);
+  }
+}
+@media (max-width: 56.1875rem) {
+  button.card[aria-current="true"]:not(:hover) {
+    --ring: var(--bg);
+    background: none;
+  }
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.cardName {
+  min-width: 0;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cardSub {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.stack {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+.stackFace {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.stackFace + .stackFace {
+  margin-left: -0.375rem;
+}
+.more {
+  margin-left: var(--s-1);
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.cardFoot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+.strip {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-1);
+  height: 1.25rem;
+}
+.stripBar,
+.stripGhost {
+  width: 0.25rem;
+  border-radius: 1px;
+}
+.stripBar {
+  height: max(calc(var(--h) * 1.25rem), 0.125rem);
+  background: color-mix(in srgb, var(--text-2) 40%, transparent);
+}
+.stripGhost {
+  height: 0.125rem;
+  background: var(--border);
+}
+.stripBar.stripLast {
+  background: var(--text);
+}
+.pill {
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--text-2);
   text-align: right;
+}
+@media (hover: hover) and (pointer: fine) {
+  button.card:hover .pill {
+    background: var(--surface);
+  }
+}
+@media (min-width: 56.25rem) {
+  button.card[aria-current="true"] .pill {
+    background: var(--surface);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.card:active {
+    transform: none;
+  }
 }
 
 /* Ficha */

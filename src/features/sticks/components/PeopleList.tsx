@@ -5,11 +5,12 @@
 // Sermões. Quem guarda os filtros (e a URL) é o pai; aqui só se desenha e se avisa o que mudou.
 import { useMemo, useState } from "react";
 import { ChevronDown, MoreHorizontal, Plus, X } from "lucide-react";
+import { Avatar } from "@/components/shared/Avatar";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { exportPeopleAction } from "../bulk-actions";
 import { saveCsv, slug } from "../download";
 import { ListsMenu, sameFilters } from "./SavedLists";
-import { NO_FILTERS, birthdayShort, filterPeople, hasFilters, personSubtitle, initialsOf, type PeopleFilters } from "../domain";
+import { NO_FILTERS, birthdayShort, filterPeople, hasFilters, personSubtitle, type PeopleFilters } from "../domain";
 import type { PersonListItem, SavedList } from "../types";
 import { MenuItem } from "@/features/study/components/FilterChips";
 import { Popover } from "@/features/study/components/Popover";
@@ -219,10 +220,7 @@ export function PeopleList({
                   aria-current={p.id === selectedId ? "true" : undefined}
                   onClick={() => onSelect(p.id)}
                 >
-                  <span className={styles.avatar} aria-hidden="true">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {p.photoUrl ? <img src={p.photoUrl} alt="" /> : initialsOf(p.name)}
-                  </span>
+                  <Avatar name={p.name} photoUrl={p.photoUrl} size={32} className={styles.avatar} />
                   <span className={styles.rowMain}>
                     <span className={styles.rowName}>{p.name}</span>
                     {personSubtitle(p) ? <span className={styles.rowSub}>{personSubtitle(p)}</span> : null}

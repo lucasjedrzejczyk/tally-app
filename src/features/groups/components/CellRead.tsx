@@ -73,7 +73,7 @@ export function CellRead({
         <section className={people.sec} aria-labelledby="sec-sessions">
           <h2 id="sec-sessions" className={people.secTitle}>Encontros</h2>
           <ul className={g.list}>
-            {detail.sessions.map((s) => (
+            {[...detail.sessions].reverse().slice(0, 8).map((s) => (
               <li key={s.date}>
                 <button type="button" className={g.sessRow} onClick={() => onPresence(s.date)}>
                   {shortDate(s.date)} · {s.cancelled ? "Não teve encontro" : `${s.present} de ${s.of}`}

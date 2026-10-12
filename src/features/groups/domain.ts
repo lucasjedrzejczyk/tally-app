@@ -2,6 +2,7 @@
 // Depende do domínio de Sticks (careReasons) — interface limpa entre features.
 import { careReasons } from "@/features/sticks/domain";
 import type { Person } from "@/features/sticks/types";
+import { SWIPE_FLICK } from "@/features/study/domain";
 import type { CellAccess, CellDetail, CellListItem } from "./types";
 
 export type Band = "healthy" | "attention" | "risk";
@@ -192,6 +193,43 @@ export const wasMember = (m: { joinedAt: string; leftAt: string | null }, date: 
 /** Fazia parte do encontro: estava ativo na data OU tem presença registrada nele (presença conta sempre). */
 export const inMeeting = (m: { joinedAt: string; leftAt: string | null }, date: string, present: boolean): boolean => present || wasMember(m, date);
 
+export interface SeriesPoint {
+  date: string;
+  cancelled: boolean;
+  present: number;
+  of: number; // quantos faziam parte da célula naquele dia
+  ratio: number; // presentes / membros, de 0 a 1 (0 se não teve encontro)
+}
+
+/** Os últimos `n` encontros, do mais antigo para o mais novo, com a razão presentes/membros de cada um. */
+export function presenceSeries(sessions: CellSession[], members: { stickId: string; joinedAt: string; leftAt: string | null }[], n: number): SeriesPoint[] {
+  return [...sessions]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-n)
+    .map((s) => {
+      const present = s.presentIds.length;
+      const of = members.filter((m) => inMeeting(m, s.date, s.presentIds.includes(m.stickId))).length;
+      return { date: s.date, cancelled: s.cancelled, present, of, ratio: s.cancelled || of === 0 ? 0 : Math.min(1, present / of) };
+    });
+}
+
+/** "Ana" de "Ana Souza". */
+export const firstName = (name: string): string => name.trim().split(/\s+/)[0] ?? "";
+
+const ROLE_RANK: Record<string, number> = { leader: 0, co_leader: 1, host: 2, member: 3 };
+/** Os primeiros `n` rostos da pilha: líder e co-líder antes, depois por nome. */
+export function stackFaces<T extends { name: string; role: string }>(members: T[], n: number): T[] {
+  return [...members].sort((a, b) => (ROLE_RANK[a.role] ?? 3) - (ROLE_RANK[b.role] ?? 3) || a.name.localeCompare(b.name, "pt-BR")).slice(0, n);
+}
+
+/** A folha de baixo do celular fecha se foi arrastada além de 30% da altura ou saiu rápido (mesma velocidade do swipe de Pessoas). */
+export const sheetCloses = (dy: number, velocity: number, height: number): boolean => dy > 0 && (dy > height * 0.3 || velocity > SWIPE_FLICK);
+
+/** "Não vem há 3 encontros" / "Veio dia 08/10" / "Ainda sem presença". */
+export function memberNote(m: { streak: number; lastPresent: string | null }): string {
+  return missingFlag(m.streak) ? `Não vem há ${m.streak} encontros` : m.lastPresent ? `Veio dia ${dayMonth(m.lastPresent)}` : "Ainda sem presença";
+}
+
 /** Acesso ao app a partir da ficha (login ligado, e-mail para convidar, ou nada). */
 export function accessOf(s: { email: string | null; user_id: string | null } | null | undefined): CellAccess {
   return s?.user_id ? "has" : s?.email?.trim() ? "ready" : "noEmail";
@@ -213,6 +251,10 @@ export function leadersNeedingAccess(d: Pick<CellDetail, "members" | "supervisor
 
 /** "3 pessoas" / "1 pessoa" */
 export const peopleCount = (n: number): string => `${n} ${n === 1 ? "pessoa" : "pessoas"}`;
+
+export const STRIP_SIZE = 8; // encontros na faixa de presença da lista
+export const STACK_SIZE = 4; // rostos na pilha da lista
+export const CHART_SIZE = 12; // encontros no gráfico da ficha
 
 // ---- Lista de células: filtros e espelho da ficha --------------------------------------------
 export interface CellFilters {
@@ -246,7 +288,9 @@ export function listItemFromDetail(d: CellDetail): CellListItem {
     supervisorName: d.supervisor?.name ?? "",
     leaderName: d.members.find((m) => m.role === "leader")?.name ?? "",
     memberCount: d.members.length,
-    lastSession: d.sessions[0]?.date ?? null,
+    lastSession: d.sessions.at(-1)?.date ?? null,
+    strip: d.sessions.slice(-STRIP_SIZE).map(({ date, cancelled, ratio }) => ({ date, cancelled, ratio })),
+    faces: stackFaces(d.members, STACK_SIZE).map(({ name, photoUrl }) => ({ name, photoUrl })),
     missing: d.members.filter((m) => missingFlag(m.streak)).length,
   };
 }
@@ -260,13 +304,13 @@ export function orderMembers<T extends { name: string; streak: number }>(members
   ];
 }
 
-/** "Líder Paulo Oliveira · Co-líder Ana · Anfitrião Carlos · Supervisor João" (só os que existem). */
-export function leadershipParts(d: Pick<CellDetail, "members" | "supervisor">): { label: string; people: { id: string; name: string }[] }[] {
-  const of = (role: CellRole) => d.members.filter((m) => m.role === role).map((m) => ({ id: m.stickId, name: m.name }));
+/** Liderança por papel: Líder, Co-líder, Anfitrião, Supervisor (só os que existem). */
+export function leadershipParts(d: Pick<CellDetail, "members" | "supervisor">): { label: string; people: { id: string; name: string; photoUrl: string | null }[] }[] {
+  const of = (role: CellRole) => d.members.filter((m) => m.role === role).map((m) => ({ id: m.stickId, name: m.name, photoUrl: m.photoUrl }));
   return [
     { label: "Líder", people: of("leader") },
     { label: "Co-líder", people: of("co_leader") },
     { label: "Anfitrião", people: of("host") },
-    { label: "Supervisor", people: d.supervisor ? [d.supervisor] : [] },
+    { label: "Supervisor", people: d.supervisor ? [{ id: d.supervisor.id, name: d.supervisor.name, photoUrl: d.supervisor.photoUrl }] : [] },
   ].filter((p) => p.people.length > 0);
 }

@@ -1,4 +1,4 @@
-import type { CellRole } from "./domain";
+import type { CellRole, SeriesPoint } from "./domain";
 
 // Linha da lista de células (só o que a lista desenha e filtra).
 export interface CellListItem {
@@ -12,6 +12,8 @@ export interface CellListItem {
   leaderName: string;
   memberCount: number;
   lastSession: string | null; // data do último encontro registrado (inclusive "não teve")
+  strip: Pick<SeriesPoint, "date" | "cancelled" | "ratio">[]; // últimos encontros, do mais antigo ao mais novo
+  faces: { name: string; photoUrl: string | null }[]; // pilha de rostos (líderes primeiro)
   missing: number; // membros com 3+ faltas seguidas
 }
 
@@ -26,13 +28,8 @@ export interface CellMember {
   lastPresent: string | null;
   streak: number;
   access: CellAccess;
-}
-
-export interface CellSessionRow {
-  date: string;
-  cancelled: boolean;
-  present: number;
-  of: number; // quantos estavam na célula naquele dia
+  phone: string; // telefone ou WhatsApp ("" se não tem)
+  photoUrl: string | null; // URL assinada; só a equipe lê o bucket, para o líder vem null
 }
 
 // Ficha inteira da célula.
@@ -43,9 +40,9 @@ export interface CellDetail {
   time: string;
   location: string;
   archived: boolean;
-  supervisor: { id: string; name: string; access: CellAccess } | null;
+  supervisor: { id: string; name: string; access: CellAccess; photoUrl: string | null } | null;
   members: CellMember[]; // ativos, em ordem alfabética
-  sessions: CellSessionRow[]; // os 8 últimos, recentes primeiro
+  sessions: SeriesPoint[]; // os 12 últimos, do mais antigo ao mais novo
 }
 
 // Encontro de um dia (para reabrir o Marcar presença).

@@ -24,6 +24,6 @@ describe.skipIf(!hasTestFixture)("Groups queries (integração, org de teste)", 
     const detail = await getCell(supabase, orgId, first.id);
     expect(detail?.name).toBe(first.name);
     expect(detail?.members.length).toBe(first.memberCount);
-    expect(detail!.sessions.length).toBeLessThanOrEqual(8);
+    expect(detail!.sessions.length).toBeLessThanOrEqual(12);
   });
 });

@@ -1,15 +1,18 @@
 "use client";
 
-// Lista de células (spec 14, A3): cabeçalho com contagem e "+", busca em pílula, dois chips
-// (Supervisor e Dia) e as linhas. Sem número de "saúde": à direita só aparece, quando há, uma
-// frase calma ("Sem registro há 3 semanas" ou "2 sumidos"). Quem guarda os filtros é o pai.
+// Lista de células (spec 14, A3 e C1): cabeçalho com contagem e "+", busca em pílula, dois chips
+// (Supervisor e Dia) e um cartão por célula: nome, pilha de rostos, dia e hora, faixa de presença
+// dos últimos encontros e, só quando há, uma etiqueta calma ("Sem registro há 3 semanas",
+// "2 sumidos"). Sem número de "saúde". Quem guarda os filtros é o pai.
 import { useMemo } from "react";
 import { ChevronDown, Plus } from "lucide-react";
+import { Avatar } from "@/components/shared/Avatar";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { MenuItem } from "@/features/study/components/FilterChips";
 import { Popover } from "@/features/study/components/Popover";
 import studyStyles from "@/features/study/study.module.css";
-import { filterCells, hasCellFilters, meetingLabel, peopleCount, staleGroup, staleLabel, weekdayIndex, WEEKDAYS, type CellFilters } from "../domain";
+import { STACK_SIZE, filterCells, hasCellFilters, meetingLabel, peopleCount, staleGroup, staleLabel, weekdayIndex, WEEKDAYS, type CellFilters } from "../domain";
+import type { CSSProperties } from "react";
 import type { CellListItem } from "../types";
 import styles from "@/features/sticks/people.module.css";
 import g from "../groups.module.css";
@@ -119,28 +122,52 @@ export function CellList({
             </Popover>
           </div>
 
-          <div className={styles.rows} onKeyDown={onKey}>
+          <div className={`${styles.rows} ${g.cards}`} onKeyDown={onKey}>
             {visible.length === 0 ? (
               <div className={styles.empty}>
                 <p>{hasCellFilters(filters) ? "Nenhuma célula com esses filtros." : "Nenhuma célula por aqui."}</p>
               </div>
             ) : (
               visible.map((c) => {
-                const sub = [meetingLabel(c.day, c.time), c.leaderName ? `Líder: ${c.leaderName}` : "", peopleCount(c.memberCount)].filter(Boolean).join(" · ");
+                const note = aside(c, today);
+                const more = c.memberCount - c.faces.length;
                 return (
                   <button
                     key={c.id}
                     type="button"
                     data-id={c.id}
-                    className={`${styles.row} ${g.cellRow}`}
+                    className={g.card}
                     aria-current={c.id === selectedId ? "true" : undefined}
                     onClick={() => onSelect(c.id)}
                   >
-                    <span className={styles.rowMain}>
-                      <span className={styles.rowName}>{c.name}</span>
-                      <span className={styles.rowSub}>{sub}</span>
+                    <span className={g.cardTop}>
+                      <span className={g.cardName}>{c.name}</span>
+                      {c.faces.length ? (
+                        <span className={g.stack} role="img" aria-label={peopleCount(c.memberCount)}>
+                          {c.faces.slice(0, STACK_SIZE).map((f, i) => (
+                            <Avatar key={i} name={f.name} photoUrl={f.photoUrl} size={24} className={g.stackFace} />
+                          ))}
+                          {more > 0 ? <span className={g.more}>+{more}</span> : null}
+                        </span>
+                      ) : null}
                     </span>
-                    <span className={`${styles.rowAside} ${g.cellAside}`}>{aside(c, today)}</span>
+                    {meetingLabel(c.day, c.time) ? <span className={g.cardSub}>{meetingLabel(c.day, c.time)}</span> : null}
+                    {c.strip.length || note ? (
+                      <span className={g.cardFoot}>
+                        {c.strip.length ? (
+                          <span className={g.strip} role="img" aria-label={`Presença nos últimos ${c.strip.length} encontros`}>
+                            {c.strip.map((p, i) => (
+                              <span
+                                key={p.date}
+                                className={`${p.cancelled ? g.stripGhost : g.stripBar}${i === c.strip.length - 1 ? " " + g.stripLast : ""}`}
+                                style={{ "--h": p.ratio } as CSSProperties}
+                              />
+                            ))}
+                          </span>
+                        ) : <span />}
+                        {note ? <span className={g.pill}>{note}</span> : null}
+                      </span>
+                    ) : null}
                   </button>
                 );
               })
