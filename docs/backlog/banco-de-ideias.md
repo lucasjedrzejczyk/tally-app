@@ -72,10 +72,9 @@ Claude antes de abrir dados de membros, LGPD).
 
 ## Network com pastores, anotada em 2026-10-12
 
-Pedido do dono, ainda em aberto: criar uma rede (network) de pastores em volta da Mercy. A definir
-quando entrar: se é comunidade fora do app (grupo, encontros, lista de contatos para divulgação e
-indicação) ou um espaço dentro da Mercy onde pastores de igrejas diferentes conversam e trocam
-material (esboços, séries). Liga com a divulgação abaixo e com o crescimento por indicação.
+Esclarecido pelo dono: é networking no **LinkedIn**, para quando começar o marketing da Mercy.
+Montar rede com pastores e líderes de ministério no LinkedIn (conexões, conteúdo sobre gestão de
+igreja, mostrar a Mercy) como canal de divulgação e indicação. Liga com os stories abaixo.
 
 ## Stories da Mercy com CTA para a liderança, anotada em 2026-10-12
 
