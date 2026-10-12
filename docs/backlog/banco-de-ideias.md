@@ -84,3 +84,19 @@ joinmercy.com.
 A decidir quando entrar: sequência de stories (problema, demo curta do app, CTA), se o link leva
 para a página inicial ou para uma página própria da campanha (ex.: /pt com o texto para liderança),
 e como medir quem veio pelos stories (parâmetro utm no link).
+
+## Ver a conta de cada igreja por dentro no /admin, anotada em 2026-10-12
+
+Pedido do dono: no painel /admin, abrir a conta de qualquer usuário ou igreja e ver como está para
+eles. Exemplos: no Estudo/Bíblia, as anotações, destaques e sermões; na igreja, os membros, células,
+ministérios e finanças. Objetivo: o máximo de informação para entender como os usuários usam a Mercy.
+
+A decidir quando entrar:
+- Formato: modo "ver como" (abre o app como a igreja, só leitura, com faixa "Você está vendo a
+  conta de X") ou relatório por igreja no /admin (contagens e últimas ações por módulo).
+- Segurança: só leitura, só platform admin, e todo acesso fica registrado (quem abriu, qual igreja,
+  quando). Dados sensíveis (CPF/RG, oração privada, Care) ficam de fora ou escondidos por padrão.
+- LGPD: avisar nos Termos e na Política de Privacidade que a equipe Mercy pode acessar a conta
+  para suporte e melhoria do produto.
+- Talvez comece pelo mais barato: métricas de uso por módulo (quantas notas, sermões, pessoas,
+  último acesso) sem abrir o conteúdo em si.
