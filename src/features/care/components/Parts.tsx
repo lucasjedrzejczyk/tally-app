@@ -52,7 +52,8 @@ function when(at: string, today: string): string {
   return n === 0 ? "Hoje" : n === 1 ? "Ontem" : shortDate(d);
 }
 
-export function Timeline({ entries, newId, today }: { entries: TimelineEntry[]; newId: string | null; today: string }) {
+// `owner` = responsável do caso: o nome dele não se repete em cada linha.
+export function Timeline({ entries, newId, today, owner }: { entries: TimelineEntry[]; newId: string | null; today: string; owner: string }) {
   if (!entries.length) return <p className={c.none}>Nenhum contato ainda. O primeiro registro aparece aqui.</p>;
   return (
     <ul className={c.tl}>
@@ -62,7 +63,7 @@ export function Timeline({ entries, newId, today }: { entries: TimelineEntry[]; 
           <span className={c.tlBody}>
             <span className={c.tlHead}>
               {t.kind === "note" ? "Nota interna" : t.method ? CONTACT_LABEL[t.method] : "Contato"}
-              <span className={c.muted}> · {when(t.at, today)}{t.byName ? ` · ${t.byName}` : ""}</span>
+              <span className={c.muted}> · {when(t.at, today)}{t.byName && t.byName !== owner ? ` · ${t.byName}` : ""}</span>
             </span>
             {t.text ? <span className={c.tlText}>{t.text}</span> : null}
           </span>

@@ -22,7 +22,6 @@ import { GROUP_LABEL, statusGroup } from "../domain";
 import type { CareDetail, ContactKind, StaffOption, StatusGroup } from "../types";
 import { ContactForm, Timeline } from "./Parts";
 import people from "@/features/sticks/people.module.css";
-import g from "@/features/groups/groups.module.css";
 import m from "@/features/ministries/ministries.module.css";
 import e from "@/features/encontros/encontros.module.css";
 import c from "../care.module.css";
@@ -79,6 +78,7 @@ export function CareProfile({
   const [newId, setNewId] = useState<string | null>(null);
   const [undo, setUndo] = useState<StatusGroup | null>(null);
   const [note, setNote] = useState("");
+  const [noting, setNoting] = useState(false);
   const undoTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     setKind(lastKind());
@@ -136,6 +136,7 @@ export function CareProfile({
     const r = await addNoteAction(id, note);
     if (!r.success) return void setErr(r.message);
     setNote("");
+    setNoting(false);
     setNewId(r.data.timeline.find((t) => !before.has(t.id))?.id ?? null);
     onDetail(r.data);
   }
@@ -149,7 +150,7 @@ export function CareProfile({
   const actions = (
     <span className={e.actions}>
       {!editing && phone ? (
-        <a className={`btn ghost sm ${c.btnLink}`} href={phone} target="_blank" rel="noreferrer"><UiIcon icon={MessageCircle} />WhatsApp</a>
+        <a className={`btn ghost sm ${c.btnLink}`} href={phone} target="_blank" rel="noreferrer" aria-label="WhatsApp"><UiIcon icon={MessageCircle} /><span className={c.waText}>WhatsApp</span></a>
       ) : null}
       {editing ? <button type="button" className={people.primary} onClick={() => onEditing(false)}>Pronto</button> : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>}
       {canManage ? (
@@ -219,11 +220,10 @@ export function CareProfile({
       {head}
       {err ? <p className={people.fErr} role="alert">{err}</p> : null}
       <p className={c.why}>{detail.reason || <span className={c.muted}>Sem motivo ainda</span>}</p>
-      <div className={g.chips}>
-        <span className={g.chip}>{GROUP_LABEL[group]}</span>
-        {detail.assignedName ? <span className={g.chip}><Avatar name={detail.assignedName} size={24} className={c.chipFace} />{detail.assignedName}</span> : <span className={g.chip}>Sem responsável</span>}
-        {detail.confidential ? <span className={g.chip}><UiIcon icon={Lock} />Sigiloso</span> : null}
-      </div>
+      <p className={c.meta}>
+        {detail.assignedName ? `Com ${detail.assignedName}` : "Sem responsável"}
+        {detail.confidential ? <span className={c.metaLock}><UiIcon icon={Lock} />Sigiloso</span> : null}
+      </p>
       {detail.confidential ? <p className={c.secret}>{SECRET}</p> : null}
 
       <div className={c.next}>
@@ -256,17 +256,18 @@ export function CareProfile({
         <ContactForm kind={kind} onKind={pickKind} onSave={contact} />
       </section>
 
-      <section className={people.sec} aria-labelledby="sec-note">
-        <h2 id="sec-note" className={people.secTitle}>Nota interna</h2>
-        <div className={c.noteRow}>
-          <input className={people.fInput} value={note} maxLength={2000} placeholder="Só a equipe vê" aria-label="Nota interna" onChange={(ev) => setNote(ev.target.value)} onKeyDown={(ev) => ev.key === "Enter" && void addNote()} />
-          <button type="button" className={`btn ghost sm ${c.nowrap}`} disabled={!note.trim()} onClick={() => void addNote()}>Salvar nota</button>
-        </div>
-      </section>
-
       <section className={people.sec} aria-labelledby="sec-tl">
-        <h2 id="sec-tl" className={people.secTitle}>Linha do tempo</h2>
-        <Timeline entries={detail.timeline} newId={newId} today={today} />
+        <div className={c.secHead}>
+          <h2 id="sec-tl" className={people.secTitle}>Linha do tempo</h2>
+          {noting ? null : <button type="button" className="link" onClick={() => setNoting(true)}>Adicionar nota</button>}
+        </div>
+        {noting ? (
+          <div className={c.noteRow}>
+            <input className={people.fInput} value={note} maxLength={2000} autoFocus placeholder="Nota interna, só a equipe vê" aria-label="Nota interna" onChange={(ev) => setNote(ev.target.value)} onKeyDown={(ev) => { if (ev.key === "Enter") void addNote(); if (ev.key === "Escape") { setNote(""); setNoting(false); } }} />
+            <button type="button" className={`btn ghost sm ${c.nowrap}`} disabled={!note.trim()} onClick={() => void addNote()}>Salvar</button>
+          </div>
+        ) : null}
+        <Timeline entries={detail.timeline} newId={newId} today={today} owner={detail.assignedName} />
       </section>
 
       <div className={c.dock}>

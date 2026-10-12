@@ -175,9 +175,6 @@
   line-height: var(--lh-15);
   overflow-wrap: anywhere;
 }
-.chipFace {
-  margin-left: calc(-1 * var(--s-2));
-}
 .secret {
   margin: var(--s-2) 0 0;
   font-size: var(--t-13);
@@ -208,12 +205,47 @@
   gap: var(--s-1);
 }
 
+/* Meta: responsável e sigilo em texto, sem chips */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-3);
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.metaLock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.metaLock svg {
+  width: 14px;
+  height: 14px;
+}
+.secHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.secHead + .noteRow {
+  margin-bottom: var(--s-2);
+}
+@media (max-width: 40rem) {
+  .waText {
+    display: none;
+  }
+}
+
 /* Status: a pílula desliza para a opção escolhida */
 .seg {
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  max-width: 24rem;
+  width: fit-content;
   margin-top: var(--s-4);
   padding: 2px;
   border-radius: var(--r-pill);
@@ -232,7 +264,8 @@
 }
 .segBtn {
   position: relative;
-  min-height: 1.875rem;
+  min-height: 1.75rem;
+  padding: 0 var(--s-3);
   border: 0;
   border-radius: var(--r-pill);
   background: none;
@@ -284,7 +317,7 @@
 }
 .tlItem {
   display: grid;
-  grid-template-columns: 1.75rem minmax(0, 1fr);
+  grid-template-columns: 1.25rem minmax(0, 1fr);
   gap: var(--s-2);
   padding: var(--s-2) 0;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
@@ -305,9 +338,7 @@
   display: grid;
   place-items: center;
   width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
+  height: 1.25rem;
   color: var(--text-2);
 }
 .tlBody {
