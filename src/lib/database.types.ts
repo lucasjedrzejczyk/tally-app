@@ -1949,6 +1949,150 @@ export type Database = {
           },
         ]
       }
+      kids_checkins: {
+        Row: {
+          checked_in_at: string
+          checked_in_by: string | null
+          checked_out_at: string | null
+          checked_out_by: string | null
+          code: string
+          date: string
+          guardian_id: string | null
+          id: string
+          org_id: string
+          picked_up_by: string | null
+          room_id: string | null
+          service_id: string | null
+          stick_id: string
+          via: string
+          without_code: boolean
+        }
+        Insert: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          checked_out_at?: string | null
+          checked_out_by?: string | null
+          code: string
+          date: string
+          guardian_id?: string | null
+          id?: string
+          org_id: string
+          picked_up_by?: string | null
+          room_id?: string | null
+          service_id?: string | null
+          stick_id: string
+          via?: string
+          without_code?: boolean
+        }
+        Update: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          checked_out_at?: string | null
+          checked_out_by?: string | null
+          code?: string
+          date?: string
+          guardian_id?: string | null
+          id?: string
+          org_id?: string
+          picked_up_by?: string | null
+          room_id?: string | null
+          service_id?: string | null
+          stick_id?: string
+          via?: string
+          without_code?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kids_checkins_stick_id_fkey"
+            columns: ["stick_id"]
+            isOneToOne: false
+            referencedRelation: "sticks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kids_checkins_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "kids_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kids_profiles: {
+        Row: {
+          allergies: string | null
+          authorized_pickup: string | null
+          care_notes: string | null
+          org_id: string
+          photo_ok: boolean
+          pickup_blocked: string | null
+          stick_id: string
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string | null
+          authorized_pickup?: string | null
+          care_notes?: string | null
+          org_id: string
+          photo_ok?: boolean
+          pickup_blocked?: string | null
+          stick_id: string
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string | null
+          authorized_pickup?: string | null
+          care_notes?: string | null
+          org_id?: string
+          photo_ok?: boolean
+          pickup_blocked?: string | null
+          stick_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kids_rooms: {
+        Row: {
+          active: boolean
+          animal: string
+          capacity: number | null
+          color: string
+          created_at: string
+          id: string
+          max_months: number
+          min_months: number
+          name: string
+          org_id: string
+          position: number
+        }
+        Insert: {
+          active?: boolean
+          animal?: string
+          capacity?: number | null
+          color?: string
+          created_at?: string
+          id?: string
+          max_months?: number
+          min_months?: number
+          name: string
+          org_id: string
+          position?: number
+        }
+        Update: {
+          active?: boolean
+          animal?: string
+          capacity?: number | null
+          color?: string
+          created_at?: string
+          id?: string
+          max_months?: number
+          min_months?: number
+          name?: string
+          org_id?: string
+          position?: number
+        }
+        Relationships: []
+      }
       journey_stages: {
         Row: {
           color: string | null
@@ -4879,6 +5023,20 @@ export type Database = {
       leads_ministry: { Args: { p_ministry: string }; Returns: boolean }
       can_manage_ministries: { Args: { p_org: string }; Returns: boolean }
       can_manage_services: { Args: { p_org: string }; Returns: boolean }
+      can_kids: { Args: { p_org: string }; Returns: boolean }
+      can_manage_kids: { Args: { p_org: string }; Returns: boolean }
+      kids_checkin: {
+        Args: { p_children: string[]; p_code: string; p_date: string; p_guardian: string | null; p_org: string; p_rooms: string[]; p_service: string | null; p_via: string }
+        Returns: string
+      }
+      kids_totem_lookup: {
+        Args: { p_org: string; p_phone: string }
+        Returns: { birth_date: string | null; guardian_id: string; label: string; stick_id: string }[]
+      }
+      kids_new_child: {
+        Args: { p_allergies: string; p_birth: string; p_guardian: string | null; p_guardian_name: string; p_guardian_phone: string; p_name: string; p_org: string }
+        Returns: string
+      }
       schedule_conflicts: {
         Args: { p_date: string; p_ministry: string; p_org: string }
         Returns: { ministry_name: string; role: string | null; service_time: string | null; stick_id: string }[]

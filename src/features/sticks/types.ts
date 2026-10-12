@@ -1,3 +1,4 @@
+import type { KidProfile } from "@/features/kids/types";
 import type { FamilyRole, PeopleFilters, PersonField, PersonLite, Relationship } from "./domain";
 
 // View model de uma Stick para a UI (campos próprios da tabela `sticks` +
@@ -56,6 +57,7 @@ export interface PersonDetail {
   cell: { id: string; name: string; since: string } | null; // célula ativa (left_at nulo) e desde quando
   serves: { id: string; name: string; roles: string[] }[]; // ministérios onde serve (spec 15)
   care: { id: string; assignedName: string } | null; // caso aberto visível para quem olha (spec 17)
+  kid?: { profile: KidProfile; canEdit: boolean } | null; // ficha de Crianças (spec 18), só para quem tem kids.view
 }
 
 // Lista salva: nome + filtros (o mesmo objeto da querystring).

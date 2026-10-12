@@ -17,6 +17,8 @@ export type PermissionKey =
   | "groups.manage_assigned"
   | "ministries.manage_all"
   | "services.manage"
+  | "kids.view"
+  | "kids.manage"
   | "communication.send";
 
 export interface PermissionOption {

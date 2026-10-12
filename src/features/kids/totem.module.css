@@ -1,0 +1,337 @@
+/* Totem mercy kids (spec 18, fase C): tela cheia, teclas de 72px+, em pé o teclado embaixo,
+   deitado o teclado à direita. Tokens vêm do tema (.theme de kids.module.css). */
+
+.totem {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: var(--s-4) var(--s-6) calc(var(--s-6) + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 4rem;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  justify-self: start;
+  min-height: 3.5rem;
+  padding: 0 var(--s-4) 0 var(--s-2);
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 700 1.25rem/1 var(--k-display);
+  cursor: pointer;
+}
+.stepLabel {
+  color: var(--text-2);
+  font: 700 1.125rem/1 var(--k-display);
+}
+.exit {
+  position: relative;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+/* Segurar para sair: o anel enche em 3 s (linear, a pessoa decide); soltar volta rápido. */
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--k-coral) 35%, transparent);
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 200ms var(--ease);
+  pointer-events: none;
+}
+.holding .fill {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 3s linear;
+}
+
+.stage {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Telefone ----------------------------------------------------------------------------------------- */
+.phoneStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-8);
+  width: 100%;
+}
+.hello {
+  text-align: center;
+}
+.hello h1 {
+  font: 800 2.5rem/1.1 var(--k-display);
+  letter-spacing: -0.02em;
+}
+.phoneShown {
+  margin-top: var(--s-4);
+  font: 800 3rem/1 var(--k-display);
+  font-variant-numeric: tabular-nums;
+}
+.placeholder {
+  color: color-mix(in srgb, var(--text-2) 50%, transparent);
+}
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 5.5rem);
+  gap: var(--s-4);
+}
+.key {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--k-paper);
+  box-shadow: var(--k-shadow);
+  color: var(--text);
+  font: 700 2.25rem/1 var(--k-display);
+  cursor: pointer;
+}
+/* Afunda já no toque, sem esperar transição. */
+.key:active {
+  transform: scale(.96);
+  background: var(--surface-2);
+}
+.key:disabled {
+  opacity: .4;
+}
+.keyDel {
+  background: transparent;
+  box-shadow: none;
+}
+@media (orientation: landscape) and (min-width: 48rem) {
+  .phoneStep {
+    flex-direction: row;
+    justify-content: center;
+    gap: 5rem;
+  }
+  .hello {
+    text-align: left;
+  }
+}
+
+/* Quem vem hoje ------------------------------------------------------------------------------------ */
+.pickStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-8);
+  width: 100%;
+}
+.kids {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-6);
+  list-style: none;
+}
+.kid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  width: 11rem;
+  padding: var(--s-5) var(--s-3);
+  border: 0;
+  border-radius: 24px;
+  background: var(--tone-soft, var(--k-paper));
+  box-shadow: var(--k-shadow);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.kid:active {
+  transform: scale(.97);
+}
+.kid[aria-pressed="true"] {
+  box-shadow: var(--k-shadow), 0 0 0 4px var(--tone, var(--k-coral));
+}
+.kid:disabled {
+  opacity: .55;
+  cursor: default;
+}
+.kid b {
+  font: 800 1.5rem/1.1 var(--k-display);
+}
+.kid > span:last-child {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.kidAvatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background: var(--tone, var(--surface-2));
+  color: var(--tone-ink, var(--text));
+  font: 800 2.5rem/1 var(--k-display);
+}
+.kidCheck {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 3px solid var(--k-paper);
+  border-radius: 50%;
+  background: var(--k-coral-deep);
+  color: var(--on-blue);
+}
+/* Check-in feito no totem: o rosto pula uma vez (só aqui; na equipe é repetido demais). */
+.kid[aria-pressed="true"] .kidAvatar {
+  animation: hop 220ms var(--ease);
+}
+@keyframes hop {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.go {
+  min-width: 18rem;
+  min-height: 4.5rem;
+  font-size: 1.75rem;
+}
+
+/* Código ------------------------------------------------------------------------------------------- */
+.codeStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-6);
+  text-align: center;
+}
+.codeFor {
+  font: 700 1.5rem/1.2 var(--k-display);
+}
+.photo {
+  max-width: 28rem;
+  color: var(--text-2);
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+.done {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--k-paper);
+  box-shadow: var(--k-shadow);
+  color: var(--text);
+  font: 800 1.375rem/1 var(--k-display);
+  cursor: pointer;
+}
+.ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.ring circle {
+  fill: none;
+  stroke: var(--k-coral);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 352;
+  stroke-dashoffset: 0;
+  animation: drain 20s linear forwards;
+}
+.donePaused .ring circle {
+  animation-play-state: paused;
+}
+@keyframes drain {
+  to {
+    stroke-dashoffset: 352;
+  }
+}
+
+.helpStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  max-width: 32rem;
+  text-align: center;
+}
+.helpStep h1 {
+  font: 800 2.25rem/1.15 var(--k-display);
+  letter-spacing: -0.02em;
+}
+.helpStep p {
+  color: var(--text-2);
+  font-size: 1.25rem;
+}
+
+.ask {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: var(--s-4);
+  background: color-mix(in srgb, #2D2A3E 45%, transparent);
+}
+.askBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-width: 28rem;
+  padding: var(--s-6);
+  border-radius: 24px;
+  background: var(--k-paper);
+  box-shadow: var(--e-2);
+}
+.askBox h2 {
+  font: 800 1.75rem/1.1 var(--k-display);
+}
+.askBox p {
+  color: var(--text-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .key:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kid[aria-pressed="true"] .kidAvatar {
+    animation: none;
+  }
+  .key:active,
+  .kid:active {
+    transform: none;
+  }
+}

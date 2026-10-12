@@ -11,8 +11,9 @@ import { UiIcon } from "@/components/shared/UiIcon";
 import { sheetCloses } from "../domain";
 import g from "../groups.module.css";
 
-// `heading` troca o texto visível do topo (o nome acessível continua `title`).
-export function Sheet({ title, heading, headExtra, onClose, children, foot, tall }: { title: string; heading?: ReactNode; headExtra?: ReactNode; onClose: () => void; children: ReactNode; foot?: ReactNode; tall?: boolean }) {
+// `heading` troca o texto visível do topo (o nome acessível continua `title`). `className` vai no
+// scrim e na folha (ex.: o tema mercy kids, que precisa estar no próprio portal para valer).
+export function Sheet({ title, heading, headExtra, onClose, children, foot, tall, className }: { title: string; heading?: ReactNode; headExtra?: ReactNode; onClose: () => void; children: ReactNode; foot?: ReactNode; tall?: boolean; className?: string }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: number; y0: number; dy: number; hist: { y: number; t: number }[] } | null>(null);
@@ -66,8 +67,8 @@ export function Sheet({ title, heading, headExtra, onClose, children, foot, tall
 
   return createPortal(
     <>
-      <div className={g.scrim} onClick={onClose} />
-      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={title} className={`${g.sheet}${tall ? " " + g.sheetTall : ""}`}>
+      <div className={`${g.scrim}${className ? " " + className : ""}`} onClick={onClose} />
+      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={title} className={`${g.sheet}${tall ? " " + g.sheetTall : ""}${className ? " " + className : ""}`}>
         <div className={g.sheetTop} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
           <span className={g.grab} aria-hidden="true" />
           <div className={g.sheetHead}>

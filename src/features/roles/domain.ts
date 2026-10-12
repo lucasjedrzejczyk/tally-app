@@ -19,6 +19,8 @@ export const PERMISSION_CATALOG: PermissionOption[] = [
   { key: "groups.manage_assigned", label: "Gerenciar os grupos de que é líder", group: "Grupos" },
   { key: "ministries.manage_all", label: "Gerenciar ministérios e escalas", group: "Ministérios" },
   { key: "services.manage", label: "Gerenciar cultos e eventos", group: "Encontros" },
+  { key: "kids.view", label: "Fazer entrada e saída das crianças", hint: "Recepção e salas", group: "Crianças" },
+  { key: "kids.manage", label: "Gerenciar Crianças", hint: "Salas, fichas e saída sem código", group: "Crianças" },
   { key: "communication.send", label: "Enviar comunicações", hint: "Mandar mensagens para um público da igreja", group: "Comunicação" },
 ];
 

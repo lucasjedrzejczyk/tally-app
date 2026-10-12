@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mercy kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  .k {
+    --bg:#FFF8EC; --card:#FFFDF7; --ink:#2D2A3E; --ink2:#6E6880; --fio:#F0E6D2;
+    --sol:#FFC53D; --coral:#FF7A59; --ceu:#4BA3E3; --folha:#46A758;
+    --sol-soft:#FFF0C7; --coral-soft:#FFE3DA; --ceu-soft:#DDEEFA; --folha-soft:#DFF1E2;
+    --shadow:0 2px 0 var(--fio), 0 8px 24px rgb(45 42 62 / .06);
+    background:var(--bg); color:var(--ink); font-family:Nunito, sans-serif; padding:40px;
+  }
+  .k.dark {
+    --bg:#1B1F2E; --card:#242A3D; --ink:#F6F1E7; --ink2:#AFA9BD; --fio:#30374D;
+    --sol:#FFD166; --coral:#FF8C6E; --ceu:#6CB8EE; --folha:#5FBF70;
+    --sol-soft:var(--card); --coral-soft:var(--card); --ceu-soft:var(--card); --folha-soft:var(--card);
+    --shadow:0 2px 0 rgb(0 0 0 / .25);
+  }
+  * { box-sizing:border-box; margin:0 }
+  body { background:#ddd }
+  h1,h2,.baloo { font-family:"Baloo 2", sans-serif }
+  .wm { font-family:"Baloo 2"; font-weight:800; font-size:56px; letter-spacing:-.02em; line-height:1; display:flex; align-items:center; gap:14px }
+  .wm b { color:var(--coral); font-weight:800 }
+  .row { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start }
+  .lbl { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink2); margin:36px 0 12px }
+  .sw { width:120px; height:120px; border-radius:20px; display:flex; align-items:flex-end; padding:12px; font-weight:700; font-size:13px; box-shadow:var(--shadow) }
+  .card { background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:20px }
+  .room { width:220px; border-radius:20px; padding:18px; box-shadow:var(--shadow) }
+  .room .ic { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; color:#fff }
+  .room h3 { font-family:"Baloo 2"; font-size:24px; margin-top:12px; line-height:1.1 }
+  .room p { color:var(--ink2); font-size:14px; margin-top:2px }
+  .faces { display:flex; margin-top:14px }
+  .faces span { width:34px; height:34px; border-radius:50%; border:3px solid var(--card); margin-left:-8px; font-size:12px; font-weight:700; display:grid; place-items:center; color:#fff }
+  .faces span:first-child { margin-left:0 }
+  .btn { font-family:"Baloo 2"; font-weight:700; font-size:20px; border:0; border-radius:999px; padding:14px 30px; color:#fff; display:inline-flex; align-items:center; gap:10px }
+  .code { font-family:"Baloo 2"; font-weight:800; font-size:96px; letter-spacing:.12em; line-height:1; color:var(--ink) }
+  .chip { display:inline-flex; gap:6px; align-items:center; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700 }
+  svg.l { display:block }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="lamb" viewBox="0 0 120 120">
+      <!-- lã -->
+      <g fill="var(--card)" stroke="var(--ink)" stroke-width="4">
+        <circle cx="60" cy="30" r="16"/><circle cx="38" cy="38" r="15"/><circle cx="82" cy="38" r="15"/>
+        <circle cx="30" cy="60" r="15"/><circle cx="90" cy="60" r="15"/>
+        <circle cx="40" cy="84" r="16"/><circle cx="80" cy="84" r="16"/><circle cx="60" cy="92" r="16"/>
+        <circle cx="60" cy="60" r="34" stroke="none"/>
+      </g>
+      <!-- orelhas -->
+      <ellipse cx="30" cy="56" rx="12" ry="7" transform="rotate(-20 30 56)" fill="var(--ink)"/>
+      <ellipse cx="90" cy="56" rx="12" ry="7" transform="rotate(20 90 56)" fill="var(--ink)"/>
+      <!-- rosto -->
+      <ellipse cx="60" cy="66" rx="24" ry="27" fill="var(--ink)"/>
+      <circle cx="51" cy="62" r="4.5" fill="#fff"/><circle cx="69" cy="62" r="4.5" fill="#fff"/>
+      <circle cx="44" cy="74" r="4" fill="var(--coral)" opacity=".8"/><circle cx="76" cy="74" r="4" fill="var(--coral)" opacity=".8"/>
+      <path d="M53 78 Q60 84 67 78" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <!-- Lucide-like animals -->
+    <symbol id="rabbit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16a3 3 0 0 1 2.24 5"/><path d="M18 12h.01"/><path d="M18 21h-8a4 4 0 0 1-4-4 7 7 0 0 1 7-7h.2L9.6 6.4a1 1 0 1 1 2.8-2.8L15.8 7h.2c3.3 0 6 2.7 6 6v1a2 2 0 0 1-2 2h-1a3 3 0 0 0-3 3"/><path d="M20 8.54V4a2 2 0 1 0-4 0v3"/><path d="M7.612 12.524a3 3 0 1 0-1.6 4.3"/></symbol>
+    <symbol id="bird" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/></symbol>
+    <symbol id="fish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/></symbol>
+    <symbol id="turtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 10 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a8 8 0 1 0-16 0v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3l2-4h4Z"/><path d="M4.82 7.9 8 10"/><path d="M15.18 7.9 12 10"/><path d="M16.93 10H20a2 2 0 0 1 0 4H2"/></symbol>
+    <symbol id="alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="cake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/></symbol>
+  </defs>
+</svg>
+
+<div id="sheet">
+<section class="k" id="light">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div class="wm"><svg class="l" width="72" height="72"><use href="#lamb"/></svg>mercy <b>kids</b></div>
+    <div style="color:var(--ink2);font-size:15px;max-width:360px">Identidade do módulo Crianças. Fundo creme, cores de livro infantil, fonte arredondada. Os pais confiam, as crianças reconhecem.</div>
+  </div>
+
+  <div class="lbl">Cores</div>
+  <div class="row">
+    <div class="sw" style="background:var(--bg);color:var(--ink)">Creme<br>#FFF8EC</div>
+    <div class="sw" style="background:var(--ink);color:#fff">Tinta<br>#2D2A3E</div>
+    <div class="sw" style="background:var(--sol);color:var(--ink)">Sol<br>#FFC53D</div>
+    <div class="sw" style="background:var(--coral);color:#fff">Coral<br>#FF7A59</div>
+    <div class="sw" style="background:var(--ceu);color:#fff">Céu<br>#4BA3E3</div>
+    <div class="sw" style="background:var(--folha);color:#fff">Folha<br>#46A758</div>
+  </div>
+
+  <div class="lbl">Tipos</div>
+  <div class="row">
+    <div class="card" style="width:440px"><div class="baloo" style="font-size:40px;font-weight:800;line-height:1.05">Baloo 2 nos títulos</div><div style="font-size:17px;margin-top:8px;color:var(--ink2)">Nunito no texto corrido: legível, macio e calmo para quem está na recepção com fila na porta.</div></div>
+    <div class="row" style="gap:12px;align-items:center">
+      <button class="btn" style="background:#D9502F">Entrada</button>
+      <button class="btn" style="background:#2B7FC0">Saída</button>
+      <span class="chip" style="background:var(--coral-soft);color:#C2462B"><svg width="14" height="14"><use href="#alert"/></svg>Alergia: amendoim</span>
+      <span class="chip" style="background:var(--sol-soft);color:#8A6200"><svg width="14" height="14"><use href="#cake"/></svg>Faz 5 anos quinta</span>
+    </div>
+  </div>
+
+  <div class="lbl">Salas: cor + bicho</div>
+  <div class="row">
+    <div class="room" style="background:var(--sol-soft)"><div class="ic" style="background:var(--sol);color:var(--ink)"><svg width="30" height="30"><use href="#bird"/></svg></div><h3>Berçário</h3><p>0 a 2 anos · 4 crianças</p><div class="faces"><span style="background:#E8A87C">AL</span><span style="background:#7FB3D5">TH</span><span style="background:#A3C99B">MA</span></div></div>
+    <div class="room" style="background:var(--coral-soft)"><div class="ic" style="background:var(--coral)"><svg width="30" height="30"><use href="#rabbit"/></svg></div><h3>Maternal</h3><p>3 a 5 anos · 9 crianças</p><div class="faces"><span style="background:#C39BD3">BI</span><span style="background:#F5B041">JO</span><span style="background:#5DADE2">LU</span><span style="background:#EC7063">+6</span></div></div>
+    <div class="room" style="background:var(--ceu-soft)"><div class="ic" style="background:var(--ceu)"><svg width="30" height="30"><use href="#fish"/></svg></div><h3>Kids</h3><p>6 a 8 anos · 12 crianças</p><div class="faces"><span style="background:#48C9B0">DA</span><span style="background:#AF7AC5">SO</span><span style="background:#EB984E">+10</span></div></div>
+    <div class="room" style="background:var(--folha-soft)"><div class="ic" style="background:var(--folha)"><svg width="30" height="30"><use href="#turtle"/></svg></div><h3>Juniores</h3><p>9 a 11 anos · 7 crianças</p><div class="faces"><span style="background:#85C1E9">PE</span><span style="background:#F1948A">RA</span><span style="background:#82E0AA">+5</span></div></div>
+  </div>
+
+  <div class="lbl">Código de retirada</div>
+  <div class="row">
+    <div class="card" style="width:440px;text-align:center;padding:32px">
+      <div style="color:var(--ink2);font-size:15px">Código de retirada do Theo e da Bia</div>
+      <div class="code" style="margin:12px 0 8px">K7PX</div>
+      <div style="color:var(--ink2);font-size:15px">Mostre na saída da sala</div>
+      <button class="btn" style="background:#2A7E3B;margin-top:20px">Mandar no WhatsApp</button>
+    </div>
+  </div>
+</section>
+
+<section class="k dark" id="dark">
+  <div class="wm" style="font-size:40px"><svg class="l" width="56" height="56"><use href="#lamb"/></svg>mercy <b>kids</b><span style="font-family:Nunito;font-size:15px;font-weight:600;color:var(--ink2);margin-left:12px">no escuro</span></div>
+  <div class="row" style="margin-top:24px">
+    <div class="room" style="background:var(--coral-soft)"><div class="ic" style="background:var(--coral)"><svg width="30" height="30"><use href="#rabbit"/></svg></div><h3>Maternal</h3><p>3 a 5 anos · 9 crianças</p></div>
+    <div class="room" style="background:var(--ceu-soft)"><div class="ic" style="background:var(--ceu)"><svg width="30" height="30"><use href="#fish"/></svg></div><h3>Kids</h3><p>6 a 8 anos · 12 crianças</p></div>
+    <div class="card" style="text-align:center;padding:24px 40px"><div class="code" style="font-size:72px">K7PX</div><div style="color:var(--ink2)">Mostre na saída</div></div>
+  </div>
+</section>
+</div>
+</body>
+</html>

@@ -155,6 +155,23 @@ export async function loadFamily(supabase: DB, householdId: string): Promise<Fam
 
 // Ficha inteira. Documentos só chegam para quem tem members.manage (RLS: sem permissão, sem linha).
 // Dízimos do ano corrente só quando `withTithes` (quem tem finance.manage).
+// Bloco Crianças da ficha (spec 18, D2): filho na família com menos de 12 anos, visível só para quem
+// tem kids.view (a RLS de kids_profiles também barra). Sem ficha ainda, vem vazia para o gestor preencher.
+async function kidBlock(supabase: DB, orgId: string, id: string, birth: string | null): Promise<PersonDetail["kid"]> {
+  if (birth && new Date(`${birth}T00:00:00Z`).getTime() < Date.now() - 12 * 365.25 * 86400000) return null;
+  const [see, manage, prof] = await Promise.all([
+    supabase.rpc("can_kids", { p_org: orgId }),
+    supabase.rpc("can_manage_kids", { p_org: orgId }),
+    supabase.from("kids_profiles").select("*").eq("stick_id", id).maybeSingle(),
+  ]);
+  if (!see.data) return null;
+  const p = prof.data;
+  return {
+    canEdit: Boolean(manage.data),
+    profile: { allergies: p?.allergies ?? "", careNotes: p?.care_notes ?? "", authorizedPickup: p?.authorized_pickup ?? "", pickupBlocked: p?.pickup_blocked ?? "", photoOk: p?.photo_ok ?? true },
+  };
+}
+
 export async function getPerson(supabase: DB, orgId: string, id: string, withTithes: boolean): Promise<PersonDetail | null> {
   const { data: s, error } = await supabase.from("sticks").select("*").eq("org_id", orgId).eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
@@ -179,6 +196,7 @@ export async function getPerson(supabase: DB, orgId: string, id: string, withTit
   ]);
 
   const family = linkRes.data ? await loadFamily(supabase, linkRes.data.household_id) : null;
+  const kid = family?.members.some((m) => m.stickId === id && m.role === "child") ? await kidBlock(supabase, orgId, id, s.birth_date) : null;
 
   const tithes = titheRes
     ? {
@@ -220,7 +238,7 @@ export async function getPerson(supabase: DB, orgId: string, id: string, withTit
   const urls = await signedPhotoUrls(supabase, s.profile_photo ? [s.profile_photo] : []);
   const g = cellRes.data?.groups;
   const cell = g && !g.archived ? { id: g.id, name: g.name, since: cellRes.data!.joined_at } : null;
-  return { id: s.id, values, archived: s.archived, photoUrl: s.profile_photo ? urls.get(s.profile_photo) ?? null : null, family, tithes, cell, serves, care };
+  return { id: s.id, values, archived: s.archived, photoUrl: s.profile_photo ? urls.get(s.profile_photo) ?? null : null, family, tithes, cell, serves, care, kid };
 }
 
 // Listas salvas (filtros nomeados) da org. `filters` é o mesmo objeto da querystring da lista.

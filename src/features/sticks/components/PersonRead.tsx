@@ -5,6 +5,7 @@ import { money } from "@/lib/utils/money";
 import { monthYear } from "@/features/groups/domain";
 import { addressLine, aboutLine, churchTimeline, optionLabel, ROLE_OPTIONS } from "../domain";
 import type { PersonDetail } from "../types";
+import { KidBlock } from "@/features/kids/components/KidBlock";
 import styles from "../people.module.css";
 
 export function personAddress(d: PersonDetail): { line: string; fromFamily: boolean } {
@@ -111,6 +112,10 @@ export function PersonRead({
             </ol>
           ) : null}
         </section>
+      ) : null}
+
+      {detail.kid ? (
+        <KidBlock key={detail.id} kidId={detail.id} profile={detail.kid.profile} canEdit={detail.kid.canEdit} sec={styles.sec} title={styles.secTitle} line={styles.line} dim={styles.dim} />
       ) : null}
 
       {tithes ? (
