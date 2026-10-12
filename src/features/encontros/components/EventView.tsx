@@ -15,7 +15,7 @@ import { TextField } from "@/features/groups/components/CellEdit";
 import { AddMembers } from "@/features/groups/components/AddMembers";
 import { ScheduleSheet } from "@/features/ministries/components/ScheduleSheet";
 import type { MinistryDetail } from "@/features/ministries/types";
-import { addGuestAction, addRegistrationsAction, archiveEventAction, removeRegistrationAction, setCheckInAction, updateEventFieldAction } from "../actions";
+import { addGuestAction, addRegistrationsAction, archiveEventAction, duplicateEventAction, removeRegistrationAction, setCheckInAction, updateEventFieldAction } from "../actions";
 import { occurrenceTitle, registeredLabel, servingAt } from "../domain";
 import type { EventDay } from "../types";
 import { CopyInvite, ServingList } from "./Parts";
@@ -37,6 +37,7 @@ export function EventView({
   onEditing,
   onDay,
   onMinistry,
+  onDuplicated,
   onArchived,
 }: {
   day: EventDay;
@@ -49,6 +50,7 @@ export function EventView({
   onEditing: (on: boolean) => void;
   onDay: (fn: (d: EventDay) => EventDay) => void;
   onMinistry: (m: MinistryDetail) => void;
+  onDuplicated: (d: EventDay) => void;
   onArchived: () => void;
 }) {
   const ev = day.event;
@@ -71,6 +73,12 @@ export function EventView({
     const r = await archiveEventAction(ev.id);
     if (!r.success) return void setErr(r.message);
     onArchived();
+  }
+  async function duplicate(close: () => void) {
+    close();
+    const r = await duplicateEventAction(ev.id);
+    if (!r.success) return void setErr(r.message || FAIL);
+    onDuplicated(r.data);
   }
   async function toggle(id: string, on: boolean) {
     setErr("");
@@ -108,7 +116,12 @@ export function EventView({
       {canManage ? (editing ? <button type="button" className={styles.primary} onClick={() => onEditing(false)}>Pronto</button> : <button type="button" className="btn ghost sm" onClick={() => onEditing(true)}>Editar</button>) : null}
       {canManage ? (
         <Popover trigger={<UiIcon icon={MoreHorizontal} />} triggerClass="iconbtn" label="Mais ações do evento" align="right">
-          {(close) => <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar evento</button>}
+          {(close) => (
+            <>
+              <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void duplicate(close)}>Duplicar evento</button>
+              <button type="button" role="menuitem" className={studyStyles.mi} onClick={() => void archive(close)}>Arquivar evento</button>
+            </>
+          )}
         </Popover>
       ) : null}
     </span>

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { MinistryDetail } from "@/features/ministries/types";
-import { dayShort, inviteText, occurrences, parseCount, parseKey, servingAt, trend, weekCards, weekLabel, weekStart } from "./domain";
+import { dayShort, happensOn, inviteText, occurrences, parseCount, parseKey, repeatLabel, servingAt, stepService, trend, weekCards, weekLabel, weekStart } from "./domain";
 import type { EventItem, Service } from "./types";
 
 // 2026-10-18 é domingo.
 const SVC = "11111111-1111-1111-1111-111111111111";
 const EV = "22222222-2222-2222-2222-222222222222";
-const sunday: Service = { id: SVC, name: "Culto da Família", weekday: 0, time: "19:00", location: "Rua X, 100" };
-const wed: Service = { id: "33333333-3333-3333-3333-333333333333", name: "Oração", weekday: 3, time: "20:00", location: "" };
+const sunday: Service = { id: SVC, name: "Culto da Família", weekday: 0, monthWeek: null, time: "19:00", location: "Rua X, 100" };
+const wed: Service = { id: "33333333-3333-3333-3333-333333333333", name: "Oração", weekday: 3, monthWeek: null, time: "20:00", location: "" };
 const retiro: EventItem = { id: EV, name: "Retiro", date: "2026-10-24", time: "08:00", location: "", description: "", registration: true, capacity: 40, registered: 12 };
 
 const louvor: MinistryDetail = {
@@ -77,5 +77,28 @@ describe("convite, contagem e chave", () => {
     expect(parseKey(`s:${SVC}:2026-10-18`)).toEqual({ kind: "service", id: SVC, date: "2026-10-18" });
     expect(parseKey(`e:${EV}`)).toEqual({ kind: "event", id: EV });
     expect(parseKey("s:x:2026")).toBeNull();
+  });
+});
+
+describe("culto mensal e contagem que faltou", () => {
+  const ceia = { weekday: 0, monthWeek: 1 };
+  const ultimo = { weekday: 0, monthWeek: 5 };
+  it("1º e último domingo do mês", () => {
+    expect(happensOn(ceia, "2026-10-04")).toBe(true);
+    expect(happensOn(ceia, "2026-10-11")).toBe(false);
+    expect(happensOn(ultimo, "2026-10-25")).toBe(true);
+    expect(happensOn(ultimo, "2026-10-18")).toBe(false);
+    expect(repeatLabel(ceia)).toBe("1º domingo do mês");
+    expect(repeatLabel({ weekday: 0, monthWeek: null })).toBe("Toda semana");
+  });
+  it("setas pulam para o próximo e o anterior do mês", () => {
+    expect(stepService(ceia, "2026-10-04", 1)).toBe("2026-11-01");
+    expect(stepService(ceia, "2026-11-01", -1)).toBe("2026-10-04");
+    expect(stepService({ weekday: 0, monthWeek: null }, "2026-10-18", 1)).toBe("2026-10-25");
+  });
+  it("culto da última semana sem contagem aparece como faltou contar", () => {
+    const dates = [{ id: "d", serviceId: SVC, date: "2026-10-11", headcount: 120, visitors: null, kids: null, sermonId: null, cancelled: false }];
+    const list = occurrences([sunday], [], dates, "2026-10-04", "2026-10-18", "2026-10-19");
+    expect(list.map((o) => [o.date, o.uncounted])).toEqual([["2026-10-04", false], ["2026-10-11", false], ["2026-10-18", true]]);
   });
 });

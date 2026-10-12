@@ -33,19 +33,50 @@ export function parseKey(key: string | null | undefined): { kind: "service"; id:
   return e ? { kind: "event", id: e[1]! } : null;
 }
 
+/** Semana do mês (1 a 5) e se é a última daquele dia no mês. */
+function monthPos(iso: string): { n: number; last: boolean } {
+  const d = Number(iso.slice(8, 10));
+  return { n: Math.ceil(d / 7), last: addDays(iso, 7).slice(5, 7) !== iso.slice(5, 7) };
+}
+/** O culto acontece nesse dia? (dia da semana e, se for mensal, a semana do mês) */
+export function happensOn(s: Pick<Service, "weekday" | "monthWeek">, iso: string): boolean {
+  if (s.weekday !== weekdayOf(iso)) return false;
+  if (!s.monthWeek) return true;
+  const p = monthPos(iso);
+  return s.monthWeek === 5 ? p.last : p.n === s.monthWeek;
+}
+/** Próximo (dir 1) ou anterior (dir -1) dia do culto a partir de uma data. */
+export function stepService(s: Pick<Service, "weekday" | "monthWeek">, from: string, dir: 1 | -1): string {
+  let d = addDays(weekStart(from), (s.weekday ?? 0));
+  if (dir === 1 ? d <= from : d >= from) d = addDays(d, 7 * dir);
+  for (let i = 0; i < 6 && !happensOn(s, d); i++) d = addDays(d, 7 * dir);
+  return d;
+}
+const ORD = ["", "1º", "2º", "3º", "4º", "Último"];
+/** "Toda semana" ou "1º domingo do mês". */
+export function repeatLabel(s: Pick<Service, "weekday" | "monthWeek">): string {
+  if (!s.monthWeek) return "Toda semana";
+  return `${ORD[s.monthWeek]} ${(WEEKDAYS[s.weekday ?? 0] ?? "").toLowerCase()} do mês`;
+}
+export const REPEAT_OPTIONS = [0, 1, 2, 3, 4, 5] as const;
+export const COUNT_WINDOW = 7; // dias em que um culto sem contagem aparece como "Faltou contar"
+
 /** Encontros de um período: cultos pelo dia da semana (cancelados marcados) + eventos; em ordem. */
-export function occurrences(services: Service[], events: EventItem[], dates: ServiceDate[], from: string, to: string): Occurrence[] {
+export function occurrences(services: Service[], events: EventItem[], dates: ServiceDate[], from: string, to: string, today = ""): Occurrence[] {
   const out: Occurrence[] = [];
   const cancelled = new Set(dates.filter((d) => d.cancelled).map((d) => `${d.serviceId}|${d.date}`));
+  const counted = new Set(dates.filter((d) => d.headcount !== null).map((d) => `${d.serviceId}|${d.date}`));
+  const missing = (id: string, day: string) => Boolean(today) && day < today && day >= addDays(today, -COUNT_WINDOW) && !counted.has(`${id}|${day}`);
   for (let day = from; day <= to; day = addDays(day, 1)) {
     for (const s of services) {
-      if (s.weekday !== weekdayOf(day)) continue;
-      out.push({ key: serviceKeyOf(s.id, day), kind: "service", id: s.id, date: day, time: s.time, name: s.name, location: s.location, cancelled: cancelled.has(`${s.id}|${day}`), registration: false, registered: 0 });
+      if (!happensOn(s, day)) continue;
+      const off = cancelled.has(`${s.id}|${day}`);
+      out.push({ key: serviceKeyOf(s.id, day), kind: "service", id: s.id, date: day, time: s.time, name: s.name, location: s.location, cancelled: off, registration: false, registered: 0, uncounted: !off && missing(s.id, day) });
     }
   }
   for (const e of events) {
     if (e.date < from || e.date > to) continue;
-    out.push({ key: eventKeyOf(e.id), kind: "event", id: e.id, date: e.date, time: e.time, name: e.name, location: e.location, cancelled: false, registration: e.registration, registered: e.registered });
+    out.push({ key: eventKeyOf(e.id), kind: "event", id: e.id, date: e.date, time: e.time, name: e.name, location: e.location, cancelled: false, registration: e.registration, registered: e.registered, uncounted: false });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date) || (a.time || "99").localeCompare(b.time || "99") || a.name.localeCompare(b.name, "pt-BR"));
 }

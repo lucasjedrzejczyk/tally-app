@@ -6,6 +6,7 @@ export interface Service {
   id: string;
   name: string;
   weekday: number | null; // 0 = domingo
+  monthWeek: number | null; // null = toda semana; 1 a 4 = 1º a 4º do mês; 5 = último
   time: string;
   location: string;
 }
@@ -46,6 +47,7 @@ export interface Occurrence {
   cancelled: boolean;
   registration: boolean;
   registered: number;
+  uncounted: boolean; // culto da última semana que ficou sem contagem
 }
 
 export interface ServingFace {

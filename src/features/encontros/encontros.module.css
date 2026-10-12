@@ -198,6 +198,10 @@ a.row:focus-visible {
   align-items: center;
   gap: var(--s-2);
 }
+.pillTodo {
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  color: var(--blue);
+}
 .cancelled .rowName,
 .cancelled .time {
   color: var(--text-2);

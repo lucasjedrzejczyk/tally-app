@@ -6,11 +6,12 @@ import { photoUrls } from "@/features/ministries/queries";
 import { TREND } from "./domain";
 import type { CountPoint, EventDay, EventItem, PlanItem, Registration, Service, ServiceDate, ServiceDay, SermonRef } from "./types";
 
-type SvcRow = { id: string; name: string; weekday: number | null; start_time: string | null; location: string | null };
-const svc = (r: SvcRow): Service => ({ id: r.id, name: r.name, weekday: r.weekday, time: normTime(r.start_time), location: r.location ?? "" });
+type SvcRow = { id: string; name: string; weekday: number | null; month_week: number | null; start_time: string | null; location: string | null };
+const svc = (r: SvcRow): Service => ({ id: r.id, name: r.name, weekday: r.weekday, monthWeek: r.month_week, time: normTime(r.start_time), location: r.location ?? "" });
+const SVC_COLS = "id, name, weekday, month_week, start_time, location";
 
 export async function listServices(supabase: DB, orgId: string): Promise<Service[]> {
-  const { data, error } = await supabase.from("services").select("id, name, weekday, start_time, location").eq("org_id", orgId).eq("active", true).order("name");
+  const { data, error } = await supabase.from("services").select(SVC_COLS).eq("org_id", orgId).eq("active", true).order("name");
   if (error) throw new Error(error.message);
   return (data ?? []).map(svc);
 }
@@ -49,7 +50,7 @@ type PlanRow = { id: string; time_label: string | null; title: string; responsib
 const planOf = (r: PlanRow): PlanItem => ({ id: r.id, time: r.time_label ?? "", title: r.title, responsible: r.responsible ?? "" });
 
 export async function getServiceDay(supabase: DB, orgId: string, serviceId: string, date: string): Promise<ServiceDay | null> {
-  const { data: s } = await supabase.from("services").select("id, name, weekday, start_time, location").eq("org_id", orgId).eq("id", serviceId).eq("active", true).maybeSingle();
+  const { data: s } = await supabase.from("services").select(SVC_COLS).eq("org_id", orgId).eq("id", serviceId).eq("active", true).maybeSingle();
   if (!s) return null;
   const [rowRes, tplRes, histRes] = await Promise.all([
     supabase.from("service_dates").select(DATE_COLS).eq("service_id", serviceId).eq("date", date).maybeSingle(),

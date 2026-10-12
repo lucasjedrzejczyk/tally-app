@@ -16,7 +16,7 @@ test.afterAll(async () => {
   const { supabase, orgId } = await signInTestUser();
   await supabase.from("ministries").delete().eq("org_id", orgId).eq("name", ministry);
   await supabase.from("services").delete().eq("org_id", orgId).eq("name", culto);
-  await supabase.from("events").delete().eq("org_id", orgId).eq("name", evento);
+  await supabase.from("events").delete().eq("org_id", orgId).in("name", [evento, `${evento} (cópia)`]);
   await supabase.from("sticks").delete().eq("org_id", orgId).in("full_name", [ana, bia]);
 });
 
@@ -78,11 +78,17 @@ test("encontros: culto na semana, quem serve, contagem, ordem, cancelar, evento 
   await expect(page.getByRole("button", { name: "Copiado" })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(`${culto}. Rua X, 100. Te esperamos!`);
 
+  // culto que já passou sem contagem aparece como "Faltou contar" na semana
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const past = date < iso(new Date());
+  if (past) await expect(card).toContainText("Faltou contar");
+
   // contagem grava e fica
   await page.getByRole("button", { name: "Pessoas: sem contagem" }).click();
   await page.getByLabel("Pessoas", { exact: true }).fill("120");
   await page.getByLabel("Pessoas", { exact: true }).press("Enter");
   await expect(page.getByRole("button", { name: "Pessoas: 120" })).toBeVisible();
+  await expect(card).not.toContainText("Faltou contar");
 
   // ordem do culto, e a de sempre
   await page.getByRole("button", { name: "Montar a ordem do culto" }).click();
@@ -132,4 +138,22 @@ test("encontros: culto na semana, quem serve, contagem, ordem, cancelar, evento 
 
   await page.reload();
   await expect(page.getByText("1 de 3 chegaram")).toBeVisible();
+
+  // duplicar o evento abre a cópia no Editar
+  await page.getByRole("button", { name: "Mais ações do evento" }).click();
+  await page.getByRole("menuitem", { name: "Duplicar evento" }).click();
+  await expect(page.getByRole("heading", { name: `${evento} (cópia)` })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Com inscrição" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Pronto" }).first().click();
+  await expect(page.getByRole("heading", { name: /^Inscritos \(0\)$/ })).toBeVisible();
+
+  // culto mensal: 1º domingo do mês
+  await page.goto(`/encontros?o=${key}&edit=1`);
+  await page.locator("select[aria-label='Como o culto repete']").selectOption({ label: "1º domingo do mês" });
+  // o domingo aberto não é o 1º do mês: a ficha pula para o próximo 1º domingo
+  if (Number(date.slice(8)) > 7) await expect.poll(() => decodeURIComponent(page.url())).not.toContain(date);
+  await page.getByRole("button", { name: "Pronto" }).first().click();
+  await expect(page.getByText("1º domingo do mês")).toBeVisible();
+  const day = Number(decodeURIComponent(new URL(page.url()).searchParams.get("o") ?? "").slice(-2));
+  expect(day).toBeLessThanOrEqual(7);
 });

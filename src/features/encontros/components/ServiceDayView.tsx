@@ -11,11 +11,10 @@ import { Popover } from "@/features/study/components/Popover";
 import studyStyles from "@/features/study/study.module.css";
 import { WEEKDAYS } from "@/features/groups/domain";
 import { TextField } from "@/features/groups/components/CellEdit";
-import { addDays } from "@/features/ministries/domain";
 import { ScheduleSheet } from "@/features/ministries/components/ScheduleSheet";
 import type { MinistryDetail } from "@/features/ministries/types";
 import { archiveServiceAction, savePlanAction, setCancelledAction, setCountAction, setSermonAction, updateServiceFieldAction } from "../actions";
-import { occurrenceTitle, servingAt } from "../domain";
+import { REPEAT_OPTIONS, occurrenceTitle, repeatLabel, servingAt, stepService } from "../domain";
 import type { PlanItem, Service, ServiceDate, ServiceDay, SermonRef } from "../types";
 import { Bars, CopyInvite, CountBox, ServingList } from "./Parts";
 import styles from "@/features/sticks/people.module.css";
@@ -65,10 +64,15 @@ export function ServiceDayView({
   const [sheet, setSheet] = useState<MinistryDetail | null>(null);
   const serving = servingAt(ministries, s.id, day.date, s.time);
 
-  async function field(f: "name" | "day" | "time" | "location", raw: string): Promise<string | null> {
+  async function field(f: "name" | "day" | "time" | "location" | "repeat", raw: string): Promise<string | null> {
     const r = await updateServiceFieldAction(s.id, f, raw);
     if (!r.success) return r.message;
-    const next = f === "day" ? { ...s, weekday: WEEKDAYS.indexOf(raw as (typeof WEEKDAYS)[number]) } : { ...s, [f === "name" ? "name" : f === "time" ? "time" : "location"]: r.data.text };
+    const next: Service =
+      f === "day"
+        ? { ...s, weekday: WEEKDAYS.indexOf(raw as (typeof WEEKDAYS)[number]) }
+        : f === "repeat"
+          ? { ...s, monthWeek: Number(raw) || null }
+          : { ...s, [f === "name" ? "name" : f === "time" ? "time" : "location"]: r.data.text };
     onService(next);
     onDay((d) => ({ ...d, service: next }));
     return null;
@@ -121,9 +125,10 @@ export function ServiceDayView({
         </div>
         {editing ? null : (
           <div className={e.when}>
-            <button type="button" className="iconbtn" aria-label="Semana anterior deste culto" onClick={() => onGo(addDays(day.date, -7))}><UiIcon icon={ChevronLeft} /></button>
+            <button type="button" className="iconbtn" aria-label="Semana anterior deste culto" onClick={() => onGo(stepService(s, day.date, -1))}><UiIcon icon={ChevronLeft} /></button>
             <span className={e.whenText}>{day.date === today ? "Hoje, " + occurrenceTitle(day.date, s.time).split(", ")[1] : occurrenceTitle(day.date, s.time)}</span>
-            <button type="button" className="iconbtn" aria-label="Próxima semana deste culto" onClick={() => onGo(addDays(day.date, 7))}><UiIcon icon={ChevronRight} /></button>
+            <button type="button" className="iconbtn" aria-label="Próxima semana deste culto" onClick={() => onGo(stepService(s, day.date, 1))}><UiIcon icon={ChevronRight} /></button>
+            {s.monthWeek ? <span className={e.where}>{repeatLabel(s)}</span> : null}
             {s.location ? <span className={e.where}><UiIcon icon={MapPin} />{s.location}</span> : null}
           </div>
         )}
@@ -143,6 +148,12 @@ export function ServiceDayView({
               <span className={styles.fLabel}>Dia</span>
               <Select aria-label="Dia do culto" value={WEEKDAYS[s.weekday ?? 0]} onChange={(ev) => void field("day", ev.target.value).then((m) => m && setErr(m))}>
                 {WEEKDAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+              </Select>
+            </div>
+            <div className={styles.fld}>
+              <span className={styles.fLabel}>Repete</span>
+              <Select aria-label="Como o culto repete" value={String(s.monthWeek ?? 0)} onChange={(ev) => void field("repeat", ev.target.value).then((m) => m && setErr(m))}>
+                {REPEAT_OPTIONS.map((n) => <option key={n} value={n}>{repeatLabel({ weekday: s.weekday, monthWeek: n || null })}</option>)}
               </Select>
             </div>
             <TextField label="Horário" value={s.time} placeholder="19:00" onSave={(r) => field("time", r)} onState={() => undefined} />

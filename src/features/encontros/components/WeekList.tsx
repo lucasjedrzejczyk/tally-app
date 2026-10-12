@@ -149,6 +149,7 @@ export function WeekList({
                         {sub ? <span className={e.rowSub}>{sub}</span> : null}
                       </span>
                       <span className={e.rowEnd}>
+                        {c.uncounted ? <span className={`${g.pill} ${e.pillTodo}`}>Faltou contar</span> : null}
                         {!c.cancelled && c.open ? <span className={g.pill}>{openLabel(c.open)}</span> : null}
                         {c.faces.length ? (
                           <span className={g.stack} role="img" aria-label={`Servem: ${peopleCount(c.faces.length)}`}>

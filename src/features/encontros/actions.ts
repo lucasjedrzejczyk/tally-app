@@ -33,7 +33,7 @@ export async function createServiceAction(): Promise<ActionResult<{ id: string }
 export async function updateServiceFieldAction(id: string, field: string, raw: string): Promise<ActionResult<{ text: string }>> {
   const g = await manager();
   if ("error" in g) return g.error;
-  let patch: { name?: string; weekday?: number; start_time?: string | null; location?: string | null };
+  let patch: { name?: string; weekday?: number; month_week?: number | null; start_time?: string | null; location?: string | null };
   let text = raw.trim();
   if (field === "name") {
     const n = cleanName(raw);
@@ -50,6 +50,9 @@ export async function updateServiceFieldAction(id: string, field: string, raw: s
   } else if (field === "location") {
     if (text.length > 160) return fail("Endereço grande demais.");
     patch = { location: text || null };
+  } else if (field === "repeat") {
+    if (!/^[0-5]$/.test(text)) return fail("Escolha como o culto repete.");
+    patch = { month_week: Number(text) || null };
   } else return fail("Campo inválido.");
   const { data, error } = await g.ctx.supabase.from("services").update(patch).eq("org_id", g.ctx.orgId).eq("id", id).select("id").maybeSingle();
   if (error) return fail(toMessage(error));
@@ -191,6 +194,22 @@ export async function updateEventFieldAction(id: string, field: string, raw: str
   if (error) return fail(toMessage(error));
   if (!data) return fail("Evento não encontrado.");
   return freshEvent(g.ctx, id);
+}
+
+/** Duplica o evento (dados e inscrição ligada, sem os inscritos) e devolve o novo. */
+export async function duplicateEventAction(id: string): Promise<ActionResult<EventDay>> {
+  const g = await manager();
+  if ("error" in g) return g.error;
+  const { supabase, orgId } = g.ctx;
+  const { data: src } = await supabase.from("events").select("name, event_date, time, location, description, registration_required, capacity, type").eq("org_id", orgId).eq("id", id).maybeSingle();
+  if (!src) return fail("Evento não encontrado.");
+  const { data, error } = await supabase
+    .from("events")
+    .insert({ ...src, org_id: orgId, name: `${src.name} (cópia)`.slice(0, 80), status: "active" })
+    .select("id")
+    .single();
+  if (error || !data) return fail(toMessage(error, "Não consegui duplicar o evento."));
+  return freshEvent(g.ctx, data.id);
 }
 
 export async function archiveEventAction(id: string): Promise<ActionResult<null>> {

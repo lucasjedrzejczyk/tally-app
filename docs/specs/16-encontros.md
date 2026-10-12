@@ -60,6 +60,8 @@ Fora por ora: página pública de inscrição e pagamento, lembrete automático,
 Fases A a D feitas na branch (m69 aplicada no banco). Prévias `docs/previews/16-*.png`. E2E `e2e/encontros.spec.ts` verde; Ministérios e Células seguem verdes.
 Diferenças da spec: cancelar o dia não tem "Desfazer" de 5 s; a ficha mostra "Culto cancelado neste dia" com "Reabrir" (sempre à mão, mais simples). Tirar inscrito fica no Editar do evento (um menu em cada rosto poluía a grade). Rostos de semanas com mais de 5 semanas no passado não aparecem nos cartões (a escala carregada começa 35 dias atrás).
 
+Acrescentado depois (2026-10-12, m70): culto que repete uma vez por mês (`services.month_week`: 1º a 4º ou último dia da semana do mês; setas da ficha pulam para o próximo); "Faltou contar" na semana para culto dos últimos 7 dias sem contagem; "Duplicar evento" no ··· (copia dados e inscrição, sem inscritos, abre no Editar). Ministério ligado a culto mensal ainda sugere a escala toda semana.
+
 ## Revisão de design (2026-10-12)
 
 | Antes | Depois | Por quê |

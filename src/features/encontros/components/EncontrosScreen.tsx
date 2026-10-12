@@ -30,7 +30,7 @@ export async function EncontrosScreen({ sp }: { sp: Record<string, string | stri
   let selected = found && asked ? (asked.kind === "service" ? `s:${asked.id}:${asked.date}` : `e:${asked.id}`) : null;
   let detail = found;
   if (!selected) {
-    const list = occurrences(services, week.events, week.dates, start, addDays(start, 6));
+    const list = occurrences(services, week.events, week.dates, start, addDays(start, 6), today);
     const pick = list.find((o) => !o.cancelled && o.date >= today) ?? list[0];
     if (pick) {
       selected = pick.key;

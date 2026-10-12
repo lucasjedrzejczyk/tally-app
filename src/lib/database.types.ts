@@ -3324,6 +3324,7 @@ export type Database = {
       }
       services: {
         Row: {
+          month_week: number | null
           active: boolean
           campus_id: string | null
           created_at: string
@@ -3339,6 +3340,7 @@ export type Database = {
           weekday: number | null
         }
         Insert: {
+          month_week?: number | null
           active?: boolean
           campus_id?: string | null
           created_at?: string
@@ -3354,6 +3356,7 @@ export type Database = {
           weekday?: number | null
         }
         Update: {
+          month_week?: number | null
           active?: boolean
           campus_id?: string | null
           created_at?: string

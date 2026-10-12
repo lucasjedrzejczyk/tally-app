@@ -10,7 +10,7 @@ import type { PersonListItem } from "@/features/sticks/types";
 import { addDays } from "@/features/ministries/domain";
 import type { MinistryDetail } from "@/features/ministries/types";
 import { createEventAction, createServiceAction } from "../actions";
-import { eventKeyOf, occurrences, parseKey, serviceKeyOf, weekCards, weekStart } from "../domain";
+import { eventKeyOf, happensOn, occurrences, parseKey, serviceKeyOf, stepService, weekCards, weekStart } from "../domain";
 import type { EventDay, EventItem, Service, ServiceDate, ServiceDay } from "../types";
 import { EventView } from "./EventView";
 import { ServiceDayView } from "./ServiceDayView";
@@ -63,8 +63,8 @@ export function EncontrosView({
 
   const week = weeks[start];
   const fresh_ = useMemo(
-    () => (week ? weekCards(occurrences(services, week.events, week.dates, start, addDays(start, 6)), ministries) : null),
-    [week, services, ministries, start],
+    () => (week ? weekCards(occurrences(services, week.events, week.dates, start, addDays(start, 6), today), ministries) : null),
+    [week, services, ministries, start, today],
   );
   // Enquanto a semana chega, a anterior fica na tela (esmaecida) em vez de sumir.
   const last = useRef(fresh_);
@@ -154,6 +154,16 @@ export function EncontrosView({
       setWeeks((all) => (all[k] ? { ...all, [k]: { ...all[k], events: [...all[k].events, ev] } } : all));
     }
   }
+  // Guarda na semana o culto num dia como a ficha acabou de deixar (idempotente).
+  function syncDate(row: ServiceDate) {
+    const k = weekStart(row.date);
+    setWeeks((all) => {
+      const w = all[k];
+      if (!w) return all;
+      const rest = w.dates.filter((d) => !(d.serviceId === row.serviceId && d.date === row.date));
+      return { ...all, [k]: { ...w, dates: [...rest, row] } };
+    });
+  }
   function setCancelled(serviceId: string, date: string, cancelled: boolean) {
     const k = weekStart(date);
     setWeeks((all) => {
@@ -182,7 +192,7 @@ export function EncontrosView({
     const r = await createServiceAction();
     setCreating(false);
     if (!r.success) return void setError(r.message);
-    const s: Service = { id: r.data.id, name: "Novo culto", weekday: 0, time: "19:00", location: "" };
+    const s: Service = { id: r.data.id, name: "Novo culto", weekday: 0, monthWeek: null, time: "19:00", location: "" };
     const key = serviceKeyOf(s.id, start);
     setServices((l) => [...l, s]);
     setItems((all) => ({ ...all, [key]: { kind: "service", service: s, date: start, row: null, plan: [], template: [], history: [], sermon: null } }));
@@ -219,12 +229,25 @@ export function EncontrosView({
         focusName={key === fresh}
         editing={canManage && editing}
         onEditing={setEdit}
-        onDay={(fn) => setItems((all) => (all[key]?.kind === "service" ? { ...all, [key]: fn(all[key] as ServiceDay) } : all))}
+        onDay={(fn) =>
+          setItems((all) => {
+            const cur = all[key];
+            if (cur?.kind !== "service") return all;
+            const next = fn(cur);
+            if (next.row) syncDate(next.row); // a semana enxerga contagem e cancelado na hora
+            return { ...all, [key]: next };
+          })
+        }
         onService={(s) => {
           setServices((l) => l.map((x) => (x.id === s.id ? s : x)));
           // dia mudou: a ficha aberta passa para o mesmo culto na semana
           setItems((all) => Object.fromEntries(Object.entries(all).filter(([kk, it]) => kk === key || it.kind !== "service" || it.service.id !== s.id).map(([kk, it]) => [kk, it.kind === "service" && it.service.id === s.id ? { ...it, service: s } : it])));
-          if (s.weekday !== null && s.weekday !== detail.service.weekday) select(serviceKeyOf(s.id, addDays(weekStart(detail.date), s.weekday)), true);
+          // dia ou repetição mudou: abre o mesmo culto no próximo dia em que ele acontece
+          if (!happensOn(s, detail.date)) {
+            const d = stepService(s, addDays(weekStart(detail.date), -1), 1);
+            setStart(weekStart(d));
+            select(serviceKeyOf(s.id, d), true);
+          }
         }}
         onMinistry={setMinistry}
         onCancelled={(c) => setCancelled(detail.service.id, detail.date, c)}
@@ -261,6 +284,13 @@ export function EncontrosView({
           })
         }
         onMinistry={setMinistry}
+        onDuplicated={(d) => {
+          const nk = eventKeyOf(d.event.id);
+          putEvent(d.event, d.event.id);
+          setItems((all) => ({ ...all, [nk]: d }));
+          select(nk, true);
+          setFresh(nk);
+        }}
         onArchived={() => {
           putEvent(null, detail.event.id);
           afterRemoval();
