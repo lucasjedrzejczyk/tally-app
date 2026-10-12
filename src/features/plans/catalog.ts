@@ -39,7 +39,7 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   communication: "Comunicação (Espaços, Mensagens, Chat)",
   study: "Estudo (sermões + estudo bíblico)",
   teams: "Ministérios e escalas",
-  events: "Eventos",
+  events: "Encontros",
   members: "Contas de membro e convites",
 };
 

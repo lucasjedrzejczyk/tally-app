@@ -32,7 +32,8 @@ a.person:focus-visible {
   padding: 0;
   list-style: none;
 }
-button.service {
+.service {
+  text-decoration: none;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
@@ -47,14 +48,14 @@ button.service {
   cursor: pointer;
   transition: transform 120ms var(--ease-press);
 }
-button.service:active {
+.service:active {
   transform: scale(.98);
 }
-button.service:focus-visible {
+.service:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--blue);
 }
-button.service .servicePill {
+.service .servicePill {
   background: var(--surface);
 }
 .serviceTop {
@@ -341,7 +342,7 @@ button.seat:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button.service:active,
+  .service:active,
   button.seat:active,
   .fnChip:active,
   .suggRow:active {

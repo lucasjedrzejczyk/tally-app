@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { CalendarDays, MoreHorizontal } from "lucide-react";
 import { UiIcon } from "@/components/shared/UiIcon";
 import type { PersonListItem } from "@/features/sticks/types";
+import type { Service } from "@/features/encontros/types";
 import { Popover } from "@/features/study/components/Popover";
 import studyStyles from "@/features/study/study.module.css";
 import { meetingLabel } from "@/features/groups/domain";
@@ -25,6 +26,7 @@ type Result = { success: true; data: MinistryDetail } | { success: false; messag
 export function MinistryProfile({
   detail,
   people,
+  services,
   canManage,
   canInvite,
   isStaff,
@@ -37,6 +39,7 @@ export function MinistryProfile({
 }: {
   detail: MinistryDetail;
   people: PersonListItem[];
+  services: Service[];
   canManage: boolean;
   canInvite: boolean;
   isStaff: boolean;
@@ -159,7 +162,7 @@ export function MinistryProfile({
       <div key={editing ? "edit" : "read"} className={first.current ? undefined : styles.fade}>
         {editing ? (
           <>
-            <MinistryEdit detail={detail} persons={people} focusName={focusName} onSave={saveField} onState={fieldState} track={track} onApplied={applied} />
+            <MinistryEdit detail={detail} persons={people} services={services} focusName={focusName} onSave={saveField} onState={fieldState} track={track} onApplied={applied} />
             <div className={styles.doneRow}>{done}</div>
           </>
         ) : (

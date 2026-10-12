@@ -1,0 +1,334 @@
+/* Encontros (spec 16): o casco (lista à esquerda, ficha à direita, campos) vem de
+   sticks/people.module.css; cartões, rostos e pílulas de groups.module.css; aqui só o próprio. */
+
+/* Semana */
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-4);
+}
+.weekLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.days {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.day + .day {
+  margin-top: var(--s-2);
+}
+.dayHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 0 var(--s-4);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.today {
+  color: var(--blue);
+}
+/* Dia sem nada: só a linha do rótulo, sem cartão */
+.dayEmpty {
+  min-height: 1.75rem;
+  display: flex;
+  align-items: center;
+}
+.dayEmpty .dayHead {
+  font-weight: 400;
+}
+.dayCards {
+  margin-top: var(--s-1);
+}
+.time {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.tag {
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  font-size: var(--t-11);
+  line-height: var(--lh-11);
+  color: var(--blue);
+}
+.cancelled .cardName,
+.cancelled .time {
+  color: var(--text-2);
+  text-decoration: line-through;
+}
+
+/* Ficha: números da contagem */
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+button.count,
+.countEdit {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+  min-width: 0;
+  padding: var(--s-3) var(--s-4);
+  border: 0;
+  border-radius: var(--r-10);
+  background: var(--surface-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.count {
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+button.count:active {
+  transform: scale(.98);
+}
+button.count:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.countN {
+  font-size: calc(var(--t-22) * 1.25);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.countN.countNone {
+  color: var(--text-2);
+}
+.countSwap {
+  animation: countIn 150ms ease-out;
+}
+@keyframes countIn {
+  from {
+    opacity: 0;
+  }
+}
+.countLabel {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.countInput {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: calc(var(--t-22) * 1.25);
+  line-height: 1.1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.countEdit {
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* Barras das últimas contagens (sem animação ao abrir) */
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
+  height: 4rem;
+  margin-top: var(--s-4);
+}
+.bar {
+  flex: 1;
+  max-width: 2rem;
+  height: max(calc(var(--h) * 100%), 0.125rem);
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, var(--text-2) 30%, transparent);
+}
+.barNow {
+  background: var(--blue);
+}
+.barsFoot {
+  margin-top: var(--s-2);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Quem serve: um bloco por ministério */
+.serving {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Ordem do culto */
+.plan {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.planRow {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+}
+.planRow + .planRow {
+  border-top: 1px solid var(--border);
+}
+.planTime {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.planWho {
+  display: block;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+.planGhost {
+  color: var(--text-2);
+}
+.planEdit {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 10rem) auto;
+  gap: var(--s-2);
+  align-items: center;
+  padding: var(--s-1) 0;
+}
+.planEdit input {
+  min-width: 0;
+}
+.planBtns {
+  display: flex;
+}
+.planActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+@media (max-width: 40rem) {
+  .planEdit {
+    grid-template-columns: 4rem minmax(0, 1fr) auto;
+  }
+  .planEdit .planWhoIn {
+    grid-column: 2;
+  }
+}
+
+/* Sermão ligado */
+.sermon {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+}
+
+/* Copiar convite: o rótulo troca com blur curto */
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  transition: filter 150ms ease, opacity 150ms ease;
+}
+.copySwap {
+  filter: blur(2px);
+  opacity: .6;
+}
+
+/* Inscritos: chegou = selo azul que entra sem nascer do zero */
+.checkTick {
+  animation: tickIn 150ms cubic-bezier(.23, 1, .32, 1);
+}
+@keyframes tickIn {
+  from {
+    opacity: 0;
+    transform: scale(.9);
+  }
+}
+.guestRow {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  max-width: 24rem;
+}
+.guestRow input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Menu do Plus (preso ao botão) */
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  border: 0;
+  border-radius: var(--r-6);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.menuItem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.menuSub {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--text-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .menuItem:hover {
+    background: var(--surface-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.count:active {
+    transform: none;
+  }
+  .checkTick {
+    animation-name: countIn;
+  }
+  .copy {
+    transition: opacity 150ms ease;
+  }
+  .copySwap {
+    filter: none;
+  }
+}

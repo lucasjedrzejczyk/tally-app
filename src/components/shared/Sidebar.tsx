@@ -8,7 +8,7 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { BookOpen, Mic, FileText, HandHeart, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
+import { BookOpen, CalendarDays, Mic, FileText, HandHeart, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
@@ -24,8 +24,8 @@ export interface NavCounts {
   tasks: number;
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
-const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, finance: Wallet, trash: Trash2,
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
+const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, encontros: CalendarDays, finance: Wallet, trash: Trash2,
   settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut, more: Menu };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;

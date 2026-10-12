@@ -1,29 +1,6 @@
-import { requireOrg } from "@/lib/auth/session";
-import { resolveActiveCampus } from "@/lib/campus";
-import { listServices, serviceOccurrenceCounts } from "@/features/services/queries";
-import { ServicesBoard } from "@/features/services/components/ServicesBoard";
+import { redirect } from "next/navigation";
 
-// Cultos (Server Component): lista os cultos recorrentes da org. Mutações via
-// Server Actions. Presença compartilha o caminho de Groups (context_type='service').
-export default async function ServicesPage({ searchParams }: { searchParams: Promise<{ campus?: string }> }) {
-  const { supabase, orgId } = await requireOrg();
-  const sp = await searchParams;
-
-  const [services, occ, campusRes] = await Promise.all([
-    listServices(supabase, orgId),
-    serviceOccurrenceCounts(supabase, orgId),
-    supabase.from("campuses").select("name").eq("org_id", orgId).eq("active", true).order("name"),
-  ]);
-
-  const campuses = (campusRes.data ?? []).map((c) => c.name);
-  const activeCampus = await resolveActiveCampus(campuses, sp.campus);
-
-  return (
-    <ServicesBoard
-      services={services}
-      occByService={Object.fromEntries(occ)}
-      campuses={campuses}
-      activeCampus={activeCampus}
-    />
-  );
+// Cultos, Eventos e Agenda viraram uma tela só: Encontros (spec 16).
+export default function Page() {
+  redirect("/encontros");
 }

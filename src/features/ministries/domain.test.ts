@@ -29,6 +29,7 @@ const TODAY = "2026-10-12";
 const base: MinistryDetail = {
   id: "m1",
   name: "Louvor",
+  serviceId: null,
   day: "Domingo",
   time: "19:00",
   roles: ["Vocal", "Som"],

@@ -2,11 +2,11 @@
 // só o ministério dele, as fichas (sem documentos) de quem serve com ele e as escalas dele.
 import type { DB } from "@/lib/auth/session";
 import { PHOTO_BUCKET } from "@/features/sticks/domain";
-import { accessOf, todayIso } from "@/features/groups/domain";
+import { WEEKDAYS, accessOf, todayIso } from "@/features/groups/domain";
 import { HISTORY_DAYS, addDays, listItemFromDetail, normTime, readRoles, readSlots } from "./domain";
 import type { Assignment, AssignmentStatus, Conflict, MinistryDetail, MinistryListItem, MinistryMember, MinistryRole } from "./types";
 
-async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Promise<Map<string, string>> {
+export async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Promise<Map<string, string>> {
   const urls = new Map<string, string>();
   const list = [...new Set(paths.filter((p): p is string => Boolean(p)))];
   if (!list.length) return urls;
@@ -18,7 +18,7 @@ async function photoUrls(supabase: DB, paths: (string | null | undefined)[]): Pr
 const asRole = (v: string): MinistryRole => (v === "leader" || v === "co_leader" ? v : "member");
 const asStatus = (v: string): AssignmentStatus => (v === "confirmed" || v === "declined" ? v : "assigned");
 
-type Row = { id: string; name: string; meeting_day: string | null; meeting_time: string | null; roles: unknown; slots: unknown };
+type Row = { id: string; name: string; meeting_day: string | null; meeting_time: string | null; roles: unknown; slots: unknown; service_id: string | null; services: { weekday: number | null; start_time: string | null } | null };
 
 // Monta as fichas de vários ministérios de uma vez (a lista usa o mesmo caminho da ficha).
 async function details(supabase: DB, orgId: string, rows: Row[], today: string): Promise<MinistryDetail[]> {
@@ -66,17 +66,27 @@ async function details(supabase: DB, orgId: string, rows: Row[], today: string):
         status: asStatus(a.status),
         notifiedAt: a.notified_at,
       }));
-    return { id: r.id, name: r.name, day: r.meeting_day ?? "", time: normTime(r.meeting_time), roles: readRoles(r.roles), slots: readSlots(r.slots), members, assignments };
+    const svc = r.service_id ? r.services : null;
+    const day = svc ? (WEEKDAYS[svc.weekday ?? -1] ?? "") : r.meeting_day ?? "";
+    const time = normTime(svc ? svc.start_time : r.meeting_time);
+    return { id: r.id, name: r.name, serviceId: r.service_id, day, time, roles: readRoles(r.roles), slots: readSlots(r.slots), members, assignments };
   });
 }
 
-const COLS = "id, name, meeting_day, meeting_time, roles, slots";
+const COLS = "id, name, meeting_day, meeting_time, roles, slots, service_id, services(weekday, start_time)";
 
 export async function listMinistries(supabase: DB, orgId: string, today = todayIso()): Promise<MinistryListItem[]> {
   const { data, error } = await supabase.from("ministries").select(COLS).eq("org_id", orgId).neq("status", "archived").order("name");
   if (error) throw new Error(error.message);
   const all = await details(supabase, orgId, data ?? [], today);
   return all.map((d) => listItemFromDetail(d, today)).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+}
+
+// Todas as fichas de uma vez (Encontros cruza as escalas de todos os ministérios com a semana).
+export async function listMinistryDetails(supabase: DB, orgId: string, today = todayIso()): Promise<MinistryDetail[]> {
+  const { data, error } = await supabase.from("ministries").select(COLS).eq("org_id", orgId).neq("status", "archived").order("name");
+  if (error) throw new Error(error.message);
+  return details(supabase, orgId, data ?? [], today);
 }
 
 export async function getMinistry(supabase: DB, orgId: string, id: string, today = todayIso()): Promise<MinistryDetail | null> {

@@ -52,6 +52,20 @@ export async function updateMinistryFieldAction(id: string, field: string, raw: 
   return ok({ text });
 }
 
+// Culto da igreja do ministério (spec 16, D1). null = "Outro dia e horário" (usa os campos próprios).
+export async function setMinistryServiceAction(id: string, serviceId: string | null): Promise<ActionResult<MinistryDetail>> {
+  const g = await managerOrg();
+  if ("error" in g) return g.error;
+  const { supabase, orgId } = g.ctx;
+  if (serviceId) {
+    const { data } = await supabase.from("services").select("id").eq("org_id", orgId).eq("id", serviceId).maybeSingle();
+    if (!data) return fail("Culto não encontrado.");
+  }
+  const { error } = await supabase.from("ministries").update({ service_id: serviceId }).eq("org_id", orgId).eq("id", id);
+  if (error) return fail(toMessage(error));
+  return fresh(g.ctx, id);
+}
+
 // Funções e vagas por função (substitui as duas listas de uma vez).
 export async function setRolesAction(id: string, roles: string[], slots: Record<string, number>): Promise<ActionResult<MinistryDetail>> {
   const g = await managerOrg();

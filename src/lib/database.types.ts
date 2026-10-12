@@ -1194,6 +1194,7 @@ export type Database = {
       }
       events: {
         Row: {
+          time: string | null
           campus_id: string | null
           capacity: number | null
           check_in_enabled: boolean
@@ -1214,6 +1215,7 @@ export type Database = {
           type: string | null
         }
         Insert: {
+          time?: string | null
           campus_id?: string | null
           capacity?: number | null
           check_in_enabled?: boolean
@@ -1234,6 +1236,7 @@ export type Database = {
           type?: string | null
         }
         Update: {
+          time?: string | null
           campus_id?: string | null
           capacity?: number | null
           check_in_enabled?: boolean
@@ -2459,6 +2462,7 @@ export type Database = {
       }
       ministries: {
         Row: {
+          service_id: string | null
           meeting_day: string | null
           meeting_time: string | null
           roles: Json
@@ -2474,6 +2478,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          service_id?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           roles?: Json
@@ -2489,6 +2494,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          service_id?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           roles?: Json
@@ -2504,6 +2510,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ministries_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ministries_campus_id_fkey"
             columns: ["campus_id"]
@@ -3174,8 +3187,70 @@ export type Database = {
           },
         ]
       }
+      service_dates: {
+        Row: {
+          cancelled: boolean
+          created_at: string
+          date: string
+          headcount: number | null
+          id: string
+          kids: number | null
+          org_id: string
+          sermon_id: string | null
+          service_id: string
+          visitors: number | null
+        }
+        Insert: {
+          cancelled?: boolean
+          created_at?: string
+          date: string
+          headcount?: number | null
+          id?: string
+          kids?: number | null
+          org_id: string
+          sermon_id?: string | null
+          service_id: string
+          visitors?: number | null
+        }
+        Update: {
+          cancelled?: boolean
+          created_at?: string
+          date?: string
+          headcount?: number | null
+          id?: string
+          kids?: number | null
+          org_id?: string
+          sermon_id?: string | null
+          service_id?: string
+          visitors?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_dates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_dates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_dates_sermon_id_fkey"
+            columns: ["sermon_id"]
+            isOneToOne: false
+            referencedRelation: "sermons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_plan_items: {
         Row: {
+          date_id: string | null
           created_at: string
           duration_min: number | null
           id: string
@@ -3189,6 +3264,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          date_id?: string | null
           created_at?: string
           duration_min?: number | null
           id?: string
@@ -3202,6 +3278,7 @@ export type Database = {
           title: string
         }
         Update: {
+          date_id?: string | null
           created_at?: string
           duration_min?: number | null
           id?: string
@@ -3215,6 +3292,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "service_plan_items_date_id_fkey"
+            columns: ["date_id"]
+            isOneToOne: false
+            referencedRelation: "service_dates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_plan_items_org_id_fkey"
             columns: ["org_id"]
@@ -4771,6 +4855,7 @@ export type Database = {
       leads_group: { Args: { p_group: string }; Returns: boolean }
       leads_ministry: { Args: { p_ministry: string }; Returns: boolean }
       can_manage_ministries: { Args: { p_org: string }; Returns: boolean }
+      can_manage_services: { Args: { p_org: string }; Returns: boolean }
       schedule_conflicts: {
         Args: { p_date: string; p_ministry: string; p_org: string }
         Returns: { ministry_name: string; role: string | null; service_time: string | null; stick_id: string }[]

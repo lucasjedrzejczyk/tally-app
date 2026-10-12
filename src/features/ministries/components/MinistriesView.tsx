@@ -7,6 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { UiIcon } from "@/components/shared/UiIcon";
 import { useSwipeToClose } from "@/features/sticks/swipe";
 import type { PersonListItem } from "@/features/sticks/types";
+import type { Service } from "@/features/encontros/types";
 import { createMinistryAction } from "../actions";
 import { listItemFromDetail } from "../domain";
 import type { MinistryDetail, MinistryListItem } from "../types";
@@ -20,6 +21,7 @@ const urlFor = (id: string | null, edit = false): string => (id ? `/ministries?m
 export function MinistriesView({
   items: initialItems,
   people: persons,
+  services,
   initialSelected,
   initialDetail,
   initialMobileOpen,
@@ -31,6 +33,7 @@ export function MinistriesView({
 }: {
   items: MinistryListItem[];
   people: PersonListItem[];
+  services: Service[];
   initialSelected: string | null;
   initialDetail: MinistryDetail | null;
   initialMobileOpen: boolean;
@@ -110,7 +113,7 @@ export function MinistriesView({
     const r = await createMinistryAction();
     setCreating(false);
     if (!r.success) return void setError(r.message);
-    const d: MinistryDetail = { id: r.data.id, name: "Novo ministério", day: "", time: "", roles: [], slots: {}, members: [], assignments: [] };
+    const d: MinistryDetail = { id: r.data.id, name: "Novo ministério", serviceId: null, day: "", time: "", roles: [], slots: {}, members: [], assignments: [] };
     setDetails((all) => ({ ...all, [d.id]: d }));
     setItems((l) => [listItemFromDetail(d, today), ...l]);
     setQ("");
@@ -134,6 +137,7 @@ export function MinistriesView({
       key={detail.id}
       detail={detail}
       people={persons}
+      services={services}
       canManage={canManage}
       canInvite={canInvite}
       isStaff={isStaff}

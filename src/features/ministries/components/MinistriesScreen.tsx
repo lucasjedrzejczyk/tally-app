@@ -5,6 +5,7 @@ import { requireOrg, can } from "@/lib/auth/session";
 import { listPeople } from "@/features/sticks/queries";
 import { todayIso } from "@/features/groups/domain";
 import { getMinistry, listMinistries } from "../queries";
+import { listServices } from "@/features/encontros/queries";
 import { MinistriesView } from "./MinistriesView";
 
 export async function MinistriesScreen({ sp, forcedId }: { sp: Record<string, string | string[] | undefined>; forcedId?: string }) {
@@ -12,9 +13,10 @@ export async function MinistriesScreen({ sp, forcedId }: { sp: Record<string, st
   const { isStaff } = ctx;
   const today = todayIso();
   // Líder (não equipe): o RLS já entrega só o ministério dele, e a lista de Pessoas não é dele.
-  const [items, people] = await Promise.all([
+  const [items, people, services] = await Promise.all([
     listMinistries(ctx.supabase, ctx.orgId, today),
     isStaff ? listPeople(ctx.supabase, ctx.orgId).then((r) => r.people) : Promise.resolve([]),
+    isStaff ? listServices(ctx.supabase, ctx.orgId) : Promise.resolve([]),
   ]);
   const asked = forcedId ?? (typeof sp.m === "string" ? sp.m : null);
   const found = Boolean(asked && items.some((c) => c.id === asked));
@@ -27,6 +29,7 @@ export async function MinistriesScreen({ sp, forcedId }: { sp: Record<string, st
     <MinistriesView
       items={items}
       people={people}
+      services={services}
       initialSelected={selected}
       initialDetail={detail}
       initialMobileOpen={found}

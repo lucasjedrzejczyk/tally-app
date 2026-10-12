@@ -8,10 +8,11 @@ import { Minus, Plus, X } from "lucide-react";
 import { Select } from "@/components/shared/Select";
 import { UiIcon } from "@/components/shared/UiIcon";
 import type { PersonListItem } from "@/features/sticks/types";
-import { WEEKDAYS, canonicalDay } from "@/features/groups/domain";
+import type { Service } from "@/features/encontros/types";
+import { WEEKDAYS, canonicalDay, timeLabel } from "@/features/groups/domain";
 import { AddMembers } from "@/features/groups/components/AddMembers";
 import { TextField } from "@/features/groups/components/CellEdit";
-import { addMinistryMembersAction, removeMinistryMemberAction, setMemberFunctionsAction, setMemberRoleAction, setRolesAction } from "../actions";
+import { addMinistryMembersAction, removeMinistryMemberAction, setMinistryServiceAction, setMemberFunctionsAction, setMemberRoleAction, setRolesAction } from "../actions";
 import { MINISTRY_ROLES, cleanRole, slotsFor } from "../domain";
 import type { MinistryDetail } from "../types";
 import styles from "@/features/sticks/people.module.css";
@@ -23,6 +24,7 @@ type Result = { success: true; data: MinistryDetail } | { success: false; messag
 export function MinistryEdit({
   detail,
   persons,
+  services,
   focusName,
   onSave,
   onState,
@@ -31,6 +33,7 @@ export function MinistryEdit({
 }: {
   detail: MinistryDetail;
   persons: PersonListItem[];
+  services: Service[];
   focusName: boolean;
   onSave: (field: "name" | "day" | "time", raw: string) => Promise<string | null>;
   onState: (field: string, hasError: boolean) => void;
@@ -86,14 +89,27 @@ export function MinistryEdit({
       <section className={styles.sec} aria-label="Dados do ministério">
         <div className={styles.grid}>
           <TextField label="Nome" value={detail.name} wide autoFocus={focusName} onSave={(r) => onSave("name", r)} onState={(b) => onState("name", b)} />
-          <div className={styles.fld}>
-            <span className={styles.fLabel}>Dia do culto</span>
-            <Select aria-label="Dia do culto" value={canonicalDay(detail.day)} onChange={(e) => void track(onSave("day", e.target.value)).then((msg) => onState("day", Boolean(msg)))}>
-              <option value="">Não informado</option>
-              {WEEKDAYS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </Select>
-          </div>
-          <TextField label="Horário" value={detail.time} placeholder="19:00" onSave={(r) => onSave("time", r)} onState={(b) => onState("time", b)} />
+          {services.length ? (
+            <div className={styles.fld}>
+              <span className={styles.fLabel}>Culto</span>
+              <Select aria-label="Culto" value={detail.serviceId ?? ""} onChange={(e) => { const v = e.target.value; later(() => setMinistryServiceAction(id, v || null)); }}>
+                {services.map((s) => <option key={s.id} value={s.id}>{[WEEKDAYS[s.weekday ?? -1], timeLabel(s.time), s.name].filter(Boolean).join(" · ")}</option>)}
+                <option value="">Outro dia e horário</option>
+              </Select>
+            </div>
+          ) : null}
+          {detail.serviceId ? null : (
+            <>
+              <div className={styles.fld}>
+                <span className={styles.fLabel}>Dia do culto</span>
+                <Select aria-label="Dia do culto" value={canonicalDay(detail.day)} onChange={(e) => void track(onSave("day", e.target.value)).then((msg) => onState("day", Boolean(msg)))}>
+                  <option value="">Não informado</option>
+                  {WEEKDAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+                </Select>
+              </div>
+              <TextField label="Horário" value={detail.time} placeholder="19:00" onSave={(r) => onSave("time", r)} onState={(b) => onState("time", b)} />
+            </>
+          )}
         </div>
       </section>
 

@@ -43,6 +43,7 @@ export interface Assignment {
 export interface MinistryDetail {
   id: string;
   name: string;
+  serviceId: string | null; // culto da igreja (spec 16); com culto, dia e horário vêm dele
   day: string;
   time: string;
   roles: string[];
