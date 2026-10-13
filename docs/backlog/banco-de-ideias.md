@@ -100,3 +100,25 @@ A decidir quando entrar:
   para suporte e melhoria do produto.
 - Talvez comece pelo mais barato: métricas de uso por módulo (quantas notas, sermões, pessoas,
   último acesso) sem abrir o conteúdo em si.
+
+## Custo de IA da Bíblia Raízes (concorrente), anotada em 2026-10-13
+
+Origem: post no X de Gabriel Buzzi (@gabrielbuzziv), da Bíblia Raízes, concorrente direto do Estudo.
+O que ele contou:
+- Cerca de 3.000 assinantes e custo total de IA em torno de **US$ 1 por dia**.
+- Camada forte de cache e conteúdo bem indexado para busca rápida: o assistente (Oliver) responde
+  quase na hora.
+- Nos últimos 30 dias o maior custo foi com **embeddings**, não com o LLM, mesmo rodando o LLM todo dia.
+- Fluxo do usuário: seleciona o versículo, clica em "Explicar" e recebe contexto histórico e canônico
+  tirado das fontes do próprio app.
+
+Lições para a Mercy:
+1. IA no Estudo cabe no bolso se a resposta vier das nossas fontes (léxico, UBS, comentários) com cache
+   por versículo: a mesma explicação serve para todo mundo que abrir aquele versículo.
+2. O custo que pesa é gerar os vetores, não a resposta. Gerar os nossos de graça no PC, uma vez
+   (ver "Busca por sentido" acima), elimina o maior gasto deles.
+3. O botão "Explicar" no versículo é simples e direto; dá para encaixar no balão de palavra/versículo
+   que já existe.
+
+Liga com: "Busca por sentido (embeddings)" acima; pivô do Estudo para o modelo Raízes sem IA (a decisão
+de não usar IA pode ser revista com esses números).
