@@ -153,6 +153,16 @@ export function nonStaffRedirect(isStaff: boolean, hasCells: boolean, hasMinistr
   return isStaff ? null : hasCells ? "/groups" : hasMinistries ? "/ministries" : STUDY_HOME;
 }
 
+// Modo foco do Estudo (pedido do dono em 2026-10-14): dentro de /study o menu mostra só o que é de
+// estudo, mais uma saída para a igreja. Quem não tem nada fora do Estudo não ganha a saída.
+const FOCUS_KEYS = ["bible", "sermons", "notes"];
+export const isStudyPath = (path: string): boolean => path === "/study" || path.startsWith("/study/");
+export function focusNav<T extends { key: string; href: string }>(items: T[]): { study: T[]; exitHref: string | null } {
+  const study = items.filter((i) => FOCUS_KEYS.includes(i.key));
+  const out = items.find((i) => !FOCUS_KEYS.includes(i.key));
+  return { study, exitHref: out ? out.href : null };
+}
+
 // Barra de abas do celular: cabem 5 itens; passou disso, os 4 primeiros ficam e o resto vai para "Mais".
 export const TAB_LIMIT = 5;
 const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "encontros", "care", "kids", "reminders", "forms", "sermons", "notes"];

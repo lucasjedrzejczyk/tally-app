@@ -117,8 +117,9 @@ test("células: criar, adicionar membros, marcar presença, reabrir o dia e regi
   await expect(page.getByText(/\(desde [a-z]{3}\/\d{4}\)/)).toBeVisible();
 });
 
-// Celular (390px): com Pessoas e Células a barra passa de 5 itens, então mostra 4 e o resto vai em "Mais".
-test("barra de abas do celular: 4 itens + Mais com o resto", async ({ page }) => {
+// Celular (390px): no Estudo (modo foco) a barra tem só o estudo e a saída "Igreja"; fora dele, com
+// Pessoas e Células a barra passa de 5 itens, então mostra 4 e o resto vai em "Mais".
+test("barra de abas do celular: foco no Estudo, 4 itens + Mais na igreja", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/login");
   await page.getByPlaceholder("E-mail").fill(EMAIL);
@@ -126,6 +127,10 @@ test("barra de abas do celular: 4 itens + Mais com o resto", async ({ page }) =>
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/\/study/, { timeout: 30000 });
   const bar = page.getByRole("navigation", { name: "Menu" }).last();
+  await expect(bar.getByRole("link")).toHaveText(["Bíblia", "Sermões", "Notas", "Buscar", "Igreja"]);
+  await expect(bar.getByRole("button", { name: "Mais" })).toHaveCount(0);
+  await bar.getByRole("link", { name: "Igreja" }).click();
+  await expect(page).toHaveURL(/\/people/);
   await expect(bar.getByRole("link")).toHaveCount(4);
   await bar.getByRole("button", { name: "Mais" }).click();
   await expect(page.getByRole("menuitem", { name: "Ajustes" })).toBeVisible();

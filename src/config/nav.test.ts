@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STUDY_ONLY, STUDY_ITEMS, nonStaffRedirect, splitTabs, studyNavFor, studyOnlyRedirect } from "./nav";
+import { STUDY_ONLY, STUDY_ITEMS, focusNav, isStudyPath, nonStaffRedirect, splitTabs, studyNavFor, studyOnlyRedirect } from "./nav";
 
 describe.runIf(STUDY_ONLY)("modo só Estudo", () => {
   it("manda as telas desligadas para a Bíblia", () => {
@@ -42,5 +42,30 @@ describe("barra de abas do celular", () => {
     const r = splitTabs(all);
     expect(r.shown.map((t) => t.key)).toEqual(["bible", "people", "groups", "finance"]);
     expect(r.more.map((t) => t.key)).toEqual(["ministries", "encontros", "care", "kids", "reminders", "forms", "sermons", "notes", "search", "settings"]);
+  });
+});
+
+describe("modo foco do Estudo", () => {
+  it("reconhece a área de estudo", () => {
+    for (const p of ["/study", "/study/bible/JHN/1", "/study/notes", "/study/busca"]) expect(isStudyPath(p)).toBe(true);
+    for (const p of ["/studyx", "/people", "/"]) expect(isStudyPath(p)).toBe(false);
+  });
+  it("equipe: só Bíblia, Sermões e Notas, com saída para a igreja", () => {
+    const f = focusNav(STUDY_ITEMS);
+    expect(f.study.map((i) => i.key)).toEqual(["bible", "sermons", "notes"]);
+    expect(f.exitHref).toBe("/people");
+  });
+  it("líder de célula sai para as Células; quem só tem a Bíblia não ganha saída", () => {
+    expect(focusNav(studyNavFor(false, true)).exitHref).toBe("/groups");
+    expect(focusNav(studyNavFor(false, false)).exitHref).toBeNull();
+  });
+});
+
+describe("abas do celular no modo foco", () => {
+  it("Bíblia, Sermões, Notas, Buscar e Igreja, nessa ordem e sem Mais", () => {
+    const f = focusNav(STUDY_ITEMS);
+    const r = splitTabs([...f.study, { key: "search" }, { key: "church" }]);
+    expect(r.shown.map((t) => t.key)).toEqual(["bible", "sermons", "notes", "search", "church"]);
+    expect(r.more).toEqual([]);
   });
 });

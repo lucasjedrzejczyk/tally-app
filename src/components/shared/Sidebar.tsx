@@ -8,12 +8,12 @@
 // do app viram seções (cabeçalho quieto + itens).
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { UiIcon } from "@/components/shared/UiIcon";
-import { Baby, Bell, BookOpen, ClipboardList, CalendarDays, Mic, FileText, HandHeart, HeartHandshake, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
+import { Baby, Bell, BookOpen, Church, ClipboardList, CalendarDays, Mic, FileText, HandHeart, HeartHandshake, Users, UsersRound, Wallet, Trash2, Settings, Shield, Circle, PanelLeft, Search, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoMark } from "@/components/shared/LogoMark";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
-import { NAV_GROUPS, TOP_ITEMS, PLANS_ITEM, SETTINGS_ITEM, ADMIN_ITEM, STUDY_ONLY, splitTabs, studyNavFor } from "@/config/nav";
+import { NAV_GROUPS, TOP_ITEMS, PLANS_ITEM, SETTINGS_ITEM, ADMIN_ITEM, STUDY_ONLY, focusNav, isStudyPath, splitTabs, studyNavFor } from "@/config/nav";
 import { planAllows, type PlanCode, type FeatureKey } from "@/features/plans/catalog";
 import { logoutAction } from "@/app/(dashboard)/actions";
 import { parseRefs } from "@/lib/bible/parse";
@@ -25,8 +25,8 @@ export interface NavCounts {
   prayer?: number; // pedidos do link esperando aprovação (ponto no Cuidado)
 }
 
-type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "kids" | "forms" | "reminders" | "finance" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
-const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, encontros: CalendarDays, care: HeartHandshake, kids: Baby, forms: ClipboardList, reminders: Bell, finance: Wallet, trash: Trash2,
+type IconName = "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "kids" | "forms" | "reminders" | "finance" | "church" | "trash" | "settings" | "admin" | "dot" | "panel" | "search" | "logout" | "more";
+const ICONS = { book: BookOpen, sermon: Mic, notes: FileText, people: Users, groups: UsersRound, ministries: HandHeart, encontros: CalendarDays, care: HeartHandshake, kids: Baby, forms: ClipboardList, reminders: Bell, finance: Wallet, church: Church, trash: Trash2,
   settings: Settings, admin: Shield, dot: Circle, panel: PanelLeft, search: Search, logout: LogOut, more: Menu };
 function Icon({ name }: { name: IconName }) {
   return <UiIcon icon={ICONS[name]} className="sb-ico" />;
@@ -47,6 +47,7 @@ const isOn = (path: string, d: Dest): boolean =>
 const plain = (href: string): string[] => [href];
 
 const MINI_KEY = "tally.nav.mini";
+const BACK_KEY = "mercy.nav.back"; // última tela fora do Estudo, para a saída do modo foco voltar a ela
 
 export function Sidebar({
   userLabel,
@@ -165,10 +166,25 @@ export function Sidebar({
     router.push(ref ? `/study/bible/${ref.book}/${ref.chapter}` : `/study/busca?q=${encodeURIComponent(text)}`);
   }
 
+  // Lembra a última tela fora do Estudo (nesta aba), para "Igreja" voltar exatamente para ela.
+  const [back, setBack] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      if (!isStudyPath(path)) sessionStorage.setItem(BACK_KEY, path);
+      setBack(sessionStorage.getItem(BACK_KEY));
+    } catch {
+      /* armazenamento bloqueado: volta para o primeiro item da igreja */
+    }
+  }, [path]);
+
   const countOf = (c?: "inbox" | "people" | "tasks"): number | undefined => (c ? counts[c] || undefined : undefined);
   const navItems = studyNavFor(isStaff, hasCells, hasMinistries);
   const navDests: Dest[] = navItems.map((i) => (i.key === "care" && counts.prayer ? { ...i, dot: true } : i));
-  const dests: Dest[] = STUDY_ONLY ? navDests : [];
+  // Modo foco: dentro do Estudo, só Bíblia, Sermões e Notas, e uma saída para a igreja.
+  const focus = STUDY_ONLY && isStudyPath(path);
+  const { study: focusDests, exitHref } = focusNav(navDests);
+  const exit: Dest | null = focus && exitHref ? { key: "church", label: "Igreja", href: back ?? exitHref, icon: "church", match: [] } : null;
+  const dests: Dest[] = !STUDY_ONLY ? [] : focus ? focusDests : navDests;
   // ponytail: fora do modo só Estudo os itens usam um ícone genérico; desenhar um por módulo quando eles voltarem.
   const groups = STUDY_ONLY
     ? []
@@ -183,8 +199,8 @@ export function Sidebar({
   const footer: Dest[] = [
     ...(STUDY_ONLY && isStaff ? [{ key: "trash", label: "Lixeira", href: "/study/trash", icon: "trash" as const, match: plain("/study/trash") }] : []),
     ...(STUDY_ONLY ? [] : [{ key: PLANS_ITEM.key, label: PLANS_ITEM.label, href: PLANS_ITEM.href, icon: "dot" as const, match: plain(PLANS_ITEM.href) }]),
-    { key: SETTINGS_ITEM.key, label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings", match: plain(SETTINGS_ITEM.href) },
-    ...(isPlatformAdmin ? [{ key: ADMIN_ITEM.key, label: ADMIN_ITEM.label, href: ADMIN_ITEM.href, icon: "admin" as const, match: plain(ADMIN_ITEM.href) }] : []),
+    ...(focus ? [] : [{ key: SETTINGS_ITEM.key, label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }]),
+    ...(isPlatformAdmin && !focus ? [{ key: ADMIN_ITEM.key, label: ADMIN_ITEM.label, href: ADMIN_ITEM.href, icon: "admin" as const, match: plain(ADMIN_ITEM.href) }] : []),
   ];
   const locked = (d: Dest): boolean => !STUDY_ONLY && Boolean(d.feature) && !planAllows(plan, d.feature as FeatureKey);
 
@@ -203,7 +219,9 @@ export function Sidebar({
 
   const initial = (userLabel.trim()[0] ?? "?").toUpperCase();
   // Barra de abas do celular. Líder (não equipe): só Bíblia e Células. Equipe: cabem 5; o resto vai para "Mais".
-  const tabItems: Dest[] = STUDY_ONLY
+  const tabItems: Dest[] = focus
+    ? [...focusDests, ...(isStaff ? [{ key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }] : []), ...(exit ? [exit] : [])]
+    : STUDY_ONLY
     ? [...navDests, ...(isStaff ? [{ key: "search", label: "Buscar", href: "/study/busca", icon: "search" as const, match: plain("/study/busca") }, { key: "settings", label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }] : [])]
     : [];
   const { shown: tabs, more: moreTabs } = splitTabs(tabItems);
@@ -234,6 +252,7 @@ export function Sidebar({
 
         <nav className="sb-nav">
           {dests.map(item)}
+          {exit ? <div className="sb-section sb-exit">{item(exit)}</div> : null}
           {groups.map((g) => (
             <div key={g.key} className="sb-section">
               {g.label && !mini ? <p className="sb-sectionhd">{g.label}</p> : null}
