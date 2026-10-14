@@ -1,0 +1,134 @@
+/* Lembretes (spec 19). Coluna única, linhas com fio. Só o lembrete que muda de estado anima:
+   vira "Lembrado" e, passado o Desfazer, recolhe (0fr + opacity, 200ms). */
+.page {
+  max-width: 42rem;
+}
+.lead {
+  margin: calc(-1 * var(--s-2)) 0 var(--s-4);
+  font-size: var(--t-13);
+  color: var(--text-2);
+}
+.empty {
+  margin: var(--s-6) 0;
+  font-size: var(--t-15);
+  line-height: var(--lh-15);
+  color: var(--text-2);
+}
+.sec {
+  margin-top: var(--s-5);
+}
+.secTitle {
+  margin: 0 0 var(--s-1);
+  font: 600 var(--t-13)/var(--lh-13) var(--font-ui);
+  color: var(--text-2);
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 200ms cubic-bezier(.23, 1, .32, 1), opacity 200ms ease-out;
+}
+.item[data-phase="leaving"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.itemIn {
+  min-height: 0;
+  overflow: hidden;
+}
+.row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  column-gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.formDot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+}
+.act {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.wa {
+  white-space: nowrap;
+  text-decoration: none;
+}
+.waIcon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+.noPhone {
+  font-size: var(--t-13);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.lembrado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  color: var(--blue);
+  white-space: nowrap;
+  animation: in 150ms ease-out;
+}
+@keyframes in {
+  from { opacity: 0; filter: blur(2px); }
+}
+.undo {
+  margin-left: var(--s-2);
+  padding: var(--s-1) var(--s-2);
+  border: 0;
+  border-radius: var(--r-6);
+  background: none;
+  color: var(--text-2);
+  font: 500 var(--t-13)/1 var(--font-ui);
+  cursor: pointer;
+  transition: transform 120ms var(--ease-press);
+}
+.undo:active {
+  transform: scale(.97);
+}
+.undo:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.doneItem .row {
+  opacity: .6;
+}
+@media (hover: hover) and (pointer: fine) {
+  .undo:hover {
+    color: var(--text);
+  }
+}
+@media (max-width: 40rem) {
+  .row {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    row-gap: var(--s-2);
+  }
+  .act {
+    grid-column: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: opacity 150ms ease;
+  }
+  .lembrado {
+    animation: none;
+  }
+  .undo:active {
+    transform: none;
+  }
+}

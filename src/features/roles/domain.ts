@@ -21,10 +21,11 @@ export const PERMISSION_CATALOG: PermissionOption[] = [
   { key: "services.manage", label: "Gerenciar cultos e eventos", group: "Encontros" },
   { key: "kids.view", label: "Fazer entrada e saída das crianças", hint: "Recepção e salas", group: "Crianças" },
   { key: "kids.manage", label: "Gerenciar Crianças", hint: "Salas, fichas e saída sem código", group: "Crianças" },
+  { key: "forms.manage", label: "Gerenciar formulários", hint: "Criar formulários e ver as respostas", group: "Formulários" },
   { key: "communication.send", label: "Enviar comunicações", hint: "Mandar mensagens para um público da igreja", group: "Comunicação" },
 ];
 
-export const PERMISSION_GROUPS = ["Administração", "Pessoas", "Oração", "Grupos", "Ministérios", "Encontros", "Comunicação"] as const;
+export const PERMISSION_GROUPS = ["Administração", "Pessoas", "Oração", "Grupos", "Ministérios", "Encontros", "Crianças", "Formulários", "Comunicação"] as const;
 
 const KEYS = new Set<string>(PERMISSION_CATALOG.map((p) => p.key));
 

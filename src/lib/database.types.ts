@@ -2051,6 +2051,21 @@ export type Database = {
         }
         Relationships: []
       }
+      forms: {
+        Row: { created_at: string; created_by: string | null; fields: Json; id: string; intro: string; open: boolean; org_id: string; title: string; token: string; updated_at: string }
+        Insert: { created_at?: string; created_by?: string | null; fields?: Json; id?: string; intro?: string; open?: boolean; org_id: string; title: string; token?: string; updated_at?: string }
+        Update: { created_at?: string; created_by?: string | null; fields?: Json; id?: string; intro?: string; open?: boolean; org_id?: string; title?: string; token?: string; updated_at?: string }
+        Relationships: []
+      }
+      form_responses: {
+        Row: { answers: Json; created_at: string; form_id: string; id: string; name: string; org_id: string; phone: string | null; seen: boolean; stick_id: string | null }
+        Insert: { answers?: Json; created_at?: string; form_id: string; id?: string; name: string; org_id: string; phone?: string | null; seen?: boolean; stick_id?: string | null }
+        Update: { answers?: Json; created_at?: string; form_id?: string; id?: string; name?: string; org_id?: string; phone?: string | null; seen?: boolean; stick_id?: string | null }
+        Relationships: [
+          { foreignKeyName: "form_responses_form_id_fkey"; columns: ["form_id"]; isOneToOne: false; referencedRelation: "forms"; referencedColumns: ["id"] },
+          { foreignKeyName: "form_responses_stick_id_fkey"; columns: ["stick_id"]; isOneToOne: false; referencedRelation: "sticks"; referencedColumns: ["id"] },
+        ]
+      }
       kids_rooms: {
         Row: {
           active: boolean
@@ -3126,6 +3141,13 @@ export type Database = {
           team_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "schedule_assignments_ministry_id_fkey"
+            columns: ["ministry_id"]
+            isOneToOne: false
+            referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "schedule_assignments_event_id_fkey"
             columns: ["event_id"]
@@ -4956,6 +4978,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      form_public: { Args: { p_token: string }; Returns: Json }
+      submit_form: { Args: { p_answers: Json; p_name: string; p_phone: string; p_token: string }; Returns: boolean }
       prayer_link_org: { Args: { p_token: string }; Returns: string }
       submit_prayer: {
         Args: { p_contact: string; p_name: string; p_private: boolean; p_request: string; p_token: string }

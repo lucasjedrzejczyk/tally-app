@@ -114,7 +114,7 @@ export interface StudyNavItem {
   key: string;
   label: string;
   href: string;
-  icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "kids" | "finance";
+  icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "kids" | "forms" | "reminders" | "finance";
   match: string[];
 }
 export const STUDY_ITEMS: StudyNavItem[] = [
@@ -133,6 +133,10 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "care", label: "Cuidado", href: "/care", icon: "care", match: ["/care"] },
   // Crianças (spec 18): entrada e saída com código, salas e totem; identidade própria mercy kids.
   { key: "kids", label: "Crianças", href: "/kids", icon: "kids", match: ["/kids"] },
+  // Formulários (spec 19): link público, respostas viram Pessoas; só quem tem forms.manage.
+  { key: "forms", label: "Formulários", href: "/forms", icon: "forms", match: ["/forms"] },
+  // Lembretes (spec 19): a lista do que lembrar hoje, com a mensagem pronta do WhatsApp.
+  { key: "reminders", label: "Lembretes", href: "/lembretes", icon: "reminders", match: ["/lembretes"] },
   // Finanças liberada pelo dono em 2026-10-08 (spec 10/11), mesmo no modo só Estudo.
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
@@ -151,7 +155,7 @@ export function nonStaffRedirect(isStaff: boolean, hasCells: boolean, hasMinistr
 
 // Barra de abas do celular: cabem 5 itens; passou disso, os 4 primeiros ficam e o resto vai para "Mais".
 export const TAB_LIMIT = 5;
-const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "encontros", "care", "kids", "sermons", "notes"];
+const TAB_ORDER = ["bible", "people", "groups", "finance", "ministries", "encontros", "care", "kids", "reminders", "forms", "sermons", "notes"];
 export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; more: T[] } {
   const rank = (k: string) => (TAB_ORDER.includes(k) ? TAB_ORDER.indexOf(k) : TAB_ORDER.length);
   const sorted = [...tabs].sort((a, b) => rank(a.key) - rank(b.key));
@@ -159,7 +163,7 @@ export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; m
 }
 
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
-const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries", "/encontros", "/care", "/prayer", "/kids"];
+const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries", "/encontros", "/care", "/prayer", "/kids", "/forms", "/lembretes"];
 
 // Rotas desligadas no modo só Estudo: tudo que o menu lista, menos o próprio Estudo.
 // O fluxo antigo de e-mail (/communication) não está no menu, entra à mão.

@@ -19,6 +19,7 @@ export type PermissionKey =
   | "services.manage"
   | "kids.view"
   | "kids.manage"
+  | "forms.manage"
   | "communication.send";
 
 export interface PermissionOption {
