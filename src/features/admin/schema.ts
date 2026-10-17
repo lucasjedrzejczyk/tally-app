@@ -3,7 +3,6 @@
 // confere o formato do uuid e REJEITA (não coage) status fora da união válida, antes de
 // tocar a RPC. A barreira real continua sendo is_platform_admin() dentro da RPC.
 import type { OrgStatus } from "./domain";
-import type { PlanCode } from "@/features/plans/catalog";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,8 +16,3 @@ export function parseOrgStatus(v: string): OrgStatus | null {
   return v === "active" || v === "suspended" ? v : null;
 }
 
-// Plano alvo válido ou null (mesma filosofia: valor fora da união é erro do chamador). A
-// barreira real é is_platform_admin() dentro da RPC admin_set_org_plan.
-export function parseOrgPlan(v: string): PlanCode | null {
-  return v === "free" || v === "pro" ? v : null;
-}

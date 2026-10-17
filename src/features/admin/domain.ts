@@ -143,3 +143,24 @@ export function filterOrgs<T extends AdminOrgRow>(rows: T[], filter: OrgFilter):
     return hay.includes(q);
   });
 }
+
+// Situação da cobrança de uma igreja, em palavras (spec 20). Mesma ordem de effectivePlan:
+// assinatura ativa, atraso na tolerância, cortesia no prazo; senão cancelada ou grátis.
+export interface BillingRow {
+  plan: string;
+  planStatus: string;
+  proUntil: string | null;
+  graceUntil: string | null;
+}
+
+// Data no fuso de Brasília (a cortesia vence às 23:59 de lá, que já é o dia seguinte em UTC).
+export const brDay = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+export function billingLabel(o: BillingRow, now: Date = new Date()): string {
+  const future = (iso: string | null) => iso !== null && new Date(iso) > now;
+  if (o.planStatus === "active") return "Ativa";
+  if (o.planStatus === "past_due" && future(o.graceUntil)) return `Atrasada, até ${brDay(o.graceUntil!)}`;
+  if (future(o.proUntil)) return o.proUntil!.startsWith("2100") ? "Cortesia sem data" : `Cortesia até ${brDay(o.proUntil!)}`;
+  if (o.planStatus === "canceled") return "Cancelada";
+  return "Grátis";
+}

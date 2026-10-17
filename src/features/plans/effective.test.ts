@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { effectivePlan, type PlanState } from "./effective";
+import { billingNotice, effectivePlan, type PlanState } from "./effective";
 
 const now = new Date("2026-10-17T12:00:00Z");
 const base: PlanState = { plan: "free", plan_status: "none", pro_until: null, grace_until: null };
@@ -27,4 +27,14 @@ describe("effectivePlan", () => {
   it("cancelada usa até o fim do período (pro_until)", () => {
     expect(at({ plan: "pro", plan_status: "canceled", pro_until: "2026-11-01T00:00:00Z" })).toBe("pro");
   });
+});
+
+describe("billingNotice", () => {
+  const n = (o: Partial<PlanState>) => billingNotice({ ...base, ...o }, now);
+  it("atraso na tolerância avisa", () => expect(n({ plan: "pro", plan_status: "past_due", grace_until: "2026-10-20T00:00:00Z" })?.kind).toBe("past_due"));
+  it("cortesia acabando em 7 dias avisa; longe não", () => {
+    expect(n({ pro_until: "2026-10-22T00:00:00Z" })?.kind).toBe("courtesy_ending");
+    expect(n({ pro_until: "2100-01-01T00:00:00Z" })).toBeNull();
+  });
+  it("assinatura ativa não avisa", () => expect(n({ plan: "pro", plan_status: "active", pro_until: "2026-10-22T00:00:00Z" })).toBeNull());
 });

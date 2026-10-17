@@ -8,9 +8,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Select } from "@/components/shared/Select";
 import { brDate } from "@/lib/utils/date";
-import { setOrgStatusAction, setOrgPlanAction } from "../actions";
-import { PLAN_ORDER, PLANS } from "@/features/plans/catalog";
+import { setOrgStatusAction, grantCourtesyAction } from "../actions";
 import {
+  billingLabel,
   buildStatTiles,
   filterOrgs,
   nextStatus,
@@ -47,6 +47,7 @@ export function AdminDashboard({ stats, orgs }: { stats: PlatformStats; orgs: Ad
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string>("");
   const [err, setErr] = useState<string | null>(null);
+  const [courtesy, setCourtesy] = useState<{ orgId: string; until: string; reason: string } | null>(null);
 
   const tiles = useMemo(() => buildStatTiles(stats), [stats]);
 
@@ -76,14 +77,17 @@ export function AdminDashboard({ stats, orgs }: { stats: PlatformStats; orgs: Ad
     else setErr(res.message);
   }
 
-  async function applyPlan(org: AdminOrg, plan: string) {
-    if (plan === org.plan) return;
-    setBusyId(org.orgId);
+  // Cortesia até a data (vazia = encerra), sempre com motivo.
+  async function applyCourtesy(until: string) {
+    if (!courtesy) return;
+    setBusyId(courtesy.orgId);
     setErr(null);
-    const res = await setOrgPlanAction(org.orgId, plan);
+    const res = await grantCourtesyAction(courtesy.orgId, until, courtesy.reason);
     setBusyId(null);
-    if (res.success) router.refresh();
-    else setErr(res.message);
+    if (res.success) {
+      setCourtesy(null);
+      router.refresh();
+    } else setErr(res.message);
   }
 
   const nothing = orgs.length === 0;
@@ -180,19 +184,45 @@ export function AdminDashboard({ stats, orgs }: { stats: PlatformStats; orgs: Ad
                       <td className={styles.orgName}>{o.name}</td>
                       <td className={styles.muted2}>{o.country || "—"}</td>
                       <td>
-                        <Select
-                          compact
-                          value={PLANS[o.plan === "pro" ? "pro" : "free"].code}
-                          disabled={busyId === o.orgId}
-                          onChange={(e) => applyPlan(o, e.target.value)}
-                          aria-label={`Plano de ${o.name}`}
-                        >
-                          {PLAN_ORDER.map((code) => (
-                            <option key={code} value={code}>
-                              {code === "pro" ? `${PLANS[code].name} (cortesia)` : PLANS[code].name}
-                            </option>
-                          ))}
-                        </Select>
+                        {courtesy?.orgId === o.orgId ? (
+                          <div className={styles.rowActions} style={{ flexWrap: "wrap", justifyContent: "flex-start" }}>
+                            <input
+                              type="date"
+                              value={courtesy.until}
+                              onChange={(e) => setCourtesy({ ...courtesy, until: e.target.value })}
+                              aria-label="Cortesia até"
+                            />
+                            <input
+                              placeholder="Motivo"
+                              value={courtesy.reason}
+                              onChange={(e) => setCourtesy({ ...courtesy, reason: e.target.value })}
+                              aria-label="Motivo da cortesia"
+                            />
+                            <button className="link" type="button" disabled={busyId === o.orgId || !courtesy.until} onClick={() => applyCourtesy(courtesy.until)}>
+                              Dar
+                            </button>
+                            <button className="link" type="button" disabled={busyId === o.orgId} onClick={() => applyCourtesy("")}>
+                              Encerrar
+                            </button>
+                            <button className="link" type="button" onClick={() => setCourtesy(null)}>
+                              Fechar
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span>{billingLabel(o)}</span>{" "}
+                            <button
+                              className="link"
+                              type="button"
+                              onClick={() => {
+                                setErr(null);
+                                setCourtesy({ orgId: o.orgId, until: "", reason: "" });
+                              }}
+                            >
+                              Dar cortesia até...
+                            </button>
+                          </>
+                        )}
                       </td>
                       <td>
                         <span className={`hb ${orgStatusBand(o.status)}`}>{orgStatusLabel(o.status)}</span>

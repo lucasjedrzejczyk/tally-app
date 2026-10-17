@@ -8,6 +8,7 @@ import {
   orgStatusBand,
   orgStatusLabel,
   planLabel,
+  billingLabel,
   sortOrgs,
   statusActionLabel,
   type AdminOrgRow,
@@ -145,5 +146,18 @@ describe("domain — filtro", () => {
 
   it("combina texto e status", () => {
     expect(filterOrgs(rows, { query: "us", status: "active" }).map((o) => o.name)).toEqual(["Zoe Church"]);
+  });
+});
+
+describe("billingLabel", () => {
+  const now = new Date("2026-10-17T12:00:00Z");
+  const b = { plan: "free", planStatus: "none", proUntil: null, graceUntil: null };
+  it("cada situação em palavras", () => {
+    expect(billingLabel(b, now)).toBe("Grátis");
+    expect(billingLabel({ ...b, plan: "pro", planStatus: "active" }, now)).toBe("Ativa");
+    expect(billingLabel({ ...b, planStatus: "past_due", graceUntil: "2026-10-24T12:00:00Z" }, now)).toBe("Atrasada, até 24/10/2026");
+    expect(billingLabel({ ...b, proUntil: "2026-12-02T02:59:59Z" }, now)).toBe("Cortesia até 01/12/2026");
+    expect(billingLabel({ ...b, proUntil: "2100-01-01T00:00:00Z" }, now)).toBe("Cortesia sem data");
+    expect(billingLabel({ ...b, planStatus: "canceled", proUntil: "2026-10-01T00:00:00Z" }, now)).toBe("Cancelada");
   });
 });

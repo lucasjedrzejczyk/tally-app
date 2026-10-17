@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { PlanCode } from "@/features/plans/catalog";
-import { effectivePlan } from "@/features/plans/effective";
+import { effectivePlan, type PlanState } from "@/features/plans/effective";
 import { nonStaffRedirect } from "@/config/nav";
 import { isFlagKey, type FlagKey } from "@/features/flags/catalog";
 
@@ -33,6 +33,7 @@ export interface OrgContext extends UserContext {
   ledMinistryIds: string[]; // ministérios que o usuário lidera; idem, só para quem NÃO é equipe
   ledGroupIds: string[]; // células que o usuário lidera/supervisiona; só para quem NÃO é equipe (equipe vê todas)
   plan: PlanCode; // plano que vale agora (effectivePlan: assinatura, tolerância ou cortesia) — trava comercial
+  planState: PlanState | null; // estado bruto da cobrança, para os avisos (atraso, fim de cortesia)
   flags: FlagKey[]; // feature flags LIGADAS para esta org — trava de maturidade (ver features/flags)
 }
 
@@ -102,6 +103,7 @@ export async function requireOrg(): Promise<OrgContext> {
     ledGroupIds,
     ledMinistryIds,
     plan: effectivePlan(data.organizations),
+    planState: data.organizations,
     flags: (flagRows ?? []).filter(isFlagKey),
   };
 }

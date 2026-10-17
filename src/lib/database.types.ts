@@ -2824,6 +2824,8 @@ export type Database = {
           plan_status: string
           pro_until: string | null
           grace_until: string | null
+          billing_doc: string | null
+          asaas_customer_id: string | null
           status: string
         }
         Insert: {
@@ -2837,6 +2839,8 @@ export type Database = {
           plan_status?: string
           pro_until?: string | null
           grace_until?: string | null
+          billing_doc?: string | null
+          asaas_customer_id?: string | null
           status?: string
         }
         Update: {
@@ -2850,6 +2854,8 @@ export type Database = {
           plan_status?: string
           pro_until?: string | null
           grace_until?: string | null
+          billing_doc?: string | null
+          asaas_customer_id?: string | null
           status?: string
         }
         Relationships: []
@@ -4178,6 +4184,48 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          id: string
+          org_id: string
+          provider: string
+          provider_subscription_id: string
+          cycle: string
+          status: string
+          current_period_end: string | null
+          invoice_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          provider?: string
+          provider_subscription_id: string
+          cycle: string
+          status: string
+          current_period_end?: string | null
+          invoice_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          provider?: string
+          provider_subscription_id?: string
+          cycle?: string
+          status?: string
+          current_period_end?: string | null
+          invoice_url?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      billing_events: {
+        Row: { id: number; provider: string; event_id: string; payload: Json; processed_at: string | null }
+        Insert: { id?: number; provider?: string; event_id: string; payload: Json; processed_at?: string | null }
+        Update: { id?: number; provider?: string; event_id?: string; payload?: Json; processed_at?: string | null }
+        Relationships: []
+      }
       sticks: {
         Row: {
           admission_type: string | null
@@ -5006,6 +5054,9 @@ export type Database = {
           name: string
           org_id: string
           plan: string
+          plan_status: string
+          pro_until: string | null
+          grace_until: string | null
           status: string
           sticks: number
         }[]
@@ -5028,8 +5079,13 @@ export type Database = {
         Args: { p_enabled: boolean; p_key: string; p_org: string }
         Returns: undefined
       }
-      admin_set_org_plan: {
-        Args: { p_org: string; p_plan: string }
+      admin_grant_courtesy: {
+        Args: { p_org: string; p_until: string | null; p_reason: string }
+        Returns: undefined
+      }
+      billing_set_customer: { Args: { p_org: string; p_doc: string; p_customer: string }; Returns: undefined }
+      billing_add_subscription: {
+        Args: { p_org: string; p_sub: string; p_cycle: string; p_invoice: string | null }
         Returns: undefined
       }
       admin_set_org_status: {

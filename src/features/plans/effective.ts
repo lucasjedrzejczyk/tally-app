@@ -20,3 +20,15 @@ export function effectivePlan(org: PlanState | null | undefined, now: Date = new
   if (before(now, org.pro_until)) return "pro";
   return "free";
 }
+
+// Aviso para quem cuida da igreja: pagamento atrasado (até quando o pago continua) ou
+// cortesia acabando em até 7 dias. Assinatura ativa não avisa nada.
+export type BillingNotice = { kind: "past_due" | "courtesy_ending"; until: string } | null;
+
+export function billingNotice(org: PlanState | null | undefined, now: Date = new Date()): BillingNotice {
+  if (!org || (org.plan === "pro" && org.plan_status === "active")) return null;
+  if (org.plan_status === "past_due" && before(now, org.grace_until)) return { kind: "past_due", until: org.grace_until! };
+  if (before(now, org.pro_until) && new Date(org.pro_until!).getTime() - now.getTime() <= 7 * 86_400_000)
+    return { kind: "courtesy_ending", until: org.pro_until! };
+  return null;
+}

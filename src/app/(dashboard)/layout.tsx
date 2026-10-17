@@ -1,4 +1,6 @@
-import { requireOrg } from "@/lib/auth/session";
+import { can, requireOrg } from "@/lib/auth/session";
+import { billingNotice } from "@/features/plans/effective";
+import { BillingBanner } from "@/features/billing/components/BillingBanner";
 import { isPlatformAdmin } from "@/features/admin/queries";
 import { resolveActiveCampus } from "@/lib/campus";
 import { Sidebar, type NavCounts } from "@/components/shared/Sidebar";
@@ -43,12 +45,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   // tasks: feature de tarefas ainda sem contador dedicado → 0 (badge oculto).
+  // Aviso de cobrança só para quem cuida da igreja; a fatura vem da última assinatura.
+  const notice = can(ctx, "org.manage") ? billingNotice(ctx.planState) : null;
+  const invoiceUrl =
+    notice?.kind === "past_due"
+      ? ((await supabase.from("subscriptions").select("invoice_url").eq("org_id", orgId).order("created_at", { ascending: false }).limit(1).maybeSingle()).data?.invoice_url ?? null)
+      : null;
+
   const counts: NavCounts = { inbox, people: peopleRes.count ?? 0, tasks: 0, prayer };
 
   return (
     <div className="app">
       <Sidebar userLabel={userLabel} orgName={orgName} counts={counts} isPlatformAdmin={isAdmin} plan={plan} isStaff={isStaff} hasCells={ledGroupIds.length > 0} hasMinistries={ledMinistryIds.length > 0} />
       <div className="main">
+        {notice ? <BillingBanner notice={notice} invoiceUrl={invoiceUrl} /> : null}
         <div className="content view-in">{children}</div>
       </div>
     </div>
