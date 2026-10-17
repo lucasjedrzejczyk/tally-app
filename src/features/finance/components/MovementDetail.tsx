@@ -9,6 +9,7 @@ import { voidTransactionAction } from "../actions";
 import type { Movement } from "../domain";
 import type { FinanceFile } from "../files";
 import { Attachments } from "./Attachments";
+import { PlanLockLink } from "@/features/plans/components/PlanLockLink";
 import styles from "../finance.module.css";
 
 const KIND_LABEL: Record<Movement["kind"], string> = {
@@ -25,6 +26,7 @@ export function MovementDetail({
   currency,
   files,
   onFilesChanged,
+  full,
   onVoided,
   onClose,
 }: {
@@ -33,6 +35,7 @@ export function MovementDetail({
   currency: string;
   files: FinanceFile[];
   onFilesChanged: () => void;
+  full: boolean;
   onVoided: () => void;
   onClose: () => void;
 }) {
@@ -78,7 +81,13 @@ export function MovementDetail({
             Feito com várias partidas na Contabilidade. Para mudar, abra por lá.
           </p>
         ) : null}
-        {m.status === "posted" ? <Attachments files={files} target={{ entryId: m.id }} onChanged={onFilesChanged} /> : null}
+        {m.status !== "posted" ? null : full ? (
+          <Attachments files={files} target={{ entryId: m.id }} onChanged={onFilesChanged} />
+        ) : (
+          <p style={{ marginTop: 14 }}>
+            <PlanLockLink>Anexar comprovante</PlanLockLink>
+          </p>
+        )}
         {error ? <div className="gerr">{error}</div> : null}
       </div>
       <div className={styles.panelFoot}>

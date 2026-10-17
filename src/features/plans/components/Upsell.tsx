@@ -3,6 +3,7 @@
 // de planos. Não é bloqueio de segurança (a RLS é): é convite comercial.
 import Link from "next/link";
 import { FEATURE_LABELS, PLANS, requiredPlanFor, type FeatureKey } from "../catalog";
+import { SITE } from "@/config/site";
 import styles from "../plans.module.css";
 
 export function Upsell({ feature }: { feature: FeatureKey }) {
@@ -20,9 +21,16 @@ export function Upsell({ feature }: { feature: FeatureKey }) {
           Este recurso faz parte do plano <strong>{plan.name}</strong>. Sua igreja está em outro plano
           no momento — dá uma olhada no que o {plan.name} desbloqueia.
         </p>
-        <Link className="btn" href="/plans">
-          Ver planos
-        </Link>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          <Link className="btn" href="/plans">
+            Ver planos
+          </Link>
+          {SITE.tourUrl ? (
+            <a className="btn ghost" href={SITE.tourUrl} target="_blank" rel="noreferrer">
+              Agendar um tour
+            </a>
+          ) : null}
+        </div>
       </div>
     </div>
   );

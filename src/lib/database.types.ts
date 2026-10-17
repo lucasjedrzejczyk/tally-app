@@ -2821,6 +2821,9 @@ export type Database = {
           id: string
           name: string
           plan: string
+          plan_status: string
+          pro_until: string | null
+          grace_until: string | null
           status: string
         }
         Insert: {
@@ -2831,6 +2834,9 @@ export type Database = {
           id?: string
           name: string
           plan?: string
+          plan_status?: string
+          pro_until?: string | null
+          grace_until?: string | null
           status?: string
         }
         Update: {
@@ -2841,6 +2847,9 @@ export type Database = {
           id?: string
           name?: string
           plan?: string
+          plan_status?: string
+          pro_until?: string | null
+          grace_until?: string | null
           status?: string
         }
         Relationships: []

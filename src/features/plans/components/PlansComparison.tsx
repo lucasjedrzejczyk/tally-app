@@ -1,6 +1,6 @@
 // Vitrine de planos (Server Component puro) — os dois planos lado a lado, o plano atual da
 // igreja em destaque, com o que cada um libera. Derivada do catálogo. Marketing/comparação;
-// a troca de verdade é no /admin (até existir cobrança).
+// sem cobrança ainda, o pago vem da cortesia dada no /admin.
 import { PLAN_ORDER, PLANS, ALL_FEATURES, FEATURE_LABELS, asPlanCode, planAllows } from "../catalog";
 import styles from "../plans.module.css";
 
@@ -38,9 +38,9 @@ export function PlansComparison({ currentPlan }: { currentPlan: string }) {
         })}
       </div>
       <p className={styles.coreNote}>
-        Todos os planos incluem o núcleo pastoral da Mercy: Pessoas (Sticks), Grupos, Cultos e presença,
-        Oração, Journey, Trilhas, Agenda, Care e a inteligência de Signals. O plano Igreja acrescenta as
-        ferramentas de operação acima.
+        Todos os planos incluem a Bíblia (leitura, destaques, notas e busca), Sermões, Pessoas, Células e
+        Finanças básica (lançamentos, saldo, dízimos e fechamento do mês). O plano Igreja acrescenta o que
+        está acima. Ao voltar para o grátis, nada é apagado.
       </p>
     </>
   );

@@ -8,7 +8,8 @@
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { asPlanCode, type PlanCode } from "@/features/plans/catalog";
+import type { PlanCode } from "@/features/plans/catalog";
+import { effectivePlan } from "@/features/plans/effective";
 import { nonStaffRedirect } from "@/config/nav";
 import { isFlagKey, type FlagKey } from "@/features/flags/catalog";
 
@@ -31,7 +32,7 @@ export interface OrgContext extends UserContext {
   isStaff: boolean; // equipe = dono ou alguma permissão (espelha is_org_staff do banco, m66)
   ledMinistryIds: string[]; // ministérios que o usuário lidera; idem, só para quem NÃO é equipe
   ledGroupIds: string[]; // células que o usuário lidera/supervisiona; só para quem NÃO é equipe (equipe vê todas)
-  plan: PlanCode; // plano da igreja (organizations.plan) — trava comercial de recursos
+  plan: PlanCode; // plano que vale agora (effectivePlan: assinatura, tolerância ou cortesia) — trava comercial
   flags: FlagKey[]; // feature flags LIGADAS para esta org — trava de maturidade (ver features/flags)
 }
 
@@ -52,7 +53,7 @@ export async function requireOrg(): Promise<OrgContext> {
   // RLS libera (ex.: quem é Pastor pelo cargo, sem permissão avulsa).
   const { data, error } = await supabase
     .from("memberships")
-    .select("org_id, is_owner, role, permissions, role_id, roles(name, permissions), organizations(status, plan)")
+    .select("org_id, is_owner, role, permissions, role_id, roles(name, permissions), organizations(status, plan, plan_status, pro_until, grace_until)")
     .limit(1)
     .maybeSingle();
 
@@ -100,7 +101,7 @@ export async function requireOrg(): Promise<OrgContext> {
     isStaff,
     ledGroupIds,
     ledMinistryIds,
-    plan: asPlanCode(data.organizations?.plan),
+    plan: effectivePlan(data.organizations),
     flags: (flagRows ?? []).filter(isFlagKey),
   };
 }

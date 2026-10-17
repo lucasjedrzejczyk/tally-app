@@ -189,7 +189,7 @@ export function AdminDashboard({ stats, orgs }: { stats: PlatformStats; orgs: Ad
                         >
                           {PLAN_ORDER.map((code) => (
                             <option key={code} value={code}>
-                              {code === "pro" ? "Pro" : "Free"} · {PLANS[code].name}
+                              {code === "pro" ? `${PLANS[code].name} (cortesia)` : PLANS[code].name}
                             </option>
                           ))}
                         </Select>

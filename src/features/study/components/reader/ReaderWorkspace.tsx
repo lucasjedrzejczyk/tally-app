@@ -29,6 +29,7 @@ import { CommentaryTab } from "./CommentaryTab";
 import { NotesTab } from "./NotesTab";
 import { SermonTab } from "./SermonTab";
 import { WordTab } from "./WordTab";
+import { Upsell } from "@/features/plans/components/Upsell";
 import { WorkspacePane, type PaneView } from "./WorkspacePane";
 import styles from "./reader.module.css";
 
@@ -91,7 +92,7 @@ function focusLater(get: () => HTMLElement | null): void {
   window.requestAnimationFrame(() => get()?.focus({ preventScroll: true }));
 }
 
-export function ReaderWorkspace({ children }: { children: ReactNode }) {
+export function ReaderWorkspace({ children, original = true, commentary = true }: { children: ReactNode; original?: boolean; commentary?: boolean }) {
   const router = useRouter();
   const [ws, setWs] = useState<Workspace>(EMPTY_WS);
   const [closing, setClosing] = useState(false);
@@ -270,6 +271,7 @@ export function ReaderWorkspace({ children }: { children: ReactNode }) {
   function renderTab(t: WsTab): ReactNode {
     if (!refNow || !editor) return null;
     if (t.kind === "word") {
+      if (!original) return <Upsell feature="bible_original" />;
       const l = lex[t.strong];
       const at = { book: t.book, chapter: t.chapter, verse: t.verse };
       const toSermon = (): void => {
@@ -287,6 +289,7 @@ export function ReaderWorkspace({ children }: { children: ReactNode }) {
       return <NotesTab refNow={refNow} verse={verse} />;
     }
     if (t.kind === "commentary") {
+      if (!commentary) return <Upsell feature="bible_commentary" />;
       const verse = commentaryVerse;
       return <CommentaryTab refNow={refNow} verse={verse} />;
     }

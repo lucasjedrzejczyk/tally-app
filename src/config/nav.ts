@@ -57,28 +57,28 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "encontros",
     label: "Encontros",
     items: [
-      { key: "encontros", label: "Encontros", href: "/encontros", feature: "events" },
+      { key: "encontros", label: "Encontros", href: "/encontros", feature: "encontros" },
     ],
   },
   {
     key: "cuidado",
     label: "Cuidado",
     items: [
-      { key: "care", label: "Cuidado", href: "/care" },
+      { key: "care", label: "Cuidado", href: "/care", feature: "care" },
       { key: "prayer", label: "Oração", href: "/prayer" },
     ],
   },
   {
     key: "ensino",
     label: "Ensino",
-    items: [{ key: "sermons", label: "Estudo", href: "/study", feature: "study" }],
+    items: [{ key: "sermons", label: "Estudo", href: "/study" }],
   },
   {
     key: "financeiro",
     label: "Financeiro",
     items: [
       // Finanças unificado (spec 10): Contabilidade e Doações viraram abas de /finance.
-      { key: "finance", label: "Finanças", href: "/finance", feature: "finance" },
+      { key: "finance", label: "Finanças", href: "/finance" },
     ],
   },
   {
@@ -116,6 +116,7 @@ export interface StudyNavItem {
   href: string;
   icon: "book" | "sermon" | "notes" | "people" | "groups" | "ministries" | "encontros" | "care" | "kids" | "forms" | "reminders" | "finance";
   match: string[];
+  feature?: FeatureKey; // recurso do plano pago: no grátis o item ganha o selo "Igreja"
 }
 export const STUDY_ITEMS: StudyNavItem[] = [
   { key: "bible", label: "Bíblia", href: "/study/bible", icon: "book", match: ["/study/bible"] },
@@ -126,17 +127,17 @@ export const STUDY_ITEMS: StudyNavItem[] = [
   // Células (spec 14): lista + ficha + presença; a equipe vê todas (o RLS decide, líder só as dele).
   { key: "groups", label: "Células", href: "/groups", icon: "groups", match: ["/groups"] },
   // Ministérios e escalas (spec 15): equipe vê todos; o líder do ministério, só o dele (RLS).
-  { key: "ministries", label: "Ministérios", href: "/ministries", icon: "ministries", match: ["/ministries"] },
+  { key: "ministries", label: "Ministérios", href: "/ministries", icon: "ministries", match: ["/ministries"], feature: "ministries" },
   // Encontros (spec 16): a semana da igreja com cultos e eventos; só a equipe.
-  { key: "encontros", label: "Encontros", href: "/encontros", icon: "encontros", match: ["/encontros"] },
+  { key: "encontros", label: "Encontros", href: "/encontros", icon: "encontros", match: ["/encontros"], feature: "encontros" },
   // Cuidado (spec 17): acompanhamentos e orações; só a equipe (care.view decide o resto).
-  { key: "care", label: "Cuidado", href: "/care", icon: "care", match: ["/care"] },
+  { key: "care", label: "Cuidado", href: "/care", icon: "care", match: ["/care"], feature: "care" },
   // Crianças (spec 18): entrada e saída com código, salas e totem; identidade própria mercy kids.
-  { key: "kids", label: "Crianças", href: "/kids", icon: "kids", match: ["/kids"] },
+  { key: "kids", label: "Crianças", href: "/kids", icon: "kids", match: ["/kids"], feature: "kids" },
   // Formulários (spec 19): link público, respostas viram Pessoas; só quem tem forms.manage.
-  { key: "forms", label: "Formulários", href: "/forms", icon: "forms", match: ["/forms"] },
+  { key: "forms", label: "Formulários", href: "/forms", icon: "forms", match: ["/forms"], feature: "forms" },
   // Lembretes (spec 19): a lista do que lembrar hoje, com a mensagem pronta do WhatsApp.
-  { key: "reminders", label: "Lembretes", href: "/lembretes", icon: "reminders", match: ["/lembretes"] },
+  { key: "reminders", label: "Lembretes", href: "/lembretes", icon: "reminders", match: ["/lembretes"], feature: "reminders" },
   // Finanças liberada pelo dono em 2026-10-08 (spec 10/11), mesmo no modo só Estudo.
   { key: "finance", label: "Finanças", href: "/finance", icon: "finance", match: ["/finance"] },
 ];
@@ -173,7 +174,7 @@ export function splitTabs<T extends { key: string }>(tabs: T[]): { shown: T[]; m
 }
 
 // Telas que continuam ligadas no modo só Estudo além do próprio Estudo.
-const STUDY_ONLY_KEEPS = ["/finance", "/people", "/groups", "/ministries", "/encontros", "/care", "/prayer", "/kids", "/forms", "/lembretes"];
+const STUDY_ONLY_KEEPS = ["/plans", "/finance", "/people", "/groups", "/ministries", "/encontros", "/care", "/prayer", "/kids", "/forms", "/lembretes"];
 
 // Rotas desligadas no modo só Estudo: tudo que o menu lista, menos o próprio Estudo.
 // O fluxo antigo de e-mail (/communication) não está no menu, entra à mão.

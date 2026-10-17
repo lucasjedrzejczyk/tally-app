@@ -3,6 +3,7 @@ import { loadBills, loadFiles, loadLedger } from "@/features/finance/queries";
 import { isoDate, today } from "@/lib/utils/date";
 import { listDonations, listReceipts } from "@/features/giving/queries";
 import { FinanceBoard, type FinanceTab } from "@/features/finance/components/FinanceBoard";
+import { gateFeature } from "@/features/plans/gate";
 
 // Finanças (spec 10): o livro de partidas dobradas lido em linguagem de tesoureiro.
 // Área sensível: só finance.manage (o RLS m48/m30 é a barreira real). A aba vem da URL
@@ -23,7 +24,9 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
   }
   const { aba } = await searchParams;
   const tab: FinanceTab = aba === "dizimos" || aba === "fechamento" || aba === "contas" ? aba : "movimentacoes";
-  const withBills = tab === "contas" || tab === "movimentacoes";
+  // Grátis (spec 20): lançar, saldo, dízimos e fechamento. Contas, comprovantes, extrato e recibos são do pago.
+  const full = gateFeature(ctx, "finance_full");
+  const withBills = full && (tab === "contas" || tab === "movimentacoes");
   const [ledger, donations, receipts, billData, files] = await Promise.all([
     loadLedger(ctx.supabase, ctx.orgId),
     tab === "dizimos" ? listDonations(ctx.supabase, ctx.orgId) : Promise.resolve([]),
@@ -31,5 +34,5 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
     withBills ? loadBills(ctx.supabase, ctx.orgId, isoDate(today())) : Promise.resolve({ bills: [], series: [] }),
     withBills ? loadFiles(ctx.supabase, ctx.orgId) : Promise.resolve([]),
   ]);
-  return <FinanceBoard ledger={ledger} tab={tab} donations={donations} receipts={receipts} bills={billData.bills} series={billData.series} files={files} />;
+  return <FinanceBoard ledger={ledger} tab={tab} donations={donations} receipts={receipts} bills={billData.bills} series={billData.series} files={files} full={full} />;
 }

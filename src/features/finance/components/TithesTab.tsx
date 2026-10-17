@@ -14,6 +14,7 @@ import { donorKey, donorTotals, methodLabel, sumDonations, type DonorTotal } fro
 import { issueAnnualReceipt, issueGiftReceipt } from "@/features/giving/actions";
 import type { Donation, ReceiptListItem } from "@/features/giving/types";
 import { Panel } from "./Panel";
+import { PlanLockLink } from "@/features/plans/components/PlanLockLink";
 import styles from "../finance.module.css";
 
 const normalize = (s: string): string => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -26,6 +27,7 @@ export function TithesTab({
   givingTotal,
   currency,
   onRegister,
+  full,
 }: {
   donations: Donation[];
   receipts: ReceiptListItem[];
@@ -34,6 +36,7 @@ export function TithesTab({
   givingTotal: number; // dízimos, ofertas e doações do mês no livro, com ou sem nome
   currency: string;
   onRegister: () => void;
+  full: boolean; // recibos e declaração anual são do plano pago
 }) {
   const [query, setQuery] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -119,6 +122,7 @@ export function TithesTab({
               receipts={receipts}
               year={Number((range.to ?? isoDate(today())).slice(0, 4))}
               currency={currency}
+              full={full}
               onClose={close}
             />
           )}
@@ -134,6 +138,7 @@ function DonorDetail({
   receipts,
   year,
   currency,
+  full,
   onClose,
 }: {
   donor: DonorTotal;
@@ -141,6 +146,7 @@ function DonorDetail({
   receipts: ReceiptListItem[];
   year: number;
   currency: string;
+  full: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -176,7 +182,9 @@ function DonorDetail({
                 </span>
                 <b>
                   {money(d.amount, currency)}{" "}
-                  {receiptId ? (
+                  {!full ? (
+                    <PlanLockLink>Recibo</PlanLockLink>
+                  ) : receiptId ? (
                     <button type="button" className="link" onClick={() => router.push(`/finance/recibo/${receiptId}`)}>
                       Ver recibo
                     </button>
@@ -195,7 +203,9 @@ function DonorDetail({
         <button className={`btn ghost ${styles.press}`} type="button" onClick={onClose}>
           Fechar
         </button>
-        {isAnonymous ? null : (
+        {isAnonymous ? null : !full ? (
+          <PlanLockLink>Declaração de {year}</PlanLockLink>
+        ) : (
           <button
             className={`btn ${styles.press}`}
             type="button"

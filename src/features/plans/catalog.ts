@@ -1,45 +1,67 @@
-// Catálogo de planos da Mercy — FONTE DA VERDADE (em código, sem tabela nova). O único
-// estado no banco é organizations.plan (text, default 'free'). Aqui vive o que cada plano
-// libera, os rótulos e o gancho de preço (pronto p/ apontar ao Stripe numa fase futura).
+// Catálogo de planos da Mercy — FONTE DA VERDADE (em código, sem tabela nova). O plano que
+// vale para a igreja é calculado em effective.ts a partir de organizations (plan,
+// plan_status, pro_until, grace_until). Aqui vive o que cada plano libera e os rótulos.
 // Diferenciação é SÓ por recurso (feature-gating), não por tamanho. Ver
 // docs/superpowers/specs/2026-08-01-planos-feature-gating-design.md.
 
 export type PlanCode = "free" | "pro";
 
-// Recursos TRAVÁVEIS (os módulos Pro). Módulos de núcleo (Sticks, Grupos, Cultos, Oração,
-// Journey, Trilhas, Agenda, Care, Coordenação, Home, Inbox) NÃO têm chave — são sempre
-// liberados, então nem entram aqui.
+// Recursos TRAVÁVEIS (o que só o plano Igreja libera, spec 20). Tudo que não tem chave é do
+// grátis: Bíblia (leitura, destaques, notas, busca), Sermões, Pessoas, Células e Finanças
+// básica. Travas de tela inteira vão no layout (makeGatedLayout); as de pedaço de tela
+// (palavra original, comentários, partes de Finanças) usam planAllows/Upsell no lugar.
 export type FeatureKey =
-  | "finance"
+  | "bible_original"
+  | "bible_commentary"
+  | "finance_full"
   | "accounting"
+  | "ministries"
+  | "encontros"
+  | "care"
+  | "kids"
+  | "forms"
+  | "reminders"
   | "giving"
   | "communication"
-  | "study"
   | "teams"
   | "events"
   | "members";
 
 // Todos os recursos travados, na ordem de exibição (usado na comparação e nos testes).
 export const ALL_FEATURES: FeatureKey[] = [
-  "finance",
+  "bible_original",
+  "bible_commentary",
+  "finance_full",
   "accounting",
+  "ministries",
+  "encontros",
+  "care",
+  "kids",
+  "forms",
+  "reminders",
   "giving",
   "communication",
-  "study",
   "teams",
   "events",
   "members",
 ];
 
-// Rótulo humano de cada recurso (para a vitrine de planos).
+// Rótulo humano de cada recurso (para a vitrine de planos e o Upsell).
 export const FEATURE_LABELS: Record<FeatureKey, string> = {
-  finance: "Financeiro",
-  accounting: "Contabilidade",
+  bible_original: "Palavra original (grego e hebraico)",
+  bible_commentary: "Comentários bíblicos",
+  finance_full: "Finanças completa (contas a pagar, comprovantes, extrato, recibos)",
+  accounting: "Área do contador",
+  ministries: "Ministérios e escalas",
+  encontros: "Encontros",
+  care: "Cuidado",
+  kids: "Crianças",
+  forms: "Formulários",
+  reminders: "Lembretes",
   giving: "Doações e recibos",
   communication: "Comunicação (Espaços, Mensagens, Chat)",
-  study: "Estudo (sermões + estudo bíblico)",
-  teams: "Ministérios e escalas",
-  events: "Encontros",
+  teams: "Escalas",
+  events: "Eventos",
   members: "Contas de membro e convites",
 };
 
@@ -51,19 +73,19 @@ export interface Plan {
   features: FeatureKey[]; // recursos travados que ESTE plano libera
 }
 
-// Free não libera nenhum recurso travado (só o núcleo pastoral); Pro libera todos.
+// Grátis não libera nenhum recurso travado (só o que não tem chave); Igreja libera todos.
 export const PLANS: Record<PlanCode, Plan> = {
   free: {
     code: "free",
     name: "Comunidade",
-    tagline: "O coração pastoral da Mercy — de graça para pastorear.",
+    tagline: "Bíblia, sermões, pessoas, células e finanças básica. De graça.",
     priceHint: "Grátis",
     features: [],
   },
   pro: {
     code: "pro",
     name: "Igreja",
-    tagline: "Tudo para operar a igreja — finanças, comunicação, ensino e times.",
+    tagline: "Tudo do grátis, mais palavra original, comentários, finanças completa e os ministérios.",
     priceHint: "Em breve",
     features: [...ALL_FEATURES],
   },

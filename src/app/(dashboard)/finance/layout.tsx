@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 import { requireStaff } from "@/lib/auth/session";
-import { makeGatedLayout } from "@/features/plans/gatedLayout";
 
-const Gated = makeGatedLayout("finance");
-
-// Finanças: só a equipe (líder de célula volta para as células dele) e só no plano que libera o recurso.
+// Finanças: só a equipe (líder de célula volta para as células dele). A básica é do grátis;
+// as partes pagas travam dentro da tela e em contador/ e recibo/ (spec 20).
 export default async function FinanceLayout({ children }: { children: ReactNode }) {
   await requireStaff();
-  return <Gated>{children}</Gated>;
+  return <>{children}</>;
 }

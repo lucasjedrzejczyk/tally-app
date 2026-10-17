@@ -6,14 +6,8 @@ import { BibleDemo } from "./BibleDemo";
 import s from "./site.module.css";
 
 // Página pública do produto, em EN ("/") e PT ("/pt"). Um componente, dois textos.
-export const SITE = {
-  company: "Mercy",
-  city: "Blumenau, Brazil",
-  founded: "2026",
-  email: "contact@joinmercy.com",
-  // Página de agendamento do Google Agenda ("Tour do Mercy", seg a qui 14h às 17h).
-  tourUrl: "https://calendar.google.com/calendar/appointments/schedules/AcZssZ13q5bTuGC-gjj4bfhecinSdrvZAbOQYhQAVd2B2NkWF2PwAifM3dNp6FQNf8SNNcYpB14XikLG",
-};
+import { SITE } from "@/config/site";
+export { SITE };
 
 type Lang = "pt" | "en";
 

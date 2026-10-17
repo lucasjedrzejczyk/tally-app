@@ -29,6 +29,7 @@ import { ResolvePanel } from "./ResolvePanel";
 import type { Bill, BillKind, BillSeries } from "../bills";
 import type { FinanceFile } from "../files";
 import { ClosingTab } from "./ClosingTab";
+import { Upsell } from "@/features/plans/components/Upsell";
 import styles from "../finance.module.css";
 
 const TOAST_MS = 6000;
@@ -54,6 +55,7 @@ export function FinanceBoard({
   bills,
   series,
   files,
+  full,
 }: {
   ledger: FinanceLedger;
   tab: FinanceTab;
@@ -62,6 +64,7 @@ export function FinanceBoard({
   bills: Bill[];
   series: BillSeries[];
   files: FinanceFile[];
+  full: boolean; // plano libera Finanças completa (contas, comprovantes, extrato, recibos)
 }) {
   const router = useRouter();
   const { accounts, entries, lines, movements, currency } = ledger;
@@ -123,7 +126,7 @@ export function FinanceBoard({
   // Atalho N: abre na hora, sem animação de espera (ação repetida).
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (panel || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return;
+      if (panel || (tab === "contas" && !full) || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return;
       if (e.key === "n" || e.key === "N") {
         e.preventDefault();
         openNew();
@@ -131,7 +134,7 @@ export function FinanceBoard({
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [panel, openNew]);
+  }, [panel, openNew, tab, full]);
 
   const onSaved = (entryId: string, close: () => void): void => {
     close();
@@ -164,7 +167,7 @@ export function FinanceBoard({
           <button type="button" className={`btn ${styles.press}`} onClick={() => window.print()}>
             Imprimir / PDF
           </button>
-        ) : (
+        ) : tab === "contas" && !full ? null : (
           <button type="button" className={`btn ${styles.press}`} onClick={openNew} title="Atalho: N">
             {tab === "contas" ? "Nova conta" : tab === "dizimos" ? "Lançar culto" : "Novo lançamento"}
           </button>
@@ -186,10 +189,12 @@ export function FinanceBoard({
           currency={currency}
           nameOf={nameOf}
         />
+      ) : tab === "contas" && !full ? (
+        <Upsell feature="finance_full" />
       ) : tab === "contas" ? (
         <BillsTab bills={bills} series={series} currency={currency} nameOf={nameOf} onOpen={(id) => setPanel({ mode: "bill", id })} onNew={openNew} clipIds={clipIds} />
       ) : tab === "dizimos" ? (
-        <TithesTab donations={donations} receipts={receipts} range={range} monthName={monthName} givingTotal={givingTotal} currency={currency} onRegister={openNew} />
+        <TithesTab donations={donations} receipts={receipts} range={range} monthName={monthName} givingTotal={givingTotal} currency={currency} onRegister={openNew} full={full} />
       ) : (
         <MovementsTab
           movements={movements}
@@ -277,13 +282,13 @@ export function FinanceBoard({
 
       {panel?.mode === "import" ? (
         <Panel title="Importar extrato" onClose={() => setPanel(null)}>
-          {(close) => <ImportPanel accounts={accounts} currency={currency} onClose={close} onClassify={() => setPanelState({ mode: "classify" })} />}
+          {(close) => !full ? <Upsell feature="finance_full" /> : <ImportPanel accounts={accounts} currency={currency} onClose={close} onClassify={() => setPanelState({ mode: "classify" })} />}
         </Panel>
       ) : null}
 
       {panel?.mode === "classify" ? (
         <Panel title="Classificar extrato" onClose={() => setPanel(null)}>
-          {(close) => <ClassifyPanel accounts={accounts} movements={movements} bills={bills} people={ledger.people} currency={currency} onClose={close} />}
+          {(close) => !full ? <Upsell feature="finance_full" /> : <ClassifyPanel accounts={accounts} movements={movements} bills={bills} people={ledger.people} currency={currency} onClose={close} />}
         </Panel>
       ) : null}
 
@@ -327,6 +332,7 @@ export function FinanceBoard({
             <MovementDetail
               movement={viewing}
               files={files.filter((f) => f.entryId === viewing.id)}
+              full={full}
               onFilesChanged={() => router.refresh()}
               nameOf={nameOf}
               currency={currency}

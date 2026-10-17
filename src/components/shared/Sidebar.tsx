@@ -198,11 +198,11 @@ export function Sidebar({
       }));
   const footer: Dest[] = [
     ...(STUDY_ONLY && isStaff ? [{ key: "trash", label: "Lixeira", href: "/study/trash", icon: "trash" as const, match: plain("/study/trash") }] : []),
-    ...(STUDY_ONLY ? [] : [{ key: PLANS_ITEM.key, label: PLANS_ITEM.label, href: PLANS_ITEM.href, icon: "dot" as const, match: plain(PLANS_ITEM.href) }]),
+    ...(focus || !isStaff ? [] : [{ key: PLANS_ITEM.key, label: PLANS_ITEM.label, href: PLANS_ITEM.href, icon: "dot" as const, match: plain(PLANS_ITEM.href) }]),
     ...(focus ? [] : [{ key: SETTINGS_ITEM.key, label: "Ajustes", href: SETTINGS_ITEM.href, icon: "settings" as const, match: plain(SETTINGS_ITEM.href) }]),
     ...(isPlatformAdmin && !focus ? [{ key: ADMIN_ITEM.key, label: ADMIN_ITEM.label, href: ADMIN_ITEM.href, icon: "admin" as const, match: plain(ADMIN_ITEM.href) }] : []),
   ];
-  const locked = (d: Dest): boolean => !STUDY_ONLY && Boolean(d.feature) && !planAllows(plan, d.feature as FeatureKey);
+  const locked = (d: Dest): boolean => Boolean(d.feature) && !planAllows(plan, d.feature as FeatureKey);
 
   const item = (d: Dest): React.ReactElement => {
     const on = isOn(path, d);
