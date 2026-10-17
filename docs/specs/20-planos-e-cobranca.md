@@ -77,8 +77,9 @@ Atenção: `plan='pro'` sozinho (sem `plan_status='active'`) deixa de liberar. P
 
 ### Beta testers
 
-Migration põe `pro_until` = data que o dono escolher (padrão: hoje + 60 dias) nas 4 igrejas
-ativas, e `plan='free'`, `plan_status='none'`. Ou seja: continuam com tudo até a data.
+Sem data definida: o dono encerra quando quiser pelo `/admin`. Migration põe
+`pro_until = '2100-01-01'` (cortesia sem fim; o `/admin` mostra "sem data" e tem "Encerrar
+cortesia") nas 4 igrejas ativas, e `plan='free'`, `plan_status='none'`.
 **Só aplicar depois do código no ar** (lição da tarefa 0 do AGENTS.md).
 
 ## Parte 2: cobrança pelo Asaas
