@@ -11,7 +11,7 @@ import { studyOnlyRedirect } from "@/config/nav";
 // Rotas públicas (sem sessão): login e callbacks de auth.
 // O manifesto, o service worker e a página offline precisam abrir sem sessão: o navegador
 // busca o manifesto sem cookie, e a página offline é guardada para quando não há rede.
-const PUBLIC_PREFIXES = ["/login", "/auth", "/esqueci-senha", "/redefinir-senha", "/site", "/pt", "/termos", "/privacidade", "/pedido", "/formulario", "/manifest.webmanifest", "/sw.js", "/offline.html"];
+const PUBLIC_PREFIXES = ["/login", "/auth", "/esqueci-senha", "/redefinir-senha", "/site", "/pt", "/termos", "/privacidade", "/tour", "/pedido", "/formulario", "/manifest.webmanifest", "/sw.js", "/offline.html"];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));

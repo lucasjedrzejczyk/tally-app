@@ -109,3 +109,7 @@
 .doc h2 { font-size: var(--t-17); line-height: var(--lh-17); font-weight: 600; margin: var(--s-6) 0 var(--s-2); }
 .doc p, .doc li { font-size: var(--t-15); line-height: var(--lh-15); color: var(--text); margin: 0 0 var(--s-3); }
 .doc ul { padding-left: var(--s-5); }
+
+/* Tour: o seletor do Google Agenda vem em fundo claro fixo; a moldura acompanha. */
+.tourFrame { display: block; width: 100%; height: 700px; border: 0; border-radius: var(--r-10); background: #fff; margin: 0 0 var(--s-8); }
+@media (max-width: 640px) { .tourFrame { height: 1250px; } }

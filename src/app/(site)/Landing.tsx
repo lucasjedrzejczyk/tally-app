@@ -11,6 +11,8 @@ export const SITE = {
   city: "Blumenau, Brazil",
   founded: "2026",
   email: "contact@joinmercy.com",
+  // Página de agendamento do Google Agenda ("Tour do Mercy", seg a qui 14h às 17h).
+  tourUrl: "https://calendar.google.com/calendar/appointments/schedules/AcZssZ13q5bTuGC-gjj4bfhecinSdrvZAbOQYhQAVd2B2NkWF2PwAifM3dNp6FQNf8SNNcYpB14XikLG",
 };
 
 type Lang = "pt" | "en";
